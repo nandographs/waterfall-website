@@ -1,10 +1,10 @@
-import { motion } from 'motion/react';
-import { ArrowRight, Check, Droplet, Sparkles, Shield, Activity, ChevronRight, Menu, User, MapPin, ShoppingBag } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ArrowRight, Check, Droplet, Sparkles, Shield, Activity, ChevronRight, Menu, User, MapPin, ShoppingBag, X } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 // --- Reusable Components ---
 
-const FadeIn = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
+const FadeIn = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string, key?: React.Key }) => (
   <motion.div
     initial={{ opacity: 0, y: 30 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -16,7 +16,7 @@ const FadeIn = ({ children, delay = 0, className = "" }: { children: React.React
   </motion.div>
 );
 
-const Button = ({ children, variant = 'primary', className = "" }: { children: React.ReactNode, variant?: 'primary' | 'secondary' | 'outline', className?: string }) => {
+const Button = ({ children, variant = 'primary', className = "", onClick }: { children: React.ReactNode, variant?: 'primary' | 'secondary' | 'outline', className?: string, onClick?: () => void }) => {
   const baseStyle = "inline-flex items-center justify-center rounded-full px-8 py-3.5 text-sm font-medium transition-all duration-300";
   const variants = {
     primary: "bg-black text-white hover:bg-neutral-800",
@@ -25,16 +25,230 @@ const Button = ({ children, variant = 'primary', className = "" }: { children: R
   };
   
   return (
-    <button className={`${baseStyle} ${variants[variant]} ${className}`}>
+    <button onClick={onClick} className={`${baseStyle} ${variants[variant]} ${className}`}>
       {children}
     </button>
   );
 }
 
+// --- Reusable Components for Navigation & Forms ---
+
+const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const links = [
+    { label: "Início", href: "#home" },
+    { label: "Detalhes", href: "#detalhes" },
+    { label: "Tecnologia", href: "#tecnologia" },
+    { label: "Etapas", href: "#etapas" },
+    { label: "Especificações", href: "#especificacoes" }
+  ];
+
+  const handleScroll = (href: string) => {
+    onClose();
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <div className={`fixed inset-0 z-50 pointer-events-none`}>
+      {/* Backdrop */}
+      <div 
+        className={`absolute inset-0 bg-black/30 backdrop-blur-xs transition-opacity duration-500 pointer-events-auto ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} 
+        onClick={onClose}
+      />
+      {/* Drawer */}
+      <div 
+        className={`absolute top-0 left-0 w-80 h-full bg-white shadow-2xl p-8 flex flex-col justify-between transition-transform duration-500 ease-[0.21, 0.47, 0.32, 0.98] pointer-events-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <div>
+          <div className="flex justify-between items-center mb-12">
+            <div className="flex items-center gap-2">
+              <img src="/images/LOGO.png" alt="Water Diamond Logo" className="h-7 w-auto object-contain" />
+              <div>
+                <div className="font-semibold tracking-widest text-xs uppercase text-black">Water Diamond</div>
+                <div className="text-[9px] tracking-widest uppercase text-neutral-500">Ion Center</div>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 text-black hover:opacity-75 transition-opacity cursor-pointer">
+              <X size={20} />
+            </button>
+          </div>
+
+          <nav className="flex flex-col gap-6">
+            {links.map((link, i) => (
+              <button 
+                key={i} 
+                onClick={() => handleScroll(link.href)}
+                className="text-left text-lg font-light hover:text-neutral-500 transition-colors uppercase tracking-wider text-black py-2 cursor-pointer"
+              >
+                {link.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="text-neutral-400 text-[10px] tracking-widest uppercase">
+          A melhor água do mundo.
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ContactModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formData, setFormData] = useState({ name: '', phone: '', email: '', installation: 'Bancada' });
+
+  useEffect(() => {
+    if (!isOpen) {
+      const timer = setTimeout(() => {
+        setFormSubmitted(false);
+        setFormData({ name: '', phone: '', email: '', installation: 'Bancada' });
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormSubmitted(true);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+      {/* Backdrop */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+        onClick={onClose}
+      />
+
+      {/* Modal Box */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.4, ease: [0.21, 0.47, 0.32, 0.98] }}
+        className="relative bg-white text-black w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl z-10 border border-neutral-100"
+      >
+        <button 
+          onClick={onClose} 
+          className="absolute top-6 right-6 p-2 text-neutral-400 hover:text-black transition-colors cursor-pointer"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="p-8 md:p-10">
+          {!formSubmitted ? (
+            <>
+              <div className="mb-8">
+                <h3 className="text-2xl font-medium tracking-tight text-black mb-2">Transforme sua água</h3>
+                <p className="text-sm font-light text-neutral-500">Deixe seus dados e um de nossos especialistas em qualidade de água entrará em contato para um orçamento personalizado.</p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label htmlFor="modal-name" className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">Nome Completo</label>
+                  <input 
+                    id="modal-name"
+                    type="text" 
+                    required 
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="Seu nome"
+                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors"
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="modal-phone" className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">WhatsApp / Telefone</label>
+                    <input 
+                      id="modal-phone"
+                      type="tel" 
+                      required 
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      placeholder="(00) 00000-0000"
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="modal-email" className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">E-mail</label>
+                    <input 
+                      id="modal-email"
+                      type="email" 
+                      required 
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      placeholder="seu@email.com"
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="modal-install" className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">Preferência de Instalação</label>
+                  <select 
+                    id="modal-install"
+                    value={formData.installation}
+                    onChange={(e) => setFormData({...formData, installation: e.target.value})}
+                    className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors appearance-none"
+                  >
+                    <option value="Bancada">Bancada de Cozinha</option>
+                    <option value="Parede">Fixado na Parede</option>
+                    <option value="Faucet Gourmet">Conexão Faucet Gourmet</option>
+                    <option value="Outros">Outros / Comercial</option>
+                  </select>
+                </div>
+
+                <button 
+                  type="submit" 
+                  className="w-full bg-black text-white rounded-full py-4 text-sm font-medium hover:bg-neutral-800 transition-colors mt-4 cursor-pointer"
+                >
+                  Solicitar contato de especialista
+                </button>
+              </form>
+            </>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-10"
+            >
+              <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Check size={28} className="text-black" />
+              </div>
+              <h3 className="text-2xl font-medium tracking-tight mb-2">Obrigado, {formData.name.split(' ')[0]}!</h3>
+              <p className="text-sm font-light text-neutral-500 max-w-xs mx-auto mb-8">
+                Nossos consultores receberam sua solicitação de orçamento e entrarão em contato no WhatsApp em breve.
+              </p>
+              <button 
+                onClick={onClose}
+                className="border border-neutral-200 rounded-full px-8 py-3 text-sm font-medium hover:bg-neutral-50 transition-colors cursor-pointer"
+              >
+                Fechar janela
+              </button>
+            </motion.div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 // --- Main App ---
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeColor, setActiveColor] = useState<'white' | 'black'>('white');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,21 +258,37 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveColor(prev => prev === 'white' ? 'black' : 'white');
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [activeColor]);
+
   return (
-    <div className="min-h-screen bg-white selection:bg-neutral-200">
+    <div id="home" className="min-h-screen bg-white selection:bg-neutral-200">
       
       {/* Navigation (Sticky & Minimalist) */}
       <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? 'bg-white/90 backdrop-blur-md border-b border-neutral-100 py-4' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <button className="p-2 -ml-2 text-white mix-blend-difference hover:opacity-70 transition-opacity">
+            <button 
+              onClick={() => setIsMenuOpen(true)}
+              className="p-2 -ml-2 text-white mix-blend-difference hover:opacity-70 transition-opacity cursor-pointer"
+            >
               <Menu size={20} />
             </button>
           </div>
           
-          <div className="absolute left-1/2 -translate-x-1/2 text-center text-white mix-blend-difference">
-            <div className="font-semibold tracking-widest text-xs uppercase">Water Diamond</div>
-            <div className="text-[9px] tracking-widest uppercase opacity-70">Ion Center</div>
+          <div 
+            onClick={() => document.querySelector('#home')?.scrollIntoView({ behavior: 'smooth' })}
+            className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 text-white mix-blend-difference cursor-pointer"
+          >
+             <img src="/images/LOGO.png" alt="Water Diamond Logo" className="h-7 w-auto object-contain brightness-0 invert" />
+             <div className="text-left hidden sm:block">
+               <div className="font-semibold tracking-widest text-[10px] uppercase leading-tight">Water Diamond</div>
+               <div className="text-[8px] tracking-widest uppercase opacity-70 leading-none">Ion Center</div>
+             </div>
           </div>
 
           <div className="flex items-center gap-6 text-white mix-blend-difference">
@@ -71,13 +301,19 @@ export default function App() {
 
       {/* HERO 1 — IMERSÃO / IMPACTO VISUAL */}
       <section className="relative h-screen w-full flex items-center bg-black overflow-hidden">
-        {/* Abstract water image background */}
+        {/* Video de fundo em loop */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1548839140-29a749e1bc4e?q=80&w=2000&auto=format&fit=crop" 
-            alt="Water Ripples" 
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster="https://images.unsplash.com/photo-1548839140-29a749e1bc4e?q=80&w=2000&auto=format&fit=crop"
             className="w-full h-full object-cover opacity-60"
-          />
+          >
+            <source src="/videos/IONCENTER_VIDEO.mp4" type="video/mp4" />
+            Seu navegador não suporta vídeos HTML5.
+          </video>
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
         </div>
         
@@ -96,38 +332,48 @@ export default function App() {
             <p className="text-base md:text-lg font-light text-neutral-300 max-w-2xl mb-10 leading-relaxed">
               A central de tratamento que transforma a água da sua casa em um novo padrão de pureza, equilíbrio e tecnologia. Água ultra filtrada, purificada, alcalinizada e ionizada em um único sistema.
             </p>
-            <Button variant="secondary" className="px-10">
+            <Button onClick={() => setIsModalOpen(true)} variant="secondary" className="px-10">
               Transformar minha água
             </Button>
           </motion.div>
         </div>
 
-        <div className="absolute bottom-10 left-6 md:left-12 flex items-center gap-4 text-white/50 text-xs tracking-widest uppercase">
-          <span>Scroll to discover</span>
-        </div>
       </section>
 
       {/* HERO SECUNDÁRIO — PRODUTO CENTRALIZADO */}
-      <section className="py-24 md:py-40 bg-[#f8f8f6]">
+      <section id="detalhes" className="py-24 md:py-40 bg-[#f8f8f6]">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-2 gap-16 lg:gap-32 items-center">
             
-            <FadeIn className="order-2 md:order-1 relative aspect-square rounded-3xl overflow-hidden bg-white/50 border border-black/5 p-12">
+            <FadeIn className={`order-2 md:order-1 relative aspect-square rounded-3xl overflow-hidden border transition-all duration-700 ${activeColor === 'black' ? 'bg-neutral-900 border-neutral-800' : 'bg-white/50 border-black/5'}`}>
               <img 
-                src="https://images.unsplash.com/photo-1584824486509-112e4181f1ce?q=80&w=1500&auto=format&fit=crop" 
-                alt="Product Minimal Device" 
-                className="w-full h-full object-contain mix-blend-multiply opacity-90"
+                src={activeColor === 'white' ? '/images/white.jpg' : '/images/black.jpg'} 
+                alt={`Water Diamond Ion Center ${activeColor === 'white' ? 'Branco Neve' : 'Preto Matte'}`} 
+                className="w-full h-full object-cover opacity-95 transition-all duration-700"
               />
             </FadeIn>
 
             <div className="order-1 md:order-2">
               <FadeIn>
-                <p className="text-xs font-semibold tracking-widest uppercase text-neutral-500 mb-4">Water Diamond Ion Center</p>
-                <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-8">A melhor água do mundo.</h2>
-                
-                <p className="text-lg font-light text-neutral-600 mb-10">
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight mb-8">
                   Uma nova geração de tratamento de água criada para elevar o padrão da sua rotina diária.
-                </p>
+                </h2>
+
+                {/* Seletor de Acabamento */}
+                <div className="mb-10">
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => setActiveColor('white')}
+                      className={`w-14 h-8 rounded-lg bg-white border transition-all duration-500 cursor-pointer ${activeColor === 'white' ? 'border-black ring-2 ring-black/10 scale-105 shadow-sm' : 'border-neutral-200 hover:border-neutral-400'}`}
+                      aria-label="Branco Neve"
+                    />
+                    <button 
+                      onClick={() => setActiveColor('black')}
+                      className={`w-14 h-8 rounded-lg bg-neutral-900 border transition-all duration-500 cursor-pointer ${activeColor === 'black' ? 'border-black ring-2 ring-black/10 scale-105 shadow-sm' : 'border-transparent hover:border-neutral-700'}`}
+                      aria-label="Preto Matte"
+                    />
+                  </div>
+                </div>
 
                 <ul className="space-y-4 mb-12">
                   {[
@@ -145,7 +391,10 @@ export default function App() {
                   ))}
                 </ul>
 
-                <Button variant="outline">
+                <Button 
+                  onClick={() => document.querySelector('#tecnologia')?.scrollIntoView({ behavior: 'smooth' })} 
+                  variant="outline"
+                >
                   Descobrir mais detalhes
                 </Button>
               </FadeIn>
@@ -156,7 +405,7 @@ export default function App() {
       </section>
 
       {/* SECTION — INTRODUÇÃO / PROBLEMA */}
-      <section className="py-32 md:py-48 px-6 bg-white text-center">
+      <section id="problema" className="py-32 md:py-48 px-6 bg-white text-center">
         <div className="max-w-3xl mx-auto">
           <FadeIn>
             <h2 className="text-4xl md:text-6xl font-medium tracking-tight leading-tight mb-8">
@@ -263,7 +512,7 @@ export default function App() {
       </section>
 
       {/* SECTION — SOLUÇÃO / TRANSIÇÃO */}
-      <section className="py-32 md:py-48 px-6 bg-white text-center">
+      <section id="tecnologia" className="py-32 md:py-48 px-6 bg-white text-center">
         <div className="max-w-4xl mx-auto">
           <FadeIn>
             <h2 className="text-4xl md:text-6xl font-medium tracking-tight leading-tight mb-8">
@@ -288,15 +537,15 @@ export default function App() {
       </section>
 
       {/* SECTION — ETAPAS MÚLTIPLAS (Grid Setup) */}
-      <section className="bg-[#f0ece9] py-24 md:py-40">
+      <section id="etapas" className="bg-[#f0ece9] py-24 md:py-40">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           
           <div className="grid md:grid-cols-2 gap-x-8 gap-y-24">
             
             {/* Etapa 1 */}
             <FadeIn>
-              <div className="aspect-[4/3] bg-white rounded-xl mb-8 overflow-hidden flex items-center justify-center p-12">
-                 <img src="https://images.unsplash.com/photo-1601056588235-86b3dc21deac?q=80&w=1000&auto=format&fit=crop" alt="Ultra filtration abstract" className="w-full h-full object-cover opacity-60 mix-blend-multiply" />
+              <div className="aspect-[4/3] bg-white rounded-xl mb-8 overflow-hidden flex items-center justify-center">
+                 <img src="/images/ultra.jpg" alt="Ultra filtragem" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
               <p className="text-xs font-semibold tracking-widest uppercase text-neutral-500 mb-3">Etapa 01 / Max Ultra</p>
               <h3 className="text-3xl font-medium tracking-tight mb-4">Ultra Filtragem Inteligente</h3>
@@ -308,8 +557,8 @@ export default function App() {
 
             {/* Etapa 2 */}
             <FadeIn delay={0.2}>
-              <div className="aspect-[4/3] bg-white rounded-xl mb-8 overflow-hidden flex items-center justify-center p-12">
-                <img src="https://images.unsplash.com/photo-1590059345242-b7e6b797435f?q=80&w=1000&auto=format&fit=crop" alt="Carbon pure" className="w-full h-full object-cover opacity-60 mix-blend-multiply grayscale" />
+              <div className="aspect-[4/3] bg-white rounded-xl mb-8 overflow-hidden flex items-center justify-center">
+                 <img src="/images/carbon.jpg" alt="Purificação Química" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
               <p className="text-xs font-semibold tracking-widest uppercase text-neutral-500 mb-3">Etapa 02 / Max Carbon</p>
               <h3 className="text-3xl font-medium tracking-tight mb-4">Purificação Química</h3>
@@ -321,8 +570,8 @@ export default function App() {
 
             {/* Etapa 3 */}
             <FadeIn>
-              <div className="aspect-[4/3] bg-neutral-800 rounded-xl mb-8 overflow-hidden flex items-center justify-center p-12">
-                 <img src="https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1000&auto=format&fit=crop" alt="Deep filtration abstract" className="w-full h-full object-cover opacity-50 mix-blend-screen" />
+              <div className="aspect-[4/3] bg-white rounded-xl mb-8 overflow-hidden flex items-center justify-center">
+                 <img src="/images/block.jpg" alt="Purificação Profunda" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
               <p className="text-xs font-semibold tracking-widest uppercase text-neutral-500 mb-3">Etapa 03 / Max Block</p>
               <h3 className="text-3xl font-medium tracking-tight mb-4">Purificação Profunda</h3>
@@ -334,8 +583,8 @@ export default function App() {
 
             {/* Etapa 4 */}
             <FadeIn delay={0.2}>
-              <div className="aspect-[4/3] bg-white rounded-xl mb-8 overflow-hidden flex items-center justify-center p-12">
-                 <img src="https://images.unsplash.com/photo-1579541591970-e598cb6b16d0?q=80&w=1000&auto=format&fit=crop" alt="Minerals abstract" className="w-full h-full object-cover opacity-30 mix-blend-darken" />
+              <div className="aspect-[4/3] bg-white rounded-xl mb-8 overflow-hidden flex items-center justify-center">
+                 <img src="/images/alka.jpg" alt="Alcalinização e Mineralização" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
               <p className="text-xs font-semibold tracking-widest uppercase text-neutral-500 mb-3">Etapa 04 / Max Alka</p>
               <h3 className="text-3xl font-medium tracking-tight mb-4">Alcalinização e Mineralização</h3>
@@ -416,7 +665,7 @@ export default function App() {
       </section>
 
       {/* SECTION — DESIGN & SPECS (Split) */}
-      <section className="py-24 md:py-40 bg-[#f8f8f6] border-t border-neutral-200">
+      <section id="especificacoes" className="py-24 md:py-40 bg-[#f8f8f6] border-t border-neutral-200">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-2 gap-20">
             
@@ -427,7 +676,7 @@ export default function App() {
               </p>
               
               <div className="aspect-[4/3] bg-neutral-200 rounded-xl overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=1500&auto=format&fit=crop" alt="Modern kitchen integration" className="w-full h-full object-cover" />
+                <img src="/images/ioncenterkitchen.jpeg" alt="Modern kitchen integration" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
             </FadeIn>
 
@@ -471,7 +720,7 @@ export default function App() {
               Ultra filtração, purificação profunda, alcalinização e ionização.<br className="hidden md:block"/> A melhor água do mundo.
             </p>
 
-            <Button variant="secondary" className="px-12 py-4 text-base">
+            <Button onClick={() => setIsModalOpen(true)} variant="secondary" className="px-12 py-4 text-base">
               Quero transformar minha água
             </Button>
           </FadeIn>
@@ -482,8 +731,13 @@ export default function App() {
       <footer className="bg-[#050505] pt-20 pb-10 px-6 border-t border-white/10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
           <div>
-            <div className="font-semibold tracking-widest text-lg uppercase text-white">Water Diamond</div>
-            <div className="text-xs tracking-widest uppercase text-neutral-500 mb-8">Ion Center</div>
+            <div className="flex items-center gap-3 mb-8">
+              <img src="/images/LOGO.png" alt="Water Diamond Logo" className="h-9 w-auto object-contain brightness-0 invert" />
+              <div>
+                <div className="font-semibold tracking-widest text-base uppercase text-white leading-tight">Water Diamond</div>
+                <div className="text-[10px] tracking-widest uppercase text-neutral-500 leading-none">Ion Center</div>
+              </div>
+            </div>
             <div className="flex gap-4 text-neutral-400 text-sm">
               <a href="#" className="hover:text-white transition-colors">Instagram</a>
               <a href="#" className="hover:text-white transition-colors">Suporte</a>
@@ -495,6 +749,16 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Menu Lateral */}
+      <SidebarMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+
+      {/* Modal de Orçamento */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        )}
+      </AnimatePresence>
 
     </div>
   );
