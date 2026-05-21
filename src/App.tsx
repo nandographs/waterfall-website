@@ -20,8 +20,8 @@ const Button = ({ children, variant = 'primary', className = "", onClick }: { ch
   const baseStyle = "inline-flex items-center justify-center rounded-full px-8 py-3.5 text-sm font-medium transition-all duration-300";
   const variants = {
     primary: "bg-black text-white hover:bg-neutral-800",
-    secondary: "bg-white text-black hover:bg-neutral-100",
-    outline: "border border-black text-black hover:bg-black hover:text-white"
+    secondary: "bg-white border border-neutral-200 text-black hover:bg-neutral-800 hover:text-white hover:border-transparent",
+    outline: "bg-transparent border border-neutral-200 text-black hover:bg-neutral-800 hover:text-white hover:border-transparent"
   };
   
   return (
@@ -230,7 +230,7 @@ const ContactModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
               </p>
               <button 
                 onClick={onClose}
-                className="border border-neutral-200 rounded-full px-8 py-3 text-sm font-medium hover:bg-neutral-50 transition-colors cursor-pointer"
+                className="bg-white border border-neutral-200 rounded-full px-8 py-3 text-sm font-medium hover:bg-neutral-800 hover:text-white hover:border-transparent transition-all duration-300 cursor-pointer"
               >
                 Fechar janela
               </button>
@@ -246,9 +246,20 @@ const ContactModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeColor, setActiveColor] = useState<'white' | 'black'>('white');
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
+
+  const activeColor = activeIndex < 2 ? 'white' : 'black';
+
+  const setActiveColor = (color: 'white' | 'black') => {
+    if (color === 'white' && activeIndex >= 2) {
+      setDirection(-1);
+      setActiveIndex(0);
+    } else if (color === 'black' && activeIndex < 2) {
+      setDirection(1);
+      setActiveIndex(2);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -258,19 +269,29 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveColor(prev => prev === 'white' ? 'black' : 'white');
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [activeColor]);
+  const handleNext = () => {
+    setDirection(1);
+    setActiveIndex(prev => (prev + 1) % 4);
+  };
 
+  const handlePrev = () => {
+    setDirection(-1);
+    setActiveIndex(prev => (prev - 1 + 4) % 4);
+  };
+
+  const setPage = (index: number) => {
+    if (index === activeIndex) return;
+    setDirection(index > activeIndex ? 1 : -1);
+    setActiveIndex(index);
+  };
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
-    <div id="home" className="min-h-screen bg-white selection:bg-neutral-200">
       
-      {/* Navigation (Sticky & Minimalist) */}
+    <div id="home" className="min-h-screen bg-white selection:bg-neutral-200">
       <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? 'bg-white/90 backdrop-blur-md border-b border-neutral-100 py-4' : 'bg-transparent py-6'}`}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
+        <div className="w-full mx-auto px-6 md:px-12 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsMenuOpen(true)}
@@ -317,7 +338,7 @@ export default function App() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
         </div>
         
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 pt-20">
+        <div className="relative z-10 w-full mx-auto px-6 md:px-12 pt-20">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -329,9 +350,6 @@ export default function App() {
               Você não bebe só água.<br/>
               <span className="text-neutral-400">Você consome tudo o que ela carrega.</span>
             </h1>
-            <p className="text-base md:text-lg font-light text-neutral-300 max-w-2xl mb-10 leading-relaxed">
-              A central de tratamento que transforma a água da sua casa em um novo padrão de pureza, equilíbrio e tecnologia. Água ultra filtrada, purificada, alcalinizada e ionizada em um único sistema.
-            </p>
             <Button onClick={() => setIsModalOpen(true)} variant="secondary" className="px-10">
               Transformar minha água
             </Button>
@@ -342,61 +360,132 @@ export default function App() {
 
       {/* HERO SECUNDÁRIO — PRODUTO CENTRALIZADO */}
       <section id="detalhes" className="py-24 md:py-40 bg-[#f8f8f6]">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <div className="w-full mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-2 gap-16 lg:gap-32 items-center">
             
-            <FadeIn className={`order-2 md:order-1 relative aspect-square rounded-3xl overflow-hidden border transition-all duration-700 ${activeColor === 'black' ? 'bg-neutral-900 border-neutral-800' : 'bg-white/50 border-black/5'}`}>
-              <img 
-                src={activeColor === 'white' ? '/images/white.jpg' : '/images/black.jpg'} 
-                alt={`Water Diamond Ion Center ${activeColor === 'white' ? 'Branco Neve' : 'Preto Matte'}`} 
-                className="w-full h-full object-cover opacity-95 transition-all duration-700"
-              />
-            </FadeIn>
+            <div className="order-2 md:order-1 flex flex-col gap-6">
+              <div className="relative aspect-square w-full overflow-hidden flex items-center justify-center">
+                <AnimatePresence initial={false} custom={direction} mode="popLayout">
+                  <motion.img
+                    key={activeIndex}
+                    custom={direction}
+                    variants={{
+                      enter: (dir: number) => ({
+                        x: dir > 0 ? '100%' : dir < 0 ? '-100%' : 0,
+                        opacity: 0
+                      }),
+                      center: {
+                        x: 0,
+                        opacity: 1
+                      },
+                      exit: (dir: number) => ({
+                        x: dir > 0 ? '-100%' : dir < 0 ? '100%' : 0,
+                        opacity: 0
+                      })
+                    }}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: 'spring', stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 }
+                    }}
+                    src={activeIndex === 0 ? '/images/white01.png'
+                      : activeIndex === 1 ? '/images/white02.png'
+                      : activeIndex === 2 ? '/images/black01.png'
+                      : '/images/black02.png'
+                    }
+                    alt="Water Diamond Ion Center"
+                    className="w-full h-full object-contain absolute"
+                  />
+                </AnimatePresence>
+              </div>
+
+              {/* Controles do Carrossel */}
+              <div className="flex justify-between items-center px-4 mt-2">
+                {/* Indicadores (Dots) */}
+                <div className="flex gap-2.5">
+                  {[0, 1, 2, 3].map((index) => (
+                    <button
+                      key={index}
+                      onClick={() => setPage(index)}
+                      className={`w-1.5 h-1.5 rounded-full transition-all duration-300 cursor-pointer ${activeIndex === index ? 'bg-black scale-125' : 'bg-neutral-300 hover:bg-neutral-400'}`}
+                      aria-label={`Ir para imagem ${index + 1}`}
+                    />
+                  ))}
+                </div>
+
+                {/* Setas de Navegação */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handlePrev}
+                    className="w-10 h-10 rounded-full border border-neutral-200 bg-white text-black flex items-center justify-center hover:bg-neutral-800 hover:text-white hover:border-transparent transition-colors cursor-pointer"
+                    aria-label="Imagem anterior"
+                  >
+                    <ChevronRight size={18} className="rotate-180" />
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    className="w-10 h-10 rounded-full border border-neutral-200 bg-white text-black flex items-center justify-center hover:bg-neutral-800 hover:text-white hover:border-transparent transition-colors cursor-pointer"
+                    aria-label="Próxima imagem"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
 
             <div className="order-1 md:order-2">
               <FadeIn>
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight mb-8">
-                  Uma nova geração de tratamento de água criada para elevar o padrão da sua rotina diária.
+                <p className="text-[10px] tracking-[0.2em] uppercase text-neutral-500 mb-3">
+                  Water Diamond Ion Center
+                </p>
+                <h2 className="text-3xl md:text-4xl font-medium tracking-tight leading-tight mb-5 text-black">
+                  Uma nova geração de tratamento de água
                 </h2>
+                <p className="text-sm font-light text-neutral-500 leading-relaxed mb-8">
+                  Desenvolvido para elevar o padrão da sua rotina diária. O Ion Center combina ultrafiltragem classe A com purificação em múltiplas etapas para entregar água alcalina pH 9.5 e mineralização inteligente. Um sistema completo que reorganiza a estrutura molecular da água através de nossa tecnologia exclusiva de ionização.
+                </p>
 
-                {/* Seletor de Acabamento */}
-                <div className="mb-10">
-                  <div className="flex gap-3">
+                <hr className="border-t border-neutral-200 my-6" />
+
+                {/* Seletor de Acabamento estilo B&O */}
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm font-light text-neutral-600">
+                    {activeColor === 'white' ? 'White' : 'Black'}
+                  </span>
+                  <div className="flex gap-5 px-1">
                     <button 
                       onClick={() => setActiveColor('white')}
-                      className={`w-14 h-8 rounded-lg bg-white border transition-all duration-500 cursor-pointer ${activeColor === 'white' ? 'border-black ring-2 ring-black/10 scale-105 shadow-sm' : 'border-neutral-200 hover:border-neutral-400'}`}
-                      aria-label="Branco Neve"
-                    />
+                      className="w-5 h-5 rounded-full bg-white border border-neutral-300 transition-all duration-300 cursor-pointer relative flex items-center justify-center"
+                      aria-label="White"
+                    >
+                      {activeColor === 'white' && (
+                        <span className="absolute w-7 h-7 rounded-full border border-black pointer-events-none" />
+                      )}
+                    </button>
                     <button 
                       onClick={() => setActiveColor('black')}
-                      className={`w-14 h-8 rounded-lg bg-neutral-900 border transition-all duration-500 cursor-pointer ${activeColor === 'black' ? 'border-black ring-2 ring-black/10 scale-105 shadow-sm' : 'border-transparent hover:border-neutral-700'}`}
-                      aria-label="Preto Matte"
-                    />
+                      className="w-5 h-5 rounded-full bg-neutral-900 border border-neutral-800 transition-all duration-300 cursor-pointer relative flex items-center justify-center"
+                      aria-label="Black"
+                    >
+                      {activeColor === 'black' && (
+                        <span className="absolute w-7 h-7 rounded-full border border-black pointer-events-none" />
+                      )}
+                    </button>
                   </div>
                 </div>
 
-                <ul className="space-y-4 mb-12">
-                  {[
-                    "Ultra Filtragem Classe A",
-                    "Purificação em múltiplas etapas",
-                    "Água Alcalina pH 9.5",
-                    "Mineralização Inteligente",
-                    "Ionização Water Diamond®",
-                    "Estrutura Molecular Reorganizada"
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-center gap-4 text-sm font-medium">
-                      <div className="w-1.5 h-1.5 rounded-full bg-black/20" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+                <hr className="border-t border-neutral-200 my-6" />
 
-                <Button 
-                  onClick={() => document.querySelector('#tecnologia')?.scrollIntoView({ behavior: 'smooth' })} 
-                  variant="outline"
-                >
-                  Descobrir mais detalhes
-                </Button>
+                <div className="pt-4">
+                  <Button 
+                    onClick={() => document.querySelector('#tecnologia')?.scrollIntoView({ behavior: 'smooth' })} 
+                    variant="outline"
+                  >
+                    Descobrir mais detalhes
+                  </Button>
+                </div>
               </FadeIn>
             </div>
 
@@ -428,7 +517,7 @@ export default function App() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
         
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 pb-16 md:pb-32">
+        <div className="relative z-10 w-full mx-auto px-6 md:px-12 pb-16 md:pb-32">
           <FadeIn className="max-w-3xl">
             <h2 className="text-3xl md:text-5xl font-medium tracking-tight mb-12">
               Contaminantes invisíveis fazem parte da rotina diária.
@@ -453,7 +542,7 @@ export default function App() {
 
       {/* SECTION — SPLIT LAYOUT / DESEQUILÍBRIO */}
       <section className="py-24 md:py-40 bg-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <div className="w-full mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <FadeIn>
               <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-8 leading-tight">
@@ -485,7 +574,7 @@ export default function App() {
 
       {/* SECTION — EXPERIÊNCIA SENSORIAL (Inverse Split) */}
       <section className="py-24 md:py-40 bg-[#f8f8f6]">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <div className="w-full mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <FadeIn className="order-2 md:order-1 aspect-square bg-[#e8e8e5] rounded-2xl overflow-hidden">
               <img 
@@ -538,7 +627,7 @@ export default function App() {
 
       {/* SECTION — ETAPAS MÚLTIPLAS (Grid Setup) */}
       <section id="etapas" className="bg-[#f0ece9] py-24 md:py-40">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <div className="w-full mx-auto px-6 md:px-12">
           
           <div className="grid md:grid-cols-2 gap-x-8 gap-y-24">
             
@@ -600,7 +689,7 @@ export default function App() {
 
       {/* SECTION — TECNOLOGIA EXCLUSIVA */}
       <section className="py-24 md:py-40 bg-black text-white relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
+        <div className="w-full mx-auto px-6 md:px-12 relative z-10">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <FadeIn>
               <h2 className="text-4xl md:text-5xl font-medium tracking-tight mb-6">
@@ -635,7 +724,7 @@ export default function App() {
 
       {/* SECTION — BENEFÍCIOS */}
       <section className="py-24 md:py-40 bg-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <div className="w-full mx-auto px-6 md:px-12">
           <div className="text-center mb-20">
             <FadeIn>
               <h2 className="text-3xl md:text-5xl font-medium tracking-tight">O que muda quando a água muda?</h2>
@@ -666,7 +755,7 @@ export default function App() {
 
       {/* SECTION — DESIGN & SPECS (Split) */}
       <section id="especificacoes" className="py-24 md:py-40 bg-[#f8f8f6] border-t border-neutral-200">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <div className="w-full mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-2 gap-20">
             
             <FadeIn>
@@ -689,7 +778,7 @@ export default function App() {
                   { label: "Instalação", value: "Bancada ou Parede" },
                   { label: "Vazão nominal", value: "0,75L / min" },
                   { label: "Vida útil dos refis", value: "9 a 18 meses (Até 6.000L)" },
-                  { label: "Cores disponíveis", value: "Preto Matte, Branco Neve" },
+                  { label: "Cores disponíveis", value: "Black, White" },
                   { label: "Sistema de filtragem", value: "4 refis MAX WaterDiamond" },
                   { label: "Garantia", value: "1 ano contra defeitos de fabricação" },
                 ].map((spec, i) => (
@@ -729,7 +818,7 @@ export default function App() {
 
       {/* SUPER FOOTER */}
       <footer className="bg-[#050505] pt-20 pb-10 px-6 border-t border-white/10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
+        <div className="w-full mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
           <div>
             <div className="flex items-center gap-3 mb-8">
               <img src="/images/LOGO.png" alt="Water Diamond Logo" className="h-9 w-auto object-contain brightness-0 invert" />
