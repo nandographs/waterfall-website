@@ -1,14 +1,252 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #172033;
+
+  --card: #f8fbfd;
+  --card-foreground: #172033;
+
+  --popover: #ffffff;
+  --popover-foreground: #172033;
+
+  --primary: #009ace;
+  --primary-hover: #0083af;
+  --primary-foreground: #ffffff;
+
+  --secondary: #eef6fa;
+  --secondary-foreground: #172033;
+
+  --muted: #f1f5f8;
+  --muted-foreground: #5b6675;
+
+  --accent: #e6f7fc;
+  --accent-foreground: #009ace;
+
+  --destructive: #e5484d;
+  --destructive-foreground: #ffffff;
+
+  --border: #dbe7ed;
+  --input: #f6fafc;
+  --ring: #009ace;
+
+  --chart-1: #009ace;
+  --chart-2: #22b88a;
+  --chart-3: #f5b84b;
+  --chart-4: #5fcf9f;
+  --chart-5: #e85d75;
+
+  --sidebar: #f8fbfd;
+  --sidebar-foreground: #172033;
+
+  --sidebar-primary: #009ace;
+  --sidebar-primary-foreground: #ffffff;
+
+  --sidebar-accent: #e6f7fc;
+  --sidebar-accent-foreground: #009ace;
+
+  --sidebar-border: #dbe7ed;
+  --sidebar-ring: #009ace;
+
+  --font-sans: Poppins, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+
+  --radius: 1.3rem;
+
+  --shadow-x: 0px;
+  --shadow-y: 8px;
+  --shadow-blur: 24px;
+  --shadow-spread: -8px;
+  --shadow-opacity: 0.08;
+  --shadow-color: rgba(0, 154, 206, 0.16);
+
+  --shadow-2xs: 0px 2px 4px -2px rgba(0, 154, 206, 0.08);
+  --shadow-xs: 0px 4px 8px -4px rgba(0, 154, 206, 0.10);
+  --shadow-sm: 0px 6px 16px -8px rgba(0, 154, 206, 0.12);
+  --shadow: 0px 8px 24px -10px rgba(0, 154, 206, 0.14);
+  --shadow-md: 0px 12px 32px -12px rgba(0, 154, 206, 0.16);
+  --shadow-lg: 0px 18px 48px -16px rgba(0, 154, 206, 0.18);
+  --shadow-xl: 0px 24px 64px -20px rgba(0, 154, 206, 0.20);
+  --shadow-2xl: 0px 32px 80px -24px rgba(0, 154, 206, 0.22);
+
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
 }
 
-body {
-  font-family: var(--font-sans);
-  background-color: #ffffff;
-  color: #1a1a1a;
-  -webkit-font-smoothing: antialiased;
+.dark {
+  --background: #ffffff;
+  --foreground: #172033;
+
+  --card: #f8fbfd;
+  --card-foreground: #172033;
+
+  --popover: #ffffff;
+  --popover-foreground: #172033;
+
+  --primary: #009ace;
+  --primary-hover: #0083af;
+  --primary-foreground: #ffffff;
+
+  --secondary: #eef6fa;
+  --secondary-foreground: #172033;
+
+  --muted: #f1f5f8;
+  --muted-foreground: #5b6675;
+
+  --accent: #e6f7fc;
+  --accent-foreground: #009ace;
+
+  --destructive: #e5484d;
+  --destructive-foreground: #ffffff;
+
+  --border: #dbe7ed;
+  --input: #f6fafc;
+  --ring: #009ace;
+
+  --chart-1: #009ace;
+  --chart-2: #22b88a;
+  --chart-3: #f5b84b;
+  --chart-4: #5fcf9f;
+  --chart-5: #e85d75;
+
+  --sidebar: #f8fbfd;
+  --sidebar-foreground: #172033;
+
+  --sidebar-primary: #009ace;
+  --sidebar-primary-foreground: #ffffff;
+
+  --sidebar-accent: #e6f7fc;
+  --sidebar-accent-foreground: #009ace;
+
+  --sidebar-border: #dbe7ed;
+  --sidebar-ring: #009ace;
+
+  --font-sans: Poppins, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+
+  --radius: 1.3rem;
+
+  --shadow-x: 0px;
+  --shadow-y: 8px;
+  --shadow-blur: 24px;
+  --shadow-spread: -8px;
+  --shadow-opacity: 0.08;
+  --shadow-color: rgba(0, 154, 206, 0.16);
+
+  --shadow-2xs: 0px 2px 4px -2px rgba(0, 154, 206, 0.08);
+  --shadow-xs: 0px 4px 8px -4px rgba(0, 154, 206, 0.10);
+  --shadow-sm: 0px 6px 16px -8px rgba(0, 154, 206, 0.12);
+  --shadow: 0px 8px 24px -10px rgba(0, 154, 206, 0.14);
+  --shadow-md: 0px 12px 32px -12px rgba(0, 154, 206, 0.16);
+  --shadow-lg: 0px 18px 48px -16px rgba(0, 154, 206, 0.18);
+  --shadow-xl: 0px 24px 64px -20px rgba(0, 154, 206, 0.20);
+  --shadow-2xl: 0px 32px 80px -24px rgba(0, 154, 206, 0.22);
 }
 
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-medium tracking-tight;
+    color: inherit;
+    text-wrap: balance;
+  }
+}
+
+button {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+@layer components {
+  .title-accent {
+    @apply text-primary;
+  }
+
+  .title-dark {
+    @apply text-foreground;
+  }
+
+  .title-light {
+    @apply text-white;
+  }
+}
