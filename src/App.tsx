@@ -3,9 +3,25 @@ import { ArrowRight, Check, Droplet, Sparkles, Shield, Activity, ChevronRight, F
 import React, { useState, useEffect, useRef } from 'react';
 import NavHeader from "@/components/ui/nav-header";
 import ExpandingCardsDemo from "@/components/ui/demo";
+import ConsultorPage from "./ConsultorPage";
 
 
 // --- Reusable Components ---
+
+const scrollToSection = (selector: string) => {
+  const target = document.querySelector<HTMLElement>(selector);
+
+  if (!target) return;
+
+  const header = document.querySelector<HTMLElement>('[data-site-header]');
+  const headerOffset = (header?.offsetHeight ?? 0) + 12;
+  const targetTop = window.scrollY + target.getBoundingClientRect().top - headerOffset;
+
+  window.scrollTo({
+    top: Math.max(0, targetTop),
+    behavior: 'smooth',
+  });
+};
 
 const FadeIn = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string, key?: React.Key }) => (
   <motion.div
@@ -274,20 +290,102 @@ const socialLinks = [
   { label: "YouTube", href: "https://www.youtube.com/@waterfallcompanybr", icon: Youtube },
 ];
 
-const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const links = [
+const isHomePath = () => {
+  const path = window.location.pathname.replace(/\/$/, "") || "/";
+  return path === "/";
+};
+
+const goToSection = (hash: string) => {
+  if (isHomePath()) {
+    scrollToSection(hash);
+  } else {
+    window.location.href = `/${hash}`;
+  }
+};
+
+export const SiteHeader = ({
+  scrolled,
+  onMenuOpen,
+  onContactClick,
+}: {
+  scrolled: boolean;
+  onMenuOpen: () => void;
+  onContactClick: () => void;
+}) => (
+  <nav data-site-header className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? 'bg-white/55 backdrop-blur-md border-b border-white/40 py-4' : 'bg-transparent py-6'}`}>
+    <div className="w-full mx-auto px-6 md:px-12 flex justify-between items-center">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onMenuOpen}
+          className={`p-2 -ml-2 transition-colors cursor-pointer md:hidden ${
+            scrolled ? 'text-primary hover:text-primary-hover' : 'text-white mix-blend-difference hover:text-primary'
+          }`}
+        >
+          <Menu size={20} />
+        </button>
+        <div
+          onClick={() => goToSection('#home')}
+          className={`flex items-center gap-2 cursor-pointer ${scrolled ? 'text-primary' : 'text-white mix-blend-difference'}`}
+        >
+          <img
+            src="/images/LOGO.png"
+            alt="Water Diamond Logo"
+            className="h-7 w-auto object-contain"
+            style={{
+              filter: scrolled
+                ? 'brightness(0) saturate(100%) invert(47%) sepia(95%) saturate(1897%) hue-rotate(162deg) brightness(97%) contrast(101%)'
+                : 'brightness(0) invert(1)',
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="hidden md:block absolute left-1/2 -translate-x-1/2">
+        <NavHeader
+          scrolled={scrolled}
+          tabs={[
+            { label: "Início", onClick: () => goToSection('#home') },
+            { label: "O Problema", onClick: () => goToSection('#problema') },
+            { label: "Ion Center", onClick: () => goToSection('#ion-center') },
+            { label: "Seja um consultor", onClick: () => { window.location.href = "/consultor"; } },
+          ]}
+        />
+      </div>
+
+      <button
+        onClick={onContactClick}
+        className={`inline-flex items-center justify-center rounded-full border px-4 py-2 text-[11px] font-medium uppercase tracking-[0.18em] backdrop-blur-md transition-all duration-300 active:scale-[0.98] ${
+          scrolled
+            ? 'border-primary bg-primary text-white hover:bg-primary-hover'
+            : 'border-white/20 bg-white/10 text-white hover:bg-white/20'
+        }`}
+      >
+        Contato
+      </button>
+    </div>
+  </nav>
+);
+
+export const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const links: { label: string; href: string | null }[] = [
     { label: "Início", href: "#home" },
     { label: "O Problema", href: "#problema" },
-    { label: "Tecnologia", href: "#tecnologia" },
     { label: "Ion Center", href: "#ion-center" },
+    { label: "Seja um consultor", href: null },
     { label: "Por que importa", href: "#porque" },
   ];
 
-  const handleScroll = (href: string) => {
+  const handleScroll = (href: string | null) => {
+    if (!href) {
+      window.location.href = "/consultor";
+      return;
+    }
+
     onClose();
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    if (isHomePath()) {
+      requestAnimationFrame(() => scrollToSection(href));
+    } else {
+      window.location.href = `/${href}`;
     }
   };
 
@@ -749,6 +847,10 @@ export default function App() {
   const normalizedPath = window.location.pathname.replace(/\/$/, "") || "/";
   const legalDocument = legalDocuments[normalizedPath];
 
+  if (normalizedPath === "/consultor") {
+    return <ConsultorPage />;
+  }
+
   if (legalDocument) {
     return <LegalPage document={legalDocument} />;
   }
@@ -840,6 +942,13 @@ function HomePage() {
   }, []);
 
   useEffect(() => {
+    if (window.location.hash) {
+      const timer = setTimeout(() => scrollToSection(window.location.hash), 300);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  useEffect(() => {
     const handleRoutineScroll = () => {
       const section = routineSectionRef.current;
       if (!section) return;
@@ -889,58 +998,7 @@ function HomePage() {
 
   return (
     <div id="home" className="min-h-screen bg-white selection:bg-neutral-200">
-      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? 'bg-white/55 backdrop-blur-md border-b border-white/40 py-4' : 'bg-transparent py-6'}`}>
-        <div className="w-full mx-auto px-6 md:px-12 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsMenuOpen(true)}
-              className={`p-2 -ml-2 transition-colors cursor-pointer md:hidden ${
-                scrolled ? 'text-primary hover:text-primary-hover' : 'text-white mix-blend-difference hover:text-primary'
-              }`}
-            >
-              <Menu size={20} />
-            </button>
-            <div 
-              onClick={() => document.querySelector('#home')?.scrollIntoView({ behavior: 'smooth' })}
-              className={`flex items-center gap-2 cursor-pointer ${scrolled ? 'text-primary' : 'text-white mix-blend-difference'}`}
-            >
-              <img
-                src="/images/LOGO.png"
-                alt="Water Diamond Logo"
-                className="h-7 w-auto object-contain"
-                style={{
-                  filter: scrolled
-                    ? 'brightness(0) saturate(100%) invert(47%) sepia(95%) saturate(1897%) hue-rotate(162deg) brightness(97%) contrast(101%)'
-                    : 'brightness(0) invert(1)',
-                }}
-              />
-            </div>
-          </div>
-          
-          <div className="hidden md:block absolute left-1/2 -translate-x-1/2">
-            <NavHeader 
-              scrolled={scrolled}
-              tabs={[
-                { label: "Início", onClick: () => document.querySelector('#home')?.scrollIntoView({ behavior: 'smooth' }) },
-                { label: "O Problema", onClick: () => document.querySelector('#problema')?.scrollIntoView({ behavior: 'smooth' }) },
-                { label: "Tecnologia", onClick: () => document.querySelector('#tecnologia')?.scrollIntoView({ behavior: 'smooth' }) },
-                { label: "Ion Center", onClick: () => document.querySelector('#ion-center')?.scrollIntoView({ behavior: 'smooth' }) },
-              ]} 
-            />
-          </div>
-
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className={`inline-flex items-center justify-center rounded-full border px-4 py-2 text-[11px] font-medium uppercase tracking-[0.18em] backdrop-blur-md transition-all duration-300 active:scale-[0.98] ${
-              scrolled
-                ? 'border-primary bg-primary text-white hover:bg-primary-hover'
-                : 'border-white/20 bg-white/10 text-white hover:bg-white/20'
-            }`}
-          >
-            Contato
-          </button>
-        </div>
-      </nav>
+      <SiteHeader scrolled={scrolled} onMenuOpen={() => setIsMenuOpen(true)} onContactClick={() => setIsModalOpen(true)} />
 
       {/* SEÇÃO 1 — HERO */}
       <section className="relative w-full bg-[#f3eee6] px-0 pt-0 md:px-4">

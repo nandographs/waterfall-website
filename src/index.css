@@ -250,3 +250,28 @@ button {
     @apply text-white;
   }
 }
+
+@layer components {
+  .consultor-input {
+    @apply min-h-13 w-full rounded-xl border border-[#062232]/12 bg-[#f4f8f8] px-4 text-base text-[#062232] outline-none transition placeholder:text-[#78909a]/70 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10;
+  }
+}
+
+.consultor-page {
+  background-image: radial-gradient(circle at 10% 20%, rgba(0, 154, 206, 0.045), transparent 26%);
+}
+
+.consultor-page button,
+.consultor-page a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consultor-page *,
+  .consultor-page *::before,
+  .consultor-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
