@@ -79,7 +79,7 @@ export const ExpandingCards = React.forwardRef<
         <li
           key={item.id}
           className={cn(
-            "group relative min-h-0 min-w-0 cursor-pointer overflow-hidden rounded-[1.75rem] border border-white/50 bg-card text-card-foreground shadow-lg",
+            "group relative min-h-0 min-w-0 cursor-pointer overflow-hidden rounded-3xl border border-white/50 bg-card text-card-foreground shadow-lg",
             "md:min-w-[80px]",
           )}
           onMouseEnter={() => handleInteraction(index)}

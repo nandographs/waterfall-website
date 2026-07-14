@@ -35,16 +35,17 @@ const FadeIn = ({ children, delay = 0, className = "" }: { children: React.React
   </motion.div>
 );
 
-const Button = ({ children, variant = 'primary', className = "", onClick }: { children: React.ReactNode, variant?: 'primary' | 'secondary' | 'outline', className?: string, onClick?: () => void }) => {
-  const baseStyle = "inline-flex items-center justify-center rounded-full px-8 py-3.5 text-sm font-medium transition-all duration-300";
+const Button = ({ children, variant = 'primary', className = "", onClick, type = 'button', disabled = false }: { children: React.ReactNode, variant?: 'primary' | 'secondary' | 'outline' | 'glass', className?: string, onClick?: () => void, type?: 'button' | 'submit', disabled?: boolean }) => {
+  const baseStyle = "inline-flex items-center justify-center rounded-full px-8 py-3.5 text-sm font-medium transition-all duration-300 active:scale-[0.98] disabled:cursor-wait disabled:opacity-65";
   const variants = {
     primary: "bg-primary text-white hover:bg-primary-hover",
     secondary: "bg-white border border-neutral-200 text-black hover:bg-primary hover:text-white hover:border-transparent",
-    outline: "bg-transparent border border-neutral-200 text-black hover:bg-primary hover:text-white hover:border-transparent"
+    outline: "bg-transparent border border-neutral-200 text-black hover:bg-primary hover:text-white hover:border-transparent",
+    glass: "border border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
   };
-  
+
   return (
-    <button onClick={onClick} className={`${baseStyle} ${variants[variant]} ${className}`}>
+    <button type={type} disabled={disabled} onClick={onClick} className={`${baseStyle} ${variants[variant]} ${className}`}>
       {children}
     </button>
   );
@@ -578,13 +579,9 @@ const ContactModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
                   </select>
                 </div>
 
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="w-full bg-primary text-white rounded-full py-4 text-sm font-medium hover:bg-primary-hover transition-colors mt-4 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
-                >
+                <Button type="submit" disabled={isSubmitting} className="w-full py-4 mt-4 cursor-pointer">
                   {isSubmitting ? "Enviando..." : "Falar com um consultor Waterfall"}
-                </button>
+                </Button>
                 {submitError && (
                   <p className="text-center text-xs font-medium text-red-600" role="alert">
                     {submitError}
@@ -789,7 +786,7 @@ const SiteFooter = () => (
           ))}
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-3 text-neutral-400 text-sm">
-          <a href="#" className="hover:text-white transition-colors">Contato</a>
+          <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Contato</a>
           <a href="/politica-de-privacidade" className="hover:text-white transition-colors">Política de Privacidade</a>
           <a href="/termos-de-uso" className="hover:text-white transition-colors">Termos de Uso</a>
         </div>
@@ -802,7 +799,7 @@ const SiteFooter = () => (
 );
 
 const LegalPage = ({ document }: { document: LegalDocument }) => (
-  <div className="min-h-screen bg-[#f8f8f6] text-foreground selection:bg-neutral-200">
+  <div className="min-h-screen bg-surface-light text-foreground selection:bg-neutral-200">
     <main className="mx-auto w-full max-w-5xl px-6 pb-20 pt-10 md:px-12 md:pb-28 md:pt-16">
       <a href="/" className="mb-16 inline-flex items-center gap-3 text-primary transition-opacity hover:opacity-75">
         <img
@@ -818,7 +815,7 @@ const LegalPage = ({ document }: { document: LegalDocument }) => (
 
       <section className="mb-14 border-b border-neutral-200 pb-12 md:mb-16 md:pb-16">
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary">{document.eyebrow}</p>
-        <h1 className="max-w-3xl text-4xl leading-tight tracking-[-0.03em] md:text-6xl">{document.title}</h1>
+        <h1 className="max-w-3xl text-4xl leading-tight tracking-tight md:text-6xl">{document.title}</h1>
         <p className="mt-6 max-w-3xl text-base font-light leading-relaxed text-neutral-600 md:text-lg">{document.intro}</p>
         <p className="mt-6 text-xs font-medium uppercase tracking-[0.16em] text-neutral-400">{document.updatedAt}</p>
       </section>
@@ -826,7 +823,7 @@ const LegalPage = ({ document }: { document: LegalDocument }) => (
       <div className="space-y-10 md:space-y-12">
         {document.sections.map((section) => (
           <section key={section.title} className="grid gap-4 md:grid-cols-[minmax(220px,0.45fr)_1fr] md:gap-10">
-            <h2 className="text-xl font-medium tracking-[-0.02em] text-foreground">{section.title}</h2>
+            <h2 className="text-xl font-medium tracking-tight text-foreground">{section.title}</h2>
             <div className="space-y-4 text-sm font-light leading-relaxed text-neutral-600 md:text-base">
               {section.body.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
@@ -1001,7 +998,7 @@ function HomePage() {
       <SiteHeader scrolled={scrolled} onMenuOpen={() => setIsMenuOpen(true)} onContactClick={() => setIsModalOpen(true)} />
 
       {/* SEÇÃO 1 — HERO */}
-      <section className="relative w-full bg-[#f3eee6] px-0 pt-0 md:px-4">
+      <section className="relative w-full bg-surface-warm px-0 pt-0 md:px-4">
         <div className="relative flex min-h-screen w-full items-center overflow-hidden bg-black md:rounded-b-[38px]">
         <div className="absolute inset-0 z-0">
           <video
@@ -1009,7 +1006,6 @@ function HomePage() {
             loop
             muted
             playsInline
-            poster="https://images.unsplash.com/photo-1548839140-29a749e1bc4e?q=80&w=2000&auto=format&fit=crop"
             className="w-full h-full object-cover opacity-60"
           >
             <source src="/videos/IONCENTER_VIDEO.mp4" type="video/mp4" />
@@ -1039,7 +1035,7 @@ function HomePage() {
       </section>
 
       {/* SEÇÃO 2 — O PROBLEMA INVISÍVEL */}
-      <section id="problema" className="bg-[#f3eee6] px-6 py-16 md:py-24">
+      <section id="problema" className="bg-surface-warm px-6 py-20 md:py-32">
         <div className="max-w-5xl md:max-w-[90rem] mx-auto">
           <FadeIn>
             <div className="flex flex-col items-center text-center">
@@ -1071,7 +1067,7 @@ function HomePage() {
       </section>
 
       {/* SEÇÃO 3 — O CAMINHO DA ÁGUA */}
-      <section id="tecnologia" className="py-24 md:py-40 bg-[#f8f8f6]">
+      <section id="tecnologia" className="py-20 md:py-32 bg-surface-light">
         <div className="w-full mx-auto px-6 md:px-12">
           <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)] lg:gap-16">
             <FadeIn className="lg:sticky lg:top-28">
@@ -1102,7 +1098,7 @@ function HomePage() {
         </div>
       </section>
       {/* SEÇÃO 4 — CONTAMINAÇÃO */}
-      <section className="bg-[#f4f1ec] text-black w-full">
+      <section className="bg-surface-warm text-black w-full">
         <div className="w-full max-w-7xl mx-auto px-6 md:px-12 py-24 md:py-32">
           <FadeIn>
             <div className="mx-auto max-w-5xl text-center mb-16 md:mb-20">
@@ -1139,7 +1135,7 @@ function HomePage() {
       </section>
 
       {/* SEÇÃO 5 — DESEQUILÍBRIO DA ÁGUA */}
-      <section className="py-18 md:py-24 bg-white">
+      <section className="py-20 md:py-32 bg-white">
         <div className="w-full max-w-6xl mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-[minmax(0,0.82fr)_minmax(320px,1fr)] gap-10 md:gap-14 items-center">
             <FadeIn className="order-1 md:order-1 max-w-xl">
@@ -1167,7 +1163,7 @@ function HomePage() {
       </section>
 
       {/* SEÇÃO 6 — O PERIGO INVISÍVEL */}
-      <section className="py-18 md:py-24 bg-[#f6f2ea]">
+      <section className="py-20 md:py-32 bg-surface-warm">
         <div className="w-full max-w-6xl mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-[minmax(0,0.82fr)_minmax(320px,1fr)] gap-10 md:gap-14 items-center">
             <FadeIn className="order-1 md:order-1 max-w-xl">
@@ -1183,7 +1179,7 @@ function HomePage() {
                 Uma proposta mais direta: transformar a água da casa em um novo padrão de qualidade.
               </p>
             </FadeIn>
-            <FadeIn className="order-2 md:order-2 aspect-[1.18/1] md:aspect-[1.12/1] bg-[#e8e1d6] rounded-[1.75rem] overflow-hidden">
+            <FadeIn className="order-2 md:order-2 aspect-[1.18/1] md:aspect-[1.12/1] bg-[#e8e1d6] rounded-3xl overflow-hidden">
               <img 
                 src="/images/AGUA%20EQUILIBRIO.jpeg" 
                 alt="Copo com agua representando equilibrio" 
@@ -1239,7 +1235,7 @@ function HomePage() {
       </section>
 
       {/* SEÇÃO 8 — POR QUE FILTROS COMUNS SÃO INCOMPLETOS */}
-      <section className="px-6 py-32 text-center md:py-48 bg-[#f0ece9]">
+      <section className="px-6 py-20 text-center md:py-32 bg-surface-warm">
         <div className="mx-auto max-w-5xl">
           <FadeIn>
             <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-500">
@@ -1253,9 +1249,9 @@ function HomePage() {
               Muitos filtros comuns foram desenvolvidos para resolver apenas parte do problema.
             </p>
 
-            <div className="rounded-[2rem] border border-black/6 bg-white/55 p-5 shadow-[0_20px_60px_rgba(24,24,27,0.04)] backdrop-blur-[2px] md:p-8">
+            <div className="rounded-3xl border border-black/6 bg-white/55 p-5 shadow-lg backdrop-blur-[2px] md:p-8">
               <div className="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
-                <div className="rounded-[1.6rem] border border-neutral-200 bg-white px-5 py-6 text-left md:px-6">
+                <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-6 text-left md:px-6">
                   <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">
                     O que um filtro comum costuma resolver
                   </p>
@@ -1281,7 +1277,7 @@ function HomePage() {
                   <span className="h-px w-10 bg-neutral-300 md:h-10 md:w-px" />
                 </div>
 
-                <div className="rounded-[1.6rem] border border-[#344966]/12 bg-[#344966] px-5 py-6 text-left text-white md:px-6">
+                <div className="rounded-2xl border border-[#344966]/12 bg-[#344966] px-5 py-6 text-left text-white md:px-6">
                   <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">
                     O que um tratamento completo também considera
                   </p>
@@ -1328,7 +1324,7 @@ function HomePage() {
             <div className="grid grid-cols-4 gap-x-4 gap-y-8 lg:grid-cols-8">
               {technologyHighlights.map((item) => (
                 <div key={item.title} className="flex flex-col items-center text-center">
-                  <div className="mb-4 flex h-18 w-18 items-center justify-center rounded-full border border-white/20 bg-[#d6eff8]/90 text-[#103b5b] shadow-[0_10px_30px_rgba(4,18,34,0.18)]">
+                  <div className="mb-4 flex h-18 w-18 items-center justify-center rounded-full border border-white/20 bg-[#d6eff8]/90 text-[#103b5b] shadow-md">
                     {item.icon}
                   </div>
                   <p className="max-w-[9rem] text-sm font-medium leading-snug text-white md:text-[0.95rem]">
@@ -1340,11 +1336,11 @@ function HomePage() {
           </FadeIn>
         </div>
 
-        <FadeIn delay={0.1} className="bg-[#0b95cf] px-6 py-10 md:hidden">
+        <FadeIn delay={0.1} className="bg-primary px-6 py-10 md:hidden">
           <div className="grid grid-cols-2 gap-x-4 gap-y-8">
             {technologyHighlights.map((item) => (
               <div key={item.title} className="flex flex-col items-center text-center">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-[#d6eff8] text-[#103b5b] shadow-[0_10px_30px_rgba(4,18,34,0.18)]">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-[#d6eff8] text-[#103b5b] shadow-md">
                   {item.icon}
                 </div>
                 <p className="max-w-[9rem] text-sm font-medium leading-snug text-white">
@@ -1357,7 +1353,7 @@ function HomePage() {
       </section>
 
       {/* SEÇÃO 10 — A SOLUÇÃO (Produto com carrossel) */}
-      <section id="detalhes" className="py-24 md:py-40 bg-[#f8f8f6]">
+      <section id="detalhes" className="py-20 md:py-32 bg-surface-light">
         <div className="w-full mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-2 gap-16 lg:gap-32 items-center">
             
@@ -1503,12 +1499,12 @@ function HomePage() {
       </section>
 
       {/* SEÇÃO 11 — ETAPAS DO SISTEMA */}
-      <section id="etapas" className="relative overflow-hidden bg-[#f0ece9] py-24 md:py-40">
+      <section id="etapas" className="relative overflow-hidden bg-surface-warm py-20 md:py-32">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 10% 12%, rgba(0,154,206,0.16), transparent 30%), radial-gradient(circle at 90% 8%, rgba(255,255,255,0.75), transparent 28%), linear-gradient(180deg, #f0ece9 0%, #edf5f6 52%, #f8f8f6 100%)",
+              "radial-gradient(circle at 10% 12%, rgba(0,154,206,0.16), transparent 30%), radial-gradient(circle at 90% 8%, rgba(255,255,255,0.75), transparent 28%), linear-gradient(180deg, #f4f0e9 0%, #edf5f6 52%, #f8f8f6 100%)",
           }}
         />
         <div
@@ -1537,7 +1533,7 @@ function HomePage() {
           <div className="mx-auto mt-16 max-w-[92rem] space-y-5 md:mt-20 md:space-y-6">
             {refillVisualBlocks.map((item, index) => (
               <FadeIn key={item.name} delay={0.08 + index * 0.06}>
-                <div className="relative flex min-h-[34rem] w-full flex-col overflow-hidden rounded-[2rem] bg-primary md:block md:h-64 md:min-h-0 lg:h-72">
+                <div className="relative flex min-h-[34rem] w-full flex-col overflow-hidden rounded-3xl bg-primary md:block md:h-64 md:min-h-0 lg:h-72">
                   <img
                     src={item.image}
                     alt={item.alt}
@@ -1571,7 +1567,7 @@ function HomePage() {
       </section>
 
       {/* SEÇÃO 11b — IONIZAÇÃO WATER DIAMOND (Destaque especial) */}
-      <section className="py-24 md:py-40 bg-primary text-white relative overflow-hidden">
+      <section className="py-20 md:py-32 bg-primary text-white relative overflow-hidden">
         <div className="w-full max-w-6xl mx-auto px-6 md:px-12 relative z-10">
           <div className="grid md:grid-cols-2 gap-16 lg:gap-20 items-center">
             <FadeIn>
@@ -1611,7 +1607,7 @@ function HomePage() {
             <div className="mb-12 grid gap-8 md:mb-16 md:grid-cols-[minmax(0,0.95fr)_minmax(360px,0.7fr)] md:items-end">
               <div>
                 <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary">Linha Water Diamond Ion Center</p>
-                <h2 className="max-w-3xl text-4xl leading-[0.98] tracking-[-0.03em] text-foreground md:text-6xl">
+                <h2 className="max-w-3xl text-4xl leading-[0.98] tracking-tight text-foreground md:text-6xl">
                   Uma tecnologia.
                   <span className="block text-primary">Três formas de viver a melhor água.</span>
                 </h2>
@@ -1633,13 +1629,13 @@ function HomePage() {
               {ionCenterProducts.map((product, index) => (
                 <FadeIn key={product.name} delay={0.16 + index * 0.08} className="h-full">
                   <article
-                    className={`group relative flex h-full flex-col rounded-[18px] border p-3 transition-all duration-300 hover:-translate-y-1 md:min-h-[720px] ${
+                    className={`group relative flex h-full flex-col rounded-3xl border p-3 transition-all duration-300 hover:-translate-y-1 md:min-h-[720px] ${
                       product.featured
                         ? "border-primary/60 bg-[#eef8fb] shadow-xl shadow-primary/10"
-                      : "border-neutral-200 bg-[#f4f5f4] hover:border-neutral-300"
+                      : "border-neutral-200 bg-surface-light hover:border-neutral-300"
                     }`}
                   >
-                    <div className="relative mb-5 flex h-[260px] items-center justify-center overflow-hidden rounded-[14px] bg-white/70 p-8 md:h-[300px]">
+                    <div className="relative mb-5 flex h-[260px] items-center justify-center overflow-hidden rounded-2xl bg-white/70 p-8 md:h-[300px]">
                       <div className="absolute inset-x-10 bottom-8 h-10 rounded-full bg-primary/10 blur-2xl transition-transform duration-500 group-hover:scale-110" />
                       <img
                         src={product.image}
@@ -1653,7 +1649,7 @@ function HomePage() {
                     <div className="flex flex-1 flex-col px-2 pb-2">
                       <div className="mb-6 min-h-[150px]">
                         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">{product.name}</p>
-                        <h3 className="mb-3 text-2xl font-medium tracking-[-0.02em] text-foreground md:text-3xl">{product.headline}</h3>
+                        <h3 className="mb-3 text-2xl font-medium tracking-tight text-foreground md:text-3xl">{product.headline}</h3>
                         <p className="text-sm font-light leading-relaxed text-neutral-600">{product.description}</p>
                       </div>
 
@@ -1669,7 +1665,7 @@ function HomePage() {
                         </ul>
                       </div>
 
-                      <div className="mt-auto rounded-[14px] bg-white/70 p-4">
+                      <div className="mt-auto rounded-2xl bg-white/70 p-4">
                         <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">Indicado para</p>
                         <p className="text-sm font-light leading-relaxed text-neutral-600">{product.indicated}</p>
                       </div>
@@ -1697,7 +1693,7 @@ function HomePage() {
       </section>
 
       {/* SEÇÃO 13 — TORNEIRAS E APLICAÇÕES */}
-      <section id="especificacoes" className="relative overflow-hidden py-24 md:py-40 bg-[#f8f8f6] border-t border-neutral-200">
+      <section id="especificacoes" className="relative overflow-hidden py-20 md:py-32 bg-surface-light border-t border-neutral-200">
         <div className="pointer-events-none absolute left-0 top-0 h-56 w-56 rounded-full bg-primary/15 blur-3xl" />
         <div className="pointer-events-none absolute right-0 bottom-10 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
 
@@ -1727,8 +1723,8 @@ function HomePage() {
                 },
               ].map((item, i) => (
                 <FadeIn key={item.title} delay={i * 0.1}>
-                  <article className="group flex h-full flex-col overflow-hidden rounded-[18px] border border-neutral-200 bg-white p-3 shadow-sm shadow-primary/5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-[14px] bg-neutral-100">
+                  <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm shadow-primary/5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
+                    <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-neutral-100">
                       <img
                         src={item.image}
                         alt={item.alt}
@@ -1737,7 +1733,7 @@ function HomePage() {
                     </div>
 
                     <div className="flex flex-1 flex-col px-3 pb-5 pt-6 text-center">
-                      <h3 className="mb-3 text-xl font-medium tracking-[-0.02em] text-foreground">{item.title}</h3>
+                      <h3 className="mb-3 text-xl font-medium tracking-tight text-foreground">{item.title}</h3>
                       <p className="mx-auto max-w-sm text-sm font-light leading-relaxed text-neutral-500">{item.desc}</p>
                     </div>
                   </article>
@@ -1749,7 +1745,7 @@ function HomePage() {
       </section>
 
       {/* SEÇÃO 14 — USO DIÁRIO E LIFESTYLE */}
-      <section className="py-24 md:py-40 bg-white">
+      <section className="py-20 md:py-32 bg-white">
         <div className="w-full mx-auto px-6 md:px-12">
           <div className="max-w-3xl mx-auto mb-20 text-center">
             <FadeIn>
@@ -1783,7 +1779,7 @@ function HomePage() {
       </section>
 
       {/* SEÇÃO 15 — POR QUE ISSO IMPORTA */}
-      <section id="porque" className="py-24 md:py-40 bg-[#f8f8f6]">
+      <section id="porque" className="py-20 md:py-32 bg-surface-light">
         <div className="w-full mx-auto px-6 md:px-12">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <FadeIn>
@@ -1824,7 +1820,7 @@ function HomePage() {
             Seu navegador não suporta vídeos HTML5.
           </video>
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/45 to-black/80" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(12,161,207,0.16),transparent_42%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,154,206,0.16),transparent_42%)]" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-2xl px-6">
@@ -1835,13 +1831,10 @@ function HomePage() {
             <p className="text-white/70 font-light mb-8 leading-relaxed">
               Conheça a linha Water Diamond Ion Center e descubra qual modelo combina com a sua casa, sua rotina e sua forma de viver.
             </p>
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/20 px-8 py-3.5 text-sm font-medium text-white backdrop-blur-md transition-all duration-300 hover:border-transparent hover:bg-primary hover:text-white cursor-pointer"
-            >
+            <Button variant="glass" onClick={() => setIsModalOpen(true)} className="gap-2 cursor-pointer hover:border-transparent hover:bg-primary">
               Quero conhecer a linha Ion Center
               <ArrowRight size={16} />
-            </button>
+            </Button>
           </FadeIn>
         </div>
       </section>

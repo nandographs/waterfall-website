@@ -1,7 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
-
-@custom-variant dark (&:is(.dark *));
 
 :root {
   --background: #ffffff;
@@ -15,7 +12,14 @@
 
   --primary: #009ace;
   --primary-hover: #0083af;
+  --primary-light: #38c7f5;
   --primary-foreground: #ffffff;
+
+  --navy-900: #041923;
+  --navy-800: #062232;
+
+  --surface-warm: #f4f0e9;
+  --surface-light: #f8f8f6;
 
   --secondary: #eef6fa;
   --secondary-foreground: #172033;
@@ -77,77 +81,6 @@
   --spacing: 0.25rem;
 }
 
-.dark {
-  --background: #ffffff;
-  --foreground: #172033;
-
-  --card: #f8fbfd;
-  --card-foreground: #172033;
-
-  --popover: #ffffff;
-  --popover-foreground: #172033;
-
-  --primary: #009ace;
-  --primary-hover: #0083af;
-  --primary-foreground: #ffffff;
-
-  --secondary: #eef6fa;
-  --secondary-foreground: #172033;
-
-  --muted: #f1f5f8;
-  --muted-foreground: #5b6675;
-
-  --accent: #e6f7fc;
-  --accent-foreground: #009ace;
-
-  --destructive: #e5484d;
-  --destructive-foreground: #ffffff;
-
-  --border: #dbe7ed;
-  --input: #f6fafc;
-  --ring: #009ace;
-
-  --chart-1: #009ace;
-  --chart-2: #22b88a;
-  --chart-3: #f5b84b;
-  --chart-4: #5fcf9f;
-  --chart-5: #e85d75;
-
-  --sidebar: #f8fbfd;
-  --sidebar-foreground: #172033;
-
-  --sidebar-primary: #009ace;
-  --sidebar-primary-foreground: #ffffff;
-
-  --sidebar-accent: #e6f7fc;
-  --sidebar-accent-foreground: #009ace;
-
-  --sidebar-border: #dbe7ed;
-  --sidebar-ring: #009ace;
-
-  --font-sans: Poppins, sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
-
-  --radius: 1.3rem;
-
-  --shadow-x: 0px;
-  --shadow-y: 8px;
-  --shadow-blur: 24px;
-  --shadow-spread: -8px;
-  --shadow-opacity: 0.08;
-  --shadow-color: rgba(0, 154, 206, 0.16);
-
-  --shadow-2xs: 0px 2px 4px -2px rgba(0, 154, 206, 0.08);
-  --shadow-xs: 0px 4px 8px -4px rgba(0, 154, 206, 0.10);
-  --shadow-sm: 0px 6px 16px -8px rgba(0, 154, 206, 0.12);
-  --shadow: 0px 8px 24px -10px rgba(0, 154, 206, 0.14);
-  --shadow-md: 0px 12px 32px -12px rgba(0, 154, 206, 0.16);
-  --shadow-lg: 0px 18px 48px -16px rgba(0, 154, 206, 0.18);
-  --shadow-xl: 0px 24px 64px -20px rgba(0, 154, 206, 0.20);
-  --shadow-2xl: 0px 32px 80px -24px rgba(0, 154, 206, 0.22);
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -160,7 +93,14 @@
 
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
   --color-primary-foreground: var(--primary-foreground);
+
+  --color-navy-900: var(--navy-900);
+  --color-navy-800: var(--navy-800);
+
+  --color-surface-warm: var(--surface-warm);
+  --color-surface-light: var(--surface-light);
 
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -253,7 +193,7 @@ button {
 
 @layer components {
   .consultor-input {
-    @apply min-h-13 w-full rounded-xl border border-[#062232]/12 bg-[#f4f8f8] px-4 text-base text-[#062232] outline-none transition placeholder:text-[#78909a]/70 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10;
+    @apply min-h-13 w-full rounded-xl border border-navy-800/12 bg-input px-4 text-base text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10;
   }
 }
 
