@@ -619,6 +619,57 @@ const ContactModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
   );
 };
 
+const ProductSpecsModal = ({ product, onClose }: { product: typeof ionCenterProducts[number] | null, onClose: () => void }) => {
+  if (!product) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+        onClick={onClose}
+      />
+
+      {/* Modal Box */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.4, ease: [0.21, 0.47, 0.32, 0.98] }}
+        className="relative z-10 flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-neutral-100 bg-white text-black shadow-2xl"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-neutral-100 p-6 md:p-8">
+          <div>
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Ficha técnica</p>
+            <h3 className="text-2xl title-dark">{product.name}</h3>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Fechar ficha técnica"
+            className="shrink-0 p-2 text-neutral-400 transition-colors hover:text-primary cursor-pointer"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-6 py-2 md:px-8">
+          <dl className="divide-y divide-neutral-100">
+            {product.specs.map(([label, value]) => (
+              <div key={label} className="grid grid-cols-[1fr_1.15fr] gap-4 py-3.5">
+                <dt className="text-[11px] font-semibold uppercase leading-snug tracking-[0.1em] text-neutral-400">{label}</dt>
+                <dd className="text-sm font-light leading-snug text-neutral-700">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 const FloatingWhatsAppButton = ({ onClick }: { onClick: () => void }) => (
   <button
     type="button"
@@ -872,6 +923,25 @@ const ionCenterProducts = [
     ],
     indicated: "Cozinhas residenciais, ambientes gourmet e aplicações sob bancada.",
     cta: "Conhecer Slim",
+    specs: [
+      ["Marca", "Waterfall"],
+      ["Modelo", "WaterDiamond IonCenter Slim"],
+      ["Cor", "Branco, Preto"],
+      ["Instalação", "Parede ou bancada"],
+      ["Tipo de água", "Natural"],
+      ["Refis", "4 refis Max WaterDiamond"],
+      ["Saída de água", "Sim"],
+      ["Vida útil do refil", "9 a 18 meses ou até 6.000 L de água"],
+      ["Vazão nominal", "0,75 L/minuto"],
+      ["Pressão de funcionamento", "3 a 40 metros de coluna de água"],
+      ["Temperatura de operação", "5°C a 42°C"],
+      ["Material", "Poliestireno, ABS, polipropileno e carvão ativado"],
+      ["Tamanho com embalagem (cm)", "30,5 x 41 x 12"],
+      ["Tamanho sem embalagem (cm)", "30 x 40 x 11,5"],
+      ["Peso com embalagem", "3,5 kg"],
+      ["Peso sem embalagem", "3 kg"],
+      ["Garantia", "01 ano"],
+    ],
   },
   {
     tag: "Smart",
@@ -890,6 +960,21 @@ const ionCenterProducts = [
     indicated: "Famílias, cozinhas modernas, escritórios e ambientes de uso frequente.",
     cta: "Conhecer Smart",
     featured: true,
+    specs: [
+      ["Marca", "Waterfall"],
+      ["Modelo", "WaterDiamond IonCenter Smart"],
+      ["Água", "Fria, Gelada, Natural"],
+      ["Capacidade de refrigeração", "200 ml/h"],
+      ["Capacidade para armazenar", "600 ml de água gelada"],
+      ["Refrigeração por", "Refrigeração eletrônica"],
+      ["Cor", "Branco, Preto, Prata"],
+      ["Medida (L x A x P/cm)", "16 x 47 x 36,5 cm"],
+      ["Peso líquido", "3,7 kg"],
+      ["Potência", "65 W"],
+      ["Vazão mínima recomendada", "0,5 L/h"],
+      ["Voltagem", "Bivolt"],
+      ["Garantia", "12 meses"],
+    ],
   },
   {
     tag: "Turbo",
@@ -907,6 +992,20 @@ const ionCenterProducts = [
     ],
     indicated: "Famílias maiores, empresas, consultórios, escritórios e espaços com alto consumo.",
     cta: "Conhecer Turbo",
+    specs: [
+      ["Marca", "Waterfall"],
+      ["Modelo", "WaterDiamond IonCenter Turbo"],
+      ["Água", "Gelada, Natural"],
+      ["Capacidade de refrigeração", "1,5 L/h"],
+      ["Capacidade para armazenar", "2,8 L de água gelada"],
+      ["Refrigeração por", "Compressor"],
+      ["Cor", "Branco, Preto"],
+      ["Medida (L x A x P/cm)", "25,5 x 49 x 36,6 cm"],
+      ["Peso líquido", "8,9 kg"],
+      ["Vazão mínima recomendada", "0,5 L/h"],
+      ["Voltagem", "127 V, 220 V"],
+      ["Garantia", "12 meses"],
+    ],
   },
 ];
 
@@ -992,6 +1091,7 @@ function HomePage() {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [specsProduct, setSpecsProduct] = useState<typeof ionCenterProducts[number] | null>(null);
 
   return (
     <div id="home" className="min-h-screen bg-white selection:bg-neutral-200">
@@ -1683,6 +1783,13 @@ function HomePage() {
                           <ArrowRight size={16} strokeWidth={1.8} />
                         </span>
                       </button>
+
+                      <button
+                        onClick={() => setSpecsProduct(product)}
+                        className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-600 transition-all duration-300 hover:border-primary hover:text-primary cursor-pointer"
+                      >
+                        Ver detalhes técnicos
+                      </button>
                     </div>
                   </article>
                 </FadeIn>
@@ -1851,6 +1958,13 @@ function HomePage() {
       <AnimatePresence>
         {isModalOpen && (
           <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Ficha Técnica */}
+      <AnimatePresence>
+        {specsProduct && (
+          <ProductSpecsModal product={specsProduct} onClose={() => setSpecsProduct(null)} />
         )}
       </AnimatePresence>
 
