@@ -1,9 +1,15 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, Check, Droplet, Sparkles, Shield, Activity, ChevronRight, Facebook, Instagram, Menu, User, X, Youtube } from 'lucide-react';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import NavHeader from "@/components/ui/nav-header";
 import ExpandingCardsDemo from "@/components/ui/demo";
-import ConsultorPage from "./ConsultorPage";
+import { Button } from "@/components/ui/button";
+import { submitWeb3Form, WHATSAPP_AFTER_FORM_URL, WHATSAPP_DIRECT_URL } from "@/lib/forms";
+import AmbientVideo from "@/components/ui/ambient-video";
+// Rotas secundárias entram em chunks próprios: quem abre a home não baixa o código delas.
+const ConsultorPage = lazy(() => import("./pages/ConsultorPage"));
+const FitAcademiaPage = lazy(() => import("./pages/FitAcademiaPage"));
+const BionLifePage = lazy(() => import("./pages/BionLifePage"));
 
 
 // --- Reusable Components ---
@@ -34,29 +40,6 @@ const FadeIn = ({ children, delay = 0, className = "" }: { children: React.React
     {children}
   </motion.div>
 );
-
-const Button = ({ children, variant = 'primary', className = "", onClick, type = 'button', disabled = false }: { children: React.ReactNode, variant?: 'primary' | 'secondary' | 'outline' | 'glass', className?: string, onClick?: () => void, type?: 'button' | 'submit', disabled?: boolean }) => {
-  const baseStyle = "inline-flex items-center justify-center rounded-full px-8 py-3.5 text-sm font-medium transition-all duration-300 active:scale-[0.98] disabled:cursor-wait disabled:opacity-65";
-  const variants = {
-    primary: "bg-primary text-white hover:bg-primary-hover",
-    secondary: "bg-white border border-neutral-200 text-black hover:bg-primary hover:text-white hover:border-transparent",
-    outline: "bg-transparent border border-neutral-200 text-black hover:bg-primary hover:text-white hover:border-transparent",
-    glass: "border border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
-  };
-
-  return (
-    <button type={type} disabled={disabled} onClick={onClick} className={`${baseStyle} ${variants[variant]} ${className}`}>
-      {children}
-    </button>
-  );
-}
-
-const routineMoments = [
-  { title: "no copo matinal", image: "/images/COPO AGUA.png" },
-  { title: "no seu café", image: "/images/CAFE.png" },
-  { title: "na sua comida", image: "/images/ALIMENTACAO.png" },
-  { title: "na sua rotina", image: "/images/HIDRATACAO.png" },
-];
 
 const commonFilterBenefits = [
   "Retém partículas",
@@ -235,7 +218,8 @@ const refillVisualBlocks = [
     title: "Ultra filtragem",
     description: "Remove partículas físicas como areia, ferrugem, sedimentos, microplásticos e microrganismos com membrana de 0,5μ.",
     result: "Resultado: água mais limpa desde a primeira etapa.",
-    image: "/images/MAX.png",
+    image: "/images/MAX.webp",
+    imageSm: "/images/MAX-sm.webp",
     alt: "Refil MAX Water Diamond",
     className: "md:absolute md:left-[0%] md:bottom-[-64%] md:h-[168%] md:-rotate-[24deg] lg:left-[1%]",
     textAlign: "right",
@@ -246,7 +230,8 @@ const refillVisualBlocks = [
     title: "Purificação",
     description: "Reduz cloro, odores, resíduos químicos, compostos orgânicos e substâncias que alteram o sabor da água.",
     result: "Resultado: água mais pura, leve e agradável.",
-    image: "/images/CARBON.png",
+    image: "/images/CARBON.webp",
+    imageSm: "/images/CARBON-sm.webp",
     alt: "Refil Carbon Water Diamond",
     className: "md:absolute md:right-[7%] md:bottom-[-44%] md:h-[174%] md:rotate-[19deg] lg:right-[8%]",
     textAlign: "left",
@@ -257,7 +242,8 @@ const refillVisualBlocks = [
     title: "Purificação profunda",
     description: "Utiliza carvão ativado compactado para reter metais pesados, bactérias, partículas finas e impurezas persistentes.",
     result: "Resultado: mais controle, segurança e qualidade no consumo diário.",
-    image: "/images/BLOCK.png",
+    image: "/images/BLOCK.webp",
+    imageSm: "/images/BLOCK-sm.webp",
     alt: "Refil Block Water Diamond",
     className: "md:absolute md:left-[0%] md:bottom-[-54%] md:h-[166%] md:-rotate-[7deg] lg:left-[1%]",
     textAlign: "right",
@@ -268,7 +254,8 @@ const refillVisualBlocks = [
     title: "Alcalinização e minerais",
     description: "Eleva o pH para uma faixa alcalina entre 8,5 e 9,5 e reintroduz minerais como cálcio, magnésio e potássio.",
     result: "Resultado: água mais equilibrada, mineralizada e completa.",
-    image: "/images/ALKA.png",
+    image: "/images/ALKA.webp",
+    imageSm: "/images/ALKA-sm.webp",
     alt: "Refil ALKA Water Diamond",
     className: "md:absolute md:right-[7%] md:bottom-[-50%] md:h-[182%] md:rotate-[18deg] lg:right-[8%]",
     textAlign: "left",
@@ -276,8 +263,6 @@ const refillVisualBlocks = [
 ];
 
 // --- Reusable Components for Navigation & Forms ---
-
-const WHATSAPP_URL = `https://wa.me/5547992828752?text=${encodeURIComponent("Olá, acabei de enviar meus dados pelo site Water Diamond Ion Center e quero falar com um consultor.")}`;
 
 const WhatsAppIcon = ({ className = "h-6 w-6" }: { className?: string }) => (
   <svg viewBox="0 0 32 32" className={className} fill="currentColor" aria-hidden="true">
@@ -318,6 +303,7 @@ export const SiteHeader = ({
       <div className="flex items-center gap-4">
         <button
           onClick={onMenuOpen}
+          aria-label="Abrir menu de navegação"
           className={`p-2 -ml-2 transition-colors cursor-pointer md:hidden ${
             scrolled ? 'text-primary hover:text-primary-hover' : 'text-white mix-blend-difference hover:text-primary'
           }`}
@@ -329,7 +315,7 @@ export const SiteHeader = ({
           className={`flex items-center gap-2 cursor-pointer ${scrolled ? 'text-primary' : 'text-white mix-blend-difference'}`}
         >
           <img
-            src="/images/LOGO.png"
+            src="/images/LOGO.webp"
             alt="Water Diamond Logo"
             className="h-7 w-auto object-contain"
             style={{
@@ -373,7 +359,6 @@ export const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
     { label: "O Problema", href: "#problema" },
     { label: "Ion Center", href: "#ion-center" },
     { label: "Seja um consultor", href: null },
-    { label: "Por que importa", href: "#porque" },
   ];
 
   const handleScroll = (href: string | null) => {
@@ -404,13 +389,13 @@ export const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
         <div>
           <div className="flex justify-between items-center mb-12">
             <div className="flex items-center gap-2">
-              <img src="/images/LOGO.png" alt="Water Diamond Logo" className="h-7 w-auto object-contain" />
+              <img src="/images/LOGO.webp" alt="Water Diamond Logo" className="h-7 w-auto object-contain" />
               <div>
                 <div className="font-semibold tracking-widest text-xs uppercase text-black">Water Diamond</div>
                 <div className="text-[9px] tracking-widest uppercase text-neutral-500">Ion Center</div>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 text-black hover:opacity-75 transition-opacity cursor-pointer">
+            <button onClick={onClose} aria-label="Fechar menu de navegação" className="p-2 text-black hover:opacity-75 transition-opacity cursor-pointer">
               <X size={20} />
             </button>
           </div>
@@ -436,7 +421,7 @@ export const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
   );
 };
 
-const ContactModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+const ContactModal = ({ isOpen, onClose, product }: { isOpen: boolean, onClose: () => void, product?: string | null }) => {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -459,22 +444,15 @@ const ContactModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
     setIsSubmitting(true);
     setSubmitError("");
 
-    const payload = new FormData(e.currentTarget);
-    payload.append("access_key", "8994e420-29d7-4bce-b0e8-a5c5fb4b0ccb");
-    payload.append("subject", "Novo contato pelo site Water Diamond Ion Center");
-    payload.append("from_name", "Water Diamond Ion Center");
-
     try {
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        body: payload,
+      await submitWeb3Form(e.currentTarget, {
+        kind: "contato",
+        subject: product
+          ? `Novo contato pelo site — interesse em ${product}`
+          : "Novo contato pelo site Water Diamond Ion Center",
+        fromName: "Water Diamond Ion Center",
+        extraFields: { produto_de_interesse: product ?? "Não especificado" },
       });
-      const result = await response.json();
-
-      if (!response.ok || result.success === false) {
-        throw new Error(result.message || "Não foi possível enviar sua solicitação.");
-      }
-
       setFormSubmitted(true);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Algo deu errado. Tente novamente.");
@@ -504,8 +482,9 @@ const ContactModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
         transition={{ duration: 0.4, ease: [0.21, 0.47, 0.32, 0.98] }}
         className="relative bg-white text-black w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl z-10 border border-neutral-100"
       >
-        <button 
-          onClick={onClose} 
+        <button
+          onClick={onClose}
+          aria-label="Fechar formulário de contato"
           className="absolute top-6 right-6 p-2 text-neutral-400 hover:text-primary transition-colors cursor-pointer"
         >
           <X size={20} />
@@ -516,10 +495,27 @@ const ContactModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
             <>
               <div className="mb-8">
                 <h3 className="text-2xl title-dark mb-2">Falar com um consultor</h3>
-                <p className="text-sm font-light text-neutral-500">Deixe seus dados e um de nossos especialistas entrará em contato para um orçamento personalizado.</p>
+                <p className="text-sm font-light text-neutral-500">
+                  {product
+                    ? `Deixe seus dados e um especialista entrará em contato com um orçamento do ${product}.`
+                    : "Deixe seus dados e um de nossos especialistas entrará em contato para um orçamento personalizado."}
+                </p>
               </div>
 
+              {product && (
+                <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-primary/25 bg-[#eef8fb] px-4 py-3">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Produto de interesse</p>
+                    <p className="text-sm font-medium text-foreground">{product}</p>
+                  </div>
+                  <Check size={16} className="shrink-0 text-primary" />
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Honeypot: bots preenchem, humanos não veem. O Web3Forms descarta o envio. */}
+                <input type="checkbox" name="botcheck" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" style={{ display: "none" }} />
+
                 <div>
                   <label htmlFor="modal-name" className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-2">Nome Completo</label>
                   <input 
@@ -602,15 +598,15 @@ const ContactModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
               <p className="text-sm font-light text-neutral-500 max-w-xs mx-auto mb-8">
                 Nossos consultores receberam sua solicitação e entrarão em contato no WhatsApp em breve.
               </p>
-              <button 
-                onClick={() => {
-                  window.location.href = WHATSAPP_URL;
-                }}
+              <a
+                href={WHATSAPP_AFTER_FORM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 bg-[#25D366] text-white rounded-full px-8 py-3 text-sm font-medium hover:bg-[#1ebe5d] transition-all duration-300 cursor-pointer"
               >
                 <WhatsAppIcon className="h-5 w-5" />
-                WhatsApp
-              </button>
+                Falar agora no WhatsApp
+              </a>
             </motion.div>
           )}
         </div>
@@ -670,15 +666,16 @@ const ProductSpecsModal = ({ product, onClose }: { product: typeof ionCenterProd
   );
 };
 
-const FloatingWhatsAppButton = ({ onClick }: { onClick: () => void }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    aria-label="Abrir formulário antes de falar no WhatsApp"
+const FloatingWhatsAppButton = () => (
+  <a
+    href={WHATSAPP_DIRECT_URL}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Falar com um consultor no WhatsApp"
     className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:bg-[#1ebe5d] focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-4 md:bottom-8 md:right-8 md:h-16 md:w-16"
   >
     <WhatsAppIcon className="h-8 w-8" />
-  </button>
+  </a>
 );
 
 type LegalDocument = {
@@ -816,7 +813,7 @@ const SiteFooter = () => (
     <div className="w-full mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
       <div>
         <div className="flex items-center gap-3 mb-8">
-          <img src="/images/LOGO.png" alt="Water Diamond Logo" className="h-9 w-auto object-contain brightness-0 invert" />
+          <img src="/images/LOGO.webp" alt="Water Diamond Logo" className="h-9 w-auto object-contain brightness-0 invert" />
           <div>
             <div className="font-semibold tracking-widest text-base uppercase text-white leading-tight">Water Diamond</div>
             <div className="text-[10px] tracking-widest uppercase text-neutral-500 leading-none">Ion Center</div>
@@ -837,7 +834,7 @@ const SiteFooter = () => (
           ))}
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-3 text-neutral-400 text-sm">
-          <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Contato</a>
+          <a href={WHATSAPP_DIRECT_URL} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Contato</a>
           <a href="/politica-de-privacidade" className="hover:text-white transition-colors">Política de Privacidade</a>
           <a href="/termos-de-uso" className="hover:text-white transition-colors">Termos de Uso</a>
         </div>
@@ -854,7 +851,7 @@ const LegalPage = ({ document }: { document: LegalDocument }) => (
     <main className="mx-auto w-full max-w-5xl px-6 pb-20 pt-10 md:px-12 md:pb-28 md:pt-16">
       <a href="/" className="mb-16 inline-flex items-center gap-3 text-primary transition-opacity hover:opacity-75">
         <img
-          src="/images/LOGO.png"
+          src="/images/LOGO.webp"
           alt="Water Diamond Logo"
           className="h-8 w-auto object-contain"
           style={{
@@ -889,14 +886,47 @@ const LegalPage = ({ document }: { document: LegalDocument }) => (
   </div>
 );
 
+/** Tela neutra enquanto o chunk da rota carrega. */
+const RouteFallback = () => (
+  <div className="flex min-h-screen items-center justify-center bg-white">
+    <span className="sr-only">Carregando…</span>
+    <span className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-primary" aria-hidden="true" />
+  </div>
+);
+
 // --- Main App ---
 
 export default function App() {
   const normalizedPath = window.location.pathname.replace(/\/$/, "") || "/";
   const legalDocument = legalDocuments[normalizedPath];
 
+  // Subdomínio bionlife.: rota decidida pelo host, não pelo caminho.
+  // O /bionlife existe para abrir a mesma página em dev e em preview,
+  // onde não há subdomínio.
+  const host = window.location.hostname.toLowerCase();
+  if (host === "bionlife" || host.startsWith("bionlife.") || normalizedPath === "/bionlife") {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <BionLifePage />
+      </Suspense>
+    );
+  }
+
   if (normalizedPath === "/consultor") {
-    return <ConsultorPage />;
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <ConsultorPage />
+      </Suspense>
+    );
+  }
+
+  // Acessada apenas por QR code na Fit Academia. Nenhum link do site aponta para cá.
+  if (normalizedPath === "/fitacademia") {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <FitAcademiaPage />
+      </Suspense>
+    );
   }
 
   if (legalDocument) {
@@ -911,8 +941,9 @@ const ionCenterProducts = [
     tag: "Slim",
     name: "Ion Center Slim",
     headline: "Compacto e discreto",
-    image: "/images/white01.png",
-    imageAlt: "Ion Center Slim branco com quatro refis Max WaterDiamond",
+    image: "/images/SLIMIMG.webp",
+    imageSm: "/images/SLIMIMG-sm.webp",
+    imageAlt: "Ion Center Slim instalado sob a bancada de uma cozinha branca",
     description: "Ideal para quem busca uma central de tratamento eficiente, elegante e integrada ao ambiente.",
     highlights: [
       "Design slim",
@@ -947,14 +978,15 @@ const ionCenterProducts = [
     tag: "Smart",
     name: "Ion Center Smart",
     headline: "Praticidade no dia a dia",
-    image: "/images/SMART.png",
-    imageAlt: "Ion Center Smart em acabamento preto e prata",
+    image: "/images/SMARTIMG.webp",
+    imageSm: "/images/SMARTIMG-sm.webp",
+    imageAlt: "Ion Center Smart preto sobre a bancada de uma cozinha, com uma mulher servindo um copo de água",
     description: "Une tratamento completo com a conveniência de água fria, gelada e natural em um sistema compacto.",
     highlights: [
       "Água fria, gelada e natural",
       "600ml de armazenamento de água gelada",
       "Refrigeração eletrônica",
-      "Disponível em branco, preto e prata",
+      "Disponível em branco e preto",
       "Sistema integrado ao tratamento WaterDiamond",
     ],
     indicated: "Famílias, cozinhas modernas, escritórios e ambientes de uso frequente.",
@@ -967,7 +999,7 @@ const ionCenterProducts = [
       ["Capacidade de refrigeração", "200 ml/h"],
       ["Capacidade para armazenar", "600 ml de água gelada"],
       ["Refrigeração por", "Refrigeração eletrônica"],
-      ["Cor", "Branco, Preto, Prata"],
+      ["Cor", "Branco, Preto"],
       ["Medida (L x A x P/cm)", "16 x 47 x 36,5 cm"],
       ["Peso líquido", "3,7 kg"],
       ["Potência", "65 W"],
@@ -980,8 +1012,9 @@ const ionCenterProducts = [
     tag: "Turbo",
     name: "Ion Center Turbo",
     headline: "Mais capacidade e performance",
-    image: "/images/TURBO.png",
-    imageAlt: "Ion Center Turbo preto com reservatório de água gelada",
+    image: "/images/TURBOIMG.webp",
+    imageSm: "/images/TURBOIMG-sm.webp",
+    imageAlt: "Ion Center Turbo preto sobre a bancada de uma cozinha, com um casal preparando alimentos",
     description: "A versão mais robusta da linha, criada para ambientes que precisam de mais volume e água gelada disponível por mais tempo.",
     highlights: [
       "Água gelada e natural",
@@ -1009,14 +1042,17 @@ const ionCenterProducts = [
   },
 ];
 
+const carouselImages = [
+  '/images/white01.webp',
+  '/images/white02.webp',
+  '/images/black01.webp',
+  '/images/black02.webp',
+];
+
 function HomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState(0);
-  const routineSectionRef = useRef<HTMLElement | null>(null);
-  const [routineActiveIndex, setRoutineActiveIndex] = useState(0);
-  const [routineScrollProgress, setRoutineScrollProgress] = useState(0);
-
   const activeColor = activeIndex < 2 ? 'white' : 'black';
 
   const setActiveColor = (color: 'white' | 'black') => {
@@ -1030,11 +1066,20 @@ function HomePage() {
   };
 
   useEffect(() => {
+    let frame = 0;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        setScrolled(window.scrollY > 50);
+      });
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {
@@ -1042,35 +1087,6 @@ function HomePage() {
       const timer = setTimeout(() => scrollToSection(window.location.hash), 300);
       return () => clearTimeout(timer);
     }
-  }, []);
-
-  useEffect(() => {
-    const handleRoutineScroll = () => {
-      const section = routineSectionRef.current;
-      if (!section) return;
-
-      const rect = section.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const totalScrollable = Math.max(section.offsetHeight - viewportHeight, 1);
-      const travelled = Math.min(Math.max(-rect.top, 0), totalScrollable);
-      const progress = travelled / totalScrollable;
-      const nextIndex = Math.min(
-        routineMoments.length - 1,
-        Math.floor(progress * routineMoments.length)
-      );
-
-      setRoutineScrollProgress(progress);
-      setRoutineActiveIndex(nextIndex);
-    };
-
-    handleRoutineScroll();
-    window.addEventListener('scroll', handleRoutineScroll, { passive: true });
-    window.addEventListener('resize', handleRoutineScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleRoutineScroll);
-      window.removeEventListener('resize', handleRoutineScroll);
-    };
   }, []);
 
   const handleNext = () => {
@@ -1091,26 +1107,31 @@ function HomePage() {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [interestProduct, setInterestProduct] = useState<string | null>(null);
   const [specsProduct, setSpecsProduct] = useState<typeof ionCenterProducts[number] | null>(null);
+
+  // Guarda qual produto originou o lead para que o consultor não precise reperguntar.
+  const openContact = (product: string | null = null) => {
+    setInterestProduct(product);
+    setIsModalOpen(true);
+  };
 
   return (
     <div id="home" className="min-h-screen bg-white selection:bg-neutral-200">
-      <SiteHeader scrolled={scrolled} onMenuOpen={() => setIsMenuOpen(true)} onContactClick={() => setIsModalOpen(true)} />
+      <SiteHeader scrolled={scrolled} onMenuOpen={() => setIsMenuOpen(true)} onContactClick={() => openContact()} />
 
       {/* SEÇÃO 1 — HERO */}
       <section className="relative w-full bg-surface-warm px-0 pt-0 md:px-4">
         <div className="relative flex min-h-screen w-full items-center overflow-hidden bg-black md:rounded-b-[38px]">
         <div className="absolute inset-0 z-0">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover opacity-60"
-          >
-            <source src="/videos/IONCENTER_VIDEO.mp4" type="video/mp4" />
-            Seu navegador não suporta vídeos HTML5.
-          </video>
+          <AmbientVideo
+            videoDesktop="/videos/ioncenter.mp4"
+            videoMobile="/videos/ioncenter-mobile.mp4"
+            poster="/images/hero-poster.webp"
+            posterMobile="/images/hero-poster-sm.webp"
+            priority
+            className="absolute inset-0 opacity-60"
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/78" />
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/40 to-transparent" />
         </div>
@@ -1126,8 +1147,8 @@ function HomePage() {
             <h1 className="text-5xl md:text-6xl lg:text-7xl title-light leading-[1.05] mb-8">
               A melhor água do mundo.
             </h1>
-            <Button onClick={() => setIsModalOpen(true)} variant="primary" className="px-10">
-              quero conhecer
+            <Button onClick={() => openContact()} variant="primary" className="px-10">
+              Falar com um consultor
             </Button>
           </motion.div>
         </div>
@@ -1143,11 +1164,17 @@ function HomePage() {
                 Sua água parece limpa,
                 <br className="hidden md:block" />
                 <span className="md:hidden"> </span>
-                <span className="title-accent md:inline-block md:whitespace-nowrap">mas aparência não garante pureza.</span>
+                <span className="title-accent md:inline-block xl:whitespace-nowrap">mas aparência não garante pureza.</span>
               </h2>
               <div className="w-[calc(100%+4rem)] max-w-none -mx-8 -mt-12 md:w-full md:max-w-[72rem] md:mx-0 md:-mt-28 lg:-mt-34 mb-2 md:mb-0">
                 <img
-                  src="/images/GALAO_FILTRO_CAIXA.png"
+                  src="/images/GALAO_FILTRO_CAIXA.webp"
+                  srcSet="/images/GALAO_FILTRO_CAIXA-sm.webp 700w, /images/GALAO_FILTRO_CAIXA.webp 1200w"
+                  sizes="(max-width: 768px) 100vw, 72rem"
+                  width={1200}
+                  height={675}
+                  loading="lazy"
+                  decoding="async"
                   alt="Galão e filtro em caixa"
                   className="w-full h-auto object-cover"
                 />
@@ -1253,7 +1280,13 @@ function HomePage() {
             </FadeIn>
             <FadeIn className="order-2 md:order-2 flex items-center justify-center">
                <img
-                  src="/images/PH.png"
+                  src="/images/PH.webp"
+                  srcSet="/images/PH-sm.webp 500w, /images/PH.webp 840w"
+                  sizes="(max-width: 768px) 330px, 420px"
+                  width={840}
+                  height={840}
+                  loading="lazy"
+                  decoding="async"
                   alt="Ilustracao sobre equilibrio de pH da agua"
                   className="w-full max-w-[330px] md:max-w-[420px] h-auto object-contain"
                 />
@@ -1262,85 +1295,10 @@ function HomePage() {
         </div>
       </section>
 
-      {/* SEÇÃO 6 — O PERIGO INVISÍVEL */}
-      <section className="py-20 md:py-32 bg-surface-warm">
-        <div className="w-full max-w-6xl mx-auto px-6 md:px-12">
-          <div className="grid md:grid-cols-[minmax(0,0.82fr)_minmax(320px,1fr)] gap-10 md:gap-14 items-center">
-            <FadeIn className="order-1 md:order-1 max-w-xl">
-              <h2 className="text-[1.9rem] md:text-[2.85rem] title-dark leading-[1.02] mb-5">
-                Não é só sobre filtrar.
-                <span className="block font-semibold title-accent">É sobre equilibrar a água.</span>
-              </h2>
-              <div className="max-w-md space-y-4 text-base md:text-[1.05rem] leading-relaxed font-light text-neutral-600">
-                <p>Campos eletromagnéticos, redes e interferências fazem parte da rotina moderna e podem impactar o estado da água.</p>
-                <p>A tecnologia Water Diamond® entra nesse ponto para reorganizar e devolver mais equilíbrio ao que você consome todos os dias.</p>
-              </div>
-              <p className="mt-6 inline-flex max-w-lg border-l-2 border-primary pl-4 text-sm md:text-base font-medium text-neutral-900 leading-relaxed">
-                Uma proposta mais direta: transformar a água da casa em um novo padrão de qualidade.
-              </p>
-            </FadeIn>
-            <FadeIn className="order-2 md:order-2 aspect-[1.18/1] md:aspect-[1.12/1] bg-[#e8e1d6] rounded-3xl overflow-hidden">
-              <img 
-                src="/images/AGUA%20EQUILIBRIO.jpeg" 
-                alt="Copo com agua representando equilibrio" 
-                className="w-full h-full object-cover"
-              />
-            </FadeIn>
-          </div>
-        </div>
-      </section>
-
-      {/* SEÇÃO 7 — OS EFEITOS DE UMA ÁGUA DE BAIXA QUALIDADE */}
-      <section
-        ref={routineSectionRef}
-        className="relative h-[320vh]"
-        style={{
-          background:
-            "radial-gradient(circle at center, #7fc8ff 0%, #69bbfb 42%, #4ea8ef 72%, #3a93dc 100%)",
-        }}
-      >
-        <div className="sticky top-0 flex min-h-screen items-center">
-          <div className="w-full mx-auto px-6 py-16 md:px-12 md:py-20">
-            <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
-              <FadeIn>
-                <h2 className="text-3xl md:text-5xl title-light leading-tight">
-                  O que você consome todos os dias se torna <strong className="font-bold">parte da sua rotina.</strong>
-                </h2>
-              </FadeIn>
-
-              <div className="mt-14 w-full max-w-4xl">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={routineMoments[routineActiveIndex].title}
-                    initial={{ opacity: 0, y: 56, filter: 'blur(20px)' }}
-                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, y: -20, filter: 'blur(16px)' }}
-                    transition={{ duration: 0.82, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative flex flex-col items-center"
-                  >
-                    <h3 className="relative z-0 mb-[-0.8rem] translate-y-8 text-5xl font-semibold title-light md:mb-[-1.6rem] md:translate-y-10 md:text-7xl">
-                      {routineMoments[routineActiveIndex].title}
-                    </h3>
-                    <img
-                      src={routineMoments[routineActiveIndex].image}
-                      alt={routineMoments[routineActiveIndex].title}
-                      className="relative z-10 h-auto w-[118%] max-w-none object-cover md:w-full md:max-w-[56rem]"
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SEÇÃO 8 — POR QUE FILTROS COMUNS SÃO INCOMPLETOS */}
+      {/* SEÇÃO 6 — POR QUE FILTROS COMUNS SÃO INCOMPLETOS */}
       <section className="px-6 py-20 text-center md:py-32 bg-surface-warm">
         <div className="mx-auto max-w-5xl">
           <FadeIn>
-            <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-500">
-              Filtrar x tratar
-            </p>
             <h2 className="mx-auto mb-8 max-w-4xl text-4xl title-dark leading-[1.02] md:text-6xl">
               Filtrar é importante.<br/>
               <span className="title-accent">Mas filtrar não é tratar por completo.</span>
@@ -1409,10 +1367,18 @@ function HomePage() {
         id="ion-center"
         className="relative overflow-hidden text-center"
       >
-        <div
-          className="relative flex min-h-[32rem] w-full flex-col items-center justify-start bg-center bg-no-repeat bg-cover px-6 py-12 md:min-h-[52rem] md:py-16"
-          style={{ backgroundImage: "url('/images/PRODUTOS.jpg')" }}
-        >
+        <div className="relative isolate flex min-h-[32rem] w-full flex-col items-center justify-start overflow-hidden px-6 py-12 md:min-h-[52rem] md:py-16">
+          {/* Fundo como <img> (e não background-image) para poder servir uma versão leve no mobile. */}
+          <img
+            src="/images/PRODUTOS.webp"
+            srcSet="/images/PRODUTOS-sm.webp 900w, /images/PRODUTOS.webp 1800w"
+            sizes="100vw"
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover"
+          />
           <FadeIn>
             <h2 className="relative z-10 max-w-5xl text-3xl md:text-5xl title-light leading-tight">
               Não é um filtro.<br/>
@@ -1484,16 +1450,12 @@ function HomePage() {
                       x: { type: 'spring', stiffness: 300, damping: 30 },
                       opacity: { duration: 0.2 }
                     }}
-                    src={activeIndex === 0 ? '/images/white01.png'
-                      : activeIndex === 1 ? '/images/white02.png'
-                      : activeIndex === 2 ? '/images/black01.png'
-                      : '/images/black02.png'
-                    }
+                    src={carouselImages[activeIndex]}
+                    srcSet={`${carouselImages[activeIndex].replace('.webp', '-sm.webp')} 520w, ${carouselImages[activeIndex]} 900w`}
+                    sizes="(max-width: 768px) 90vw, 45vw"
                     alt="Water Diamond Ion Center"
-                   
-                   
-                   
-                   
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-contain absolute"
                   />
                 </AnimatePresence>
@@ -1636,6 +1598,10 @@ function HomePage() {
                 <div className="relative flex min-h-[34rem] w-full flex-col overflow-hidden rounded-3xl bg-primary md:block md:h-64 md:min-h-0 lg:h-72">
                   <img
                     src={item.image}
+                    srcSet={`${item.imageSm} 460w, ${item.image} 800w`}
+                    sizes="(max-width: 768px) 84vw, 40vw"
+                    loading="lazy"
+                    decoding="async"
                     alt={item.alt}
                     className={`relative z-0 mx-auto mt-6 h-56 w-auto max-w-[84%] object-contain md:mt-0 md:w-auto md:max-w-none ${item.className}`}
                   />
@@ -1685,14 +1651,12 @@ function HomePage() {
             </FadeIn>
             <FadeIn className="flex justify-center md:justify-end">
               <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-2xl shadow-black/20">
-                <video
-                  className="aspect-[4/5] w-full object-cover"
-                  src="/videos/BASTAO_VIDEO.mp4"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  aria-label="Vídeo do bastão Water Diamond"
+                <AmbientVideo
+                  videoDesktop="/videos/bastao.mp4"
+                  videoMobile="/videos/bastao-mobile.mp4"
+                  poster="/images/bastao-poster.webp"
+                  label="Vídeo do bastão Water Diamond"
+                  className="relative aspect-[4/5] w-full"
                 />
               </div>
             </FadeIn>
@@ -1703,98 +1667,61 @@ function HomePage() {
       {/* SEÇÃO 12 — LINHA WATER DIAMOND ION CENTER */}
       <section id="modelos" className="overflow-hidden bg-white py-24 md:py-36">
         <div className="mx-auto w-full max-w-[1480px] px-5 md:px-10">
-          <FadeIn>
-            <div className="mb-12 grid gap-8 md:mb-16 md:grid-cols-[minmax(0,0.95fr)_minmax(360px,0.7fr)] md:items-end">
-              <div>
-                <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary">Linha Water Diamond Ion Center</p>
-                <h2 className="max-w-3xl text-4xl leading-[0.98] tracking-tight text-foreground md:text-6xl">
-                  Uma tecnologia.
-                  <span className="block text-primary">Três formas de viver a melhor água.</span>
-                </h2>
-              </div>
-
-              <div className="space-y-4 text-base font-light leading-relaxed text-neutral-500 md:text-lg">
-                <p>
-                  Cada rotina pede uma solução diferente. Por isso, a linha Ion Center conta com três modelos: Slim, Smart e Turbo.
-                </p>
-                <p>
-                  Todos entregam o mesmo princípio de tratamento Water Diamond: água mais pura, equilibrada e preparada para o consumo diário. O que muda é a forma de uso, a capacidade e a experiência.
-                </p>
-              </div>
-            </div>
+          <FadeIn className="mb-12 text-center md:mb-16">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary">Linha Water Diamond Ion Center</p>
+            <h2 className="mx-auto max-w-3xl text-4xl leading-[1.02] tracking-tight text-foreground md:text-5xl">
+              Uma tecnologia.
+              <span className="block text-primary">Três formas de viver a melhor água.</span>
+            </h2>
+            <p className="mx-auto mt-6 max-w-2xl text-neutral-600 font-light leading-relaxed">
+              Todos entregam o mesmo tratamento Water Diamond. O que muda é a forma de uso, a capacidade e a experiência.
+            </p>
           </FadeIn>
 
-          <div className="pb-4">
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-4 lg:gap-5">
-              {ionCenterProducts.map((product, index) => (
-                <FadeIn key={product.name} delay={0.16 + index * 0.08} className="h-full">
-                  <article
-                    className={`group relative flex h-full flex-col rounded-3xl border p-3 transition-all duration-300 hover:-translate-y-1 md:min-h-[720px] ${
-                      product.featured
-                        ? "border-primary/60 bg-[#eef8fb] shadow-xl shadow-primary/10"
-                      : "border-neutral-200 bg-surface-light hover:border-neutral-300"
-                    }`}
-                  >
-                    <div className="relative mb-5 flex h-[260px] items-center justify-center overflow-hidden rounded-2xl bg-white/70 p-8 md:h-[300px]">
-                      <div className="absolute inset-x-10 bottom-8 h-10 rounded-full bg-primary/10 blur-2xl transition-transform duration-500 group-hover:scale-110" />
-                      <img
-                        src={product.image}
-                        alt={product.imageAlt}
-                        className={`relative z-[1] h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.03] ${
-                          product.tag === "Slim" ? "scale-[1.18]" : ""
-                        }`}
-                      />
-                    </div>
+          <div className="grid grid-cols-1 gap-6 min-[560px]:grid-cols-2 lg:grid-cols-3 md:gap-8">
+            {ionCenterProducts.map((product, index) => (
+              <FadeIn key={product.name} delay={index * 0.1}>
+                <article
+                  className={`group flex h-full flex-col overflow-hidden rounded-3xl border bg-white p-3 shadow-sm shadow-primary/5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10 ${
+                    product.featured ? "border-primary/40" : "border-neutral-200"
+                  }`}
+                >
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-neutral-100">
+                    <img
+                      src={product.image}
+                      srcSet={`${product.imageSm} 500w, ${product.image} 900w`}
+                      sizes="(max-width: 560px) 100vw, (max-width: 1024px) 50vw, 460px"
+                      width={900}
+                      height={1200}
+                      loading="lazy"
+                      decoding="async"
+                      alt={product.imageAlt}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                    />
+                  </div>
 
-                    <div className="flex flex-1 flex-col px-2 pb-2">
-                      <div className="mb-6 min-h-[150px]">
-                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">{product.name}</p>
-                        <h3 className="mb-3 text-2xl font-medium tracking-tight text-foreground md:text-3xl">{product.headline}</h3>
-                        <p className="text-sm font-light leading-relaxed text-neutral-600">{product.description}</p>
-                      </div>
+                  <div className="flex flex-1 flex-col px-3 pb-5 pt-6 text-center">
+                    <h3 className="mb-3 text-2xl font-medium tracking-tight text-foreground">{product.name}</h3>
+                    <p className="mx-auto max-w-sm text-sm font-light leading-relaxed text-neutral-500">{product.description}</p>
 
-                      <div className="mb-6">
-                        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">Destaques</p>
-                        <ul className="space-y-2.5">
-                          {product.highlights.map((item) => (
-                            <li key={item} className="flex gap-2.5 text-sm font-light leading-snug text-neutral-700">
-                              <Check size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 text-primary" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <div className="mt-auto rounded-2xl bg-white/70 p-4">
-                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">Indicado para</p>
-                        <p className="text-sm font-light leading-relaxed text-neutral-600">{product.indicated}</p>
-                      </div>
-
+                    <div className="mt-auto flex flex-col gap-2.5 pt-6">
                       <button
-                        onClick={() => setIsModalOpen(true)}
-                        className={`mt-4 flex w-full items-center justify-between rounded-full px-5 py-4 text-xs font-semibold uppercase tracking-[0.16em] transition-all duration-300 cursor-pointer ${
-                          product.featured
-                            ? "bg-primary text-white hover:bg-primary-hover"
-                            : "bg-foreground text-white hover:bg-primary"
-                        }`}
+                        onClick={() => openContact(product.name)}
+                        className="flex w-full items-center justify-center rounded-full bg-foreground px-5 py-3.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white transition-colors duration-300 hover:bg-primary cursor-pointer"
                       >
                         {product.cta}
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-1">
-                          <ArrowRight size={16} strokeWidth={1.8} />
-                        </span>
                       </button>
-
                       <button
                         onClick={() => setSpecsProduct(product)}
-                        className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-600 transition-all duration-300 hover:border-primary hover:text-primary cursor-pointer"
+                        className="flex w-full items-center justify-center rounded-full border border-neutral-200 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-600 transition-colors duration-300 hover:border-primary hover:text-primary cursor-pointer"
                       >
                         Ver detalhes técnicos
                       </button>
                     </div>
-                  </article>
-                </FadeIn>
-              ))}
-            </div>
+                  </div>
+                </article>
+              </FadeIn>
+            ))}
           </div>
         </div>
       </section>
@@ -1818,13 +1745,13 @@ function HomePage() {
               {[
                 {
                   title: "Modelo Faucet",
-                  image: "/images/FAUCET.png",
+                  image: "/images/FAUCET.webp",
                   alt: "Torneira modelo Faucet em cozinha moderna",
                   desc: "Uma opção elegante para quem deseja uma saída dedicada para água tratada, com visual limpo e prático.",
                 },
                 {
                   title: "Modelo Gourmet",
-                  image: "/images/GOURMET.png",
+                  image: "/images/GOURMET.webp",
                   alt: "Torneira gourmet preta instalada em bancada de cozinha",
                   desc: "Ideal para cozinhas sofisticadas, ambientes planejados e espaços gourmet, unindo funcionalidade, estética e experiência premium.",
                 },
@@ -1834,6 +1761,12 @@ function HomePage() {
                     <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-neutral-100">
                       <img
                         src={item.image}
+                        srcSet={`${item.image.replace('.webp', '-sm.webp')} 500w, ${item.image} 900w`}
+                        sizes="(max-width: 560px) 100vw, 460px"
+                        width={900}
+                        height={1200}
+                        loading="lazy"
+                        decoding="async"
                         alt={item.alt}
                         className="h-full w-full object-contain transition-transform duration-700 group-hover:scale-[1.02]"
                       />
@@ -1897,16 +1830,10 @@ function HomePage() {
             </FadeIn>
             <FadeIn>
               <p className="text-lg font-light text-neutral-500 leading-relaxed mb-8">
-                Muitas decisões de cuidado começam por coisas complexas. Suplementos. Alimentação. Exercícios. Rotina. Sono.
-              </p>
-              <p className="text-lg font-light text-neutral-500 leading-relaxed mb-8">
-                Mas antes de tudo isso, existe algo ainda mais básico: a água.
-              </p>
-              <p className="text-lg font-light text-neutral-500 leading-relaxed mb-8">
-                Ela está presente no corpo, na casa, na cozinha e em cada hábito diário.
+                Cuidar da saúde costuma começar pelo que é complexo: suplementos, alimentação, treino, sono. Antes de tudo isso existe algo mais básico, presente no corpo, na cozinha e em cada hábito do dia.
               </p>
               <p className="text-xl font-medium text-black border-l-2 border-primary pl-6 py-2">
-                Por isso, tratar melhor a água não é um luxo exagerado. É uma decisão de qualidade de vida.
+                Tratar melhor a água não é luxo. É uma decisão de qualidade de vida.
               </p>
             </FadeIn>
           </div>
@@ -1916,16 +1843,13 @@ function HomePage() {
       {/* SEÇÃO 17 — CTA FINAL CURTO */}
       <section className="relative flex min-h-[520px] items-center overflow-hidden bg-black py-28 text-center text-white md:min-h-[680px] md:py-36">
         <div className="absolute inset-0 z-0">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="h-full w-full object-cover opacity-55"
-          >
-            <source src="/videos/IONCENTER_VIDEO.mp4" type="video/mp4" />
-            Seu navegador não suporta vídeos HTML5.
-          </video>
+          <AmbientVideo
+            videoDesktop="/videos/ioncenter.mp4"
+            videoMobile="/videos/ioncenter-mobile.mp4"
+            poster="/images/hero-poster.webp"
+            posterMobile="/images/hero-poster-sm.webp"
+            className="absolute inset-0 opacity-55"
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/45 to-black/80" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,154,206,0.16),transparent_42%)]" />
         </div>
@@ -1938,8 +1862,8 @@ function HomePage() {
             <p className="text-white/70 font-light mb-8 leading-relaxed">
               Conheça a linha Water Diamond Ion Center e descubra qual modelo combina com a sua casa, sua rotina e sua forma de viver.
             </p>
-            <Button variant="glass" onClick={() => setIsModalOpen(true)} className="gap-2 cursor-pointer hover:border-transparent hover:bg-primary">
-              Quero conhecer a linha Ion Center
+            <Button variant="glass" onClick={() => openContact()} className="gap-2 cursor-pointer hover:border-transparent hover:bg-primary">
+              Falar com um consultor
               <ArrowRight size={16} />
             </Button>
           </FadeIn>
@@ -1952,12 +1876,12 @@ function HomePage() {
       {/* Menu Lateral */}
       <SidebarMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
-      <FloatingWhatsAppButton onClick={() => setIsModalOpen(true)} />
+      <FloatingWhatsAppButton />
 
       {/* Modal de Orçamento */}
       <AnimatePresence>
         {isModalOpen && (
-          <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+          <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={interestProduct} />
         )}
       </AnimatePresence>
 
