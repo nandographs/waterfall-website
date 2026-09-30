@@ -13,15 +13,15 @@ let html = await readFile(indexPath, "utf8");
 const replacements = [
   [
     /<title>.*?<\/title>/,
-    "<title>BionLife | Conforto, sustentação e massagem</title>",
+    "<title>BionLife | Conforto, bem-estar e tecnologia para o seu descanso</title>",
   ],
   [
     /<meta name="description" content=".*?" \/>/,
-    '<meta name="description" content="Colchões BionLife com densidade progressiva, ActiveCool e opções de massagem integradas." />',
+    '<meta name="description" content="Conheça as linhas de colchões BionLife. Diferentes sensações de conforto, tecnologia em camadas e ajuda para escolher o seu." />',
   ],
   [
     /<meta name="keywords" content=".*?" \/>/,
-    '<meta name="keywords" content="bionlife, colchão de espuma, colchão com massagem, activecool, densidade progressiva" />',
+    '<meta name="keywords" content="bionlife, colchão ionizado, colchão com massagem, colchão magnético, colchão para bem-estar" />',
   ],
   [
     /<meta name="theme-color" content=".*?" \/>/,
@@ -33,15 +33,15 @@ const replacements = [
   ],
   [
     /<meta property="og:title" content=".*?" \/>/,
-    '<meta property="og:title" content="BionLife | Conforto, sustentação e massagem" />',
+    '<meta property="og:title" content="BionLife | Conforto, bem-estar e tecnologia para o seu descanso" />',
   ],
   [
     /<meta property="og:description" content=".*?" \/>/,
-    '<meta property="og:description" content="Tecnologia aplicada ao conforto, à sustentação e ao relaxamento." />',
+    '<meta property="og:description" content="Conheça as linhas de colchões BionLife. Diferentes sensações de conforto, tecnologia em camadas e ajuda para escolher o seu." />',
   ],
   [
     /<meta property="og:image" content=".*?" \/>/,
-    '<meta property="og:image" content="/images/bionlife-hero.webp" />',
+    '<meta property="og:image" content="/images/herobionlife.jpg" />',
   ],
 ];
 

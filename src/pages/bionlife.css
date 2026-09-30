@@ -1,833 +1,1288 @@
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 75% 125%;
+  font-display: swap;
+  src: url('/fonts/archivo-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 75% 125%;
+  font-display: swap;
+  src: url('/fonts/archivo-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 body.bionlife-active {
-  background: #e8e7e3;
+  background: #eef0f2;
+}
+
+html:has(body.bionlife-active) {
+  scroll-behavior: smooth;
+  scroll-padding-top: 104px;
 }
 
 .bionlife-page {
-  --bl-ink: #111310;
-  --bl-muted: #656861;
-  --bl-line: rgba(17, 19, 16, 0.11);
-  --bl-paper: #fbfaf8;
-  --bl-soft: #f0efeb;
-  --bl-accent: #d8ff74;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.95), transparent 30rem),
-    #e8e7e3;
+  --bl-ink: #101418;
+  --bl-muted: #7b8289;
+  --bl-paper: #eef0f2;
+  --bl-card: #ffffff;
+  --bl-line: #e2e5e8;
+  --bl-deep: #14301f;
+  --bl-accent: #6cd24f;
+  --bl-radius: 22px;
+  --bl-sans: 'Archivo', system-ui, -apple-system, sans-serif;
+  background: var(--bl-paper);
   color: var(--bl-ink);
+  font-family: var(--bl-sans);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
 }
 
-.bionlife-page button {
-  letter-spacing: normal;
-  text-transform: none;
-}
-
-.bionlife-page a,
-.bionlife-page button {
+.bionlife-page :where(a, button) {
   -webkit-tap-highlight-color: transparent;
 }
 
 .bionlife-page :where(a, button):focus-visible {
-  outline: 2px solid #6f881f;
+  outline: 2px solid var(--bl-ink);
   outline-offset: 4px;
 }
 
-.bl-shell {
-  overflow: clip;
-  background: var(--bl-paper);
+.bionlife-page button {
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: inherit;
 }
+
+.bionlife-page h1,
+.bionlife-page h2,
+.bionlife-page h3,
+.bionlife-page p {
+  margin: 0;
+}
+
+.bionlife-page h2 {
+  font-size: clamp(1.7rem, 2.5vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+/* Continuação do título em cinza: a frase segue, a ênfase cai. */
+.bionlife-page h2 .bl-italic,
+.bionlife-page .bl-dim {
+  color: var(--bl-muted);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.bl-sr-only,
+.bl-skip-link:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.bl-skip-link:focus {
+  position: fixed;
+  z-index: 30;
+  top: 8px;
+  left: 8px;
+  border-radius: 100px;
+  background: var(--bl-card);
+  padding: 14px 22px;
+}
+
+/* ─── Cabeçalho ─────────────────────────────────────────────── */
 
 .bl-header {
   position: fixed;
   top: 0;
-  right: 0;
-  left: 0;
-  z-index: 60;
+  inset-inline: 0;
+  z-index: 20;
   display: flex;
-  min-height: 86px;
   align-items: center;
   justify-content: space-between;
   gap: 28px;
-  padding: 18px 56px;
-  border-bottom: 1px solid transparent;
-  transition: background-color 260ms ease, border-color 260ms ease;
+  min-height: 84px;
+  padding: 16px clamp(18px, 2.4vw, 34px);
+  transition: background-color 220ms ease, color 220ms ease;
 }
 
 .bl-header.is-solid {
-  border-bottom-color: rgba(17, 19, 16, 0.06);
-  background: rgba(251, 250, 248, 0.88);
-  backdrop-filter: blur(18px);
+  background: rgb(238 240 242 / 88%);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--bl-line);
 }
 
-.bl-header.is-over .bl-nav-link {
-  color: rgba(255, 255, 255, 0.82);
+.bl-header.is-over {
+  color: #fff;
 }
 
-.bl-header.is-over .bl-nav-link::after {
-  background: white;
+.bl-header.is-over .bl-wordmark img {
+  filter: brightness(0) invert(1);
 }
 
-.bl-header.is-over .bl-nav-link:hover {
-  color: white;
-}
-
-.bl-header.is-over .bl-header-cta {
-  background: white;
-  color: var(--bl-ink);
-}
-
-.bl-header.is-over .bl-header-cta:hover {
-  background: var(--bl-accent);
-}
-
-
-.bl-nav-link {
-  position: relative;
-  padding: 8px 0;
-  color: #494c46;
-  font-size: 0.78rem;
-  font-weight: 400;
-  transition: color 180ms ease;
-}
-
-.bl-nav-link::after {
-  position: absolute;
-  right: 0;
-  bottom: 2px;
-  left: 0;
-  height: 1px;
-  background: var(--bl-ink);
-  content: "";
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 220ms ease;
-}
-
-.bl-nav-link:hover {
-  color: var(--bl-ink);
-}
-
-.bl-nav-link:hover::after {
-  transform: scaleX(1);
-  transform-origin: left;
-}
-
-.bl-header-cta {
-  min-height: 44px;
-  align-items: center;
-  gap: 10px;
-  border-radius: 999px;
-  background: var(--bl-ink);
-  padding: 0 20px;
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 500;
-  transition: background-color 180ms ease, transform 180ms ease;
-}
-
-.bl-header-cta:hover {
-  background: #30332d;
-  transform: translateY(-1px);
-}
-
-.bl-round-button {
+.bl-wordmark {
   display: inline-flex;
+  flex-shrink: 0;
+}
+
+.bl-wordmark img {
+  width: 132px;
+  height: auto;
+}
+
+.bl-desktop-nav,
+.bl-header-actions {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  border: 1px solid var(--bl-line);
-  border-radius: 999px;
-  background: white;
-  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+  gap: 26px;
 }
 
-.bl-round-button {
-  width: 48px;
-  height: 48px;
+.bl-desktop-nav a,
+.bl-footer nav a {
+  padding-block: 8px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: opacity 180ms ease;
 }
 
-.bl-round-button:hover {
-  background: var(--bl-ink);
-  color: white;
-  transform: translateY(-1px);
+.bl-desktop-nav a:hover,
+.bl-footer a:hover {
+  opacity: 0.62;
 }
 
+/* Botão-pílula com selo circular de seta. */
 .bl-button {
   display: inline-flex;
-  min-height: 50px;
   align-items: center;
-  justify-content: center;
-  gap: 20px;
-  border-radius: 999px;
-  padding: 0 23px;
-  font-size: 0.78rem;
+  gap: 14px;
+  min-height: 48px;
+  padding: 6px 6px 6px 22px;
+  border: 0;
+  border-radius: 100px;
+  background: var(--bl-ink);
+  color: #fff;
+  font-size: 0.74rem;
   font-weight: 500;
-  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease,
-    transform 180ms ease;
+  line-height: 1.3;
+  transition: background 200ms ease, transform 200ms ease;
+}
+
+.bl-button svg {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 10px;
+  border-radius: 50%;
+  background: var(--bl-accent);
+  color: var(--bl-ink);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bl-button:hover {
-  transform: translateY(-2px);
+  background: #23292f;
 }
 
-.bl-button-primary {
-  border: 1px solid var(--bl-ink);
-  background: var(--bl-ink);
-  color: white;
+.bl-button:hover svg {
+  transform: translateX(3px);
 }
 
-.bl-button-primary:hover {
-  background: #2e312b;
+.bl-button:active {
+  transform: translateY(1px);
 }
 
-.bl-button-light {
-  border-color: white;
-  background: white;
+.bl-header-cta {
+  min-height: 42px;
+  padding: 5px 5px 5px 18px;
+  font-size: 0.68rem;
+  background: #fff;
   color: var(--bl-ink);
 }
 
-.bl-button-light:hover {
-  border-color: var(--bl-accent);
-  background: var(--bl-accent);
+.bl-header-cta svg {
+  width: 32px;
+  height: 32px;
+  padding: 9px;
 }
 
-.bl-button-secondary {
-  border: 1px solid var(--bl-line);
-  background: transparent;
-  color: var(--bl-ink);
+.bl-header-cta:hover {
+  background: #fff;
 }
 
-.bl-button-secondary:hover {
-  border-color: var(--bl-ink);
+.bl-menu-toggle,
+.bl-mobile-nav {
+  display: none;
 }
 
-.bl-button-secondary-light {
-  border-color: rgba(255, 255, 255, 0.24);
-  color: white;
-}
-
-.bl-button-secondary-light:hover {
-  border-color: white;
-}
+/* ─── Hero ──────────────────────────────────────────────────── */
 
 .bl-hero {
   position: relative;
   isolation: isolate;
-  min-height: 100vh;
-  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: min(760px, 92svh);
+  margin: 0 clamp(10px, 1.2vw, 18px);
   overflow: hidden;
-  background: #1b1f19;
+  border-radius: var(--bl-radius);
+  background: #2c3239;
+  color: #fff;
 }
 
-.bl-hero-bg {
+.bl-hero-image {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: -2;
+  display: block;
 }
 
-.bl-hero-img {
-  height: 100%;
+.bl-hero-image img {
   width: 100%;
+  height: 100%;
   object-fit: cover;
   object-position: center;
 }
 
-.bl-hero-scrim {
+/* Véu: o texto branco cai sobre a parte clara do quarto. */
+.bl-hero::after {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(to right, rgba(10, 13, 9, 0.42), rgba(10, 13, 9, 0.06) 52%, rgba(10, 13, 9, 0.14)),
-    linear-gradient(to bottom, rgba(10, 13, 9, 0.3), rgba(10, 13, 9, 0.03) 36%, rgba(10, 13, 9, 0.42));
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(180deg, rgb(10 14 18 / 34%) 0%, rgb(10 14 18 / 6%) 34%, rgb(10 14 18 / 72%) 100%);
 }
 
-.bl-hero-inner {
-  position: relative;
-  z-index: 1;
+.bl-hero-copy {
+  padding: clamp(34px, 4vw, 64px) clamp(22px, 3vw, 56px) clamp(30px, 3.4vw, 52px);
+}
+
+.bl-hero h1 {
+  font-size: clamp(2.3rem, 4vw, 4rem);
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+}
+
+.bl-hero-copy > p {
+  max-width: 44ch;
+  margin: 20px 0 28px;
+  color: rgb(255 255 255 / 80%);
+  font-size: 0.84rem;
+  line-height: 1.75;
+}
+
+/* ─── Estrutura das seções ──────────────────────────────────── */
+
+.bl-section {
+  max-width: none;
+  margin-inline: auto;
+  padding: clamp(64px, 7vw, 104px) clamp(18px, 2.4vw, 34px);
+}
+
+.bl-section-heading {
+  max-width: 62ch;
+  margin-bottom: 42px;
+}
+
+.bl-section-heading p {
+  max-width: 46ch;
+  margin-top: 14px;
+  color: var(--bl-muted);
+  font-size: 0.82rem;
+  line-height: 1.75;
+}
+
+/* ─── Catálogo de linhas ────────────────────────────────────── */
+
+.bl-product-grid {
   display: grid;
-  min-height: inherit;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 32px;
-  padding: 138px 56px 48px;
-  color: white;
-}
-
-.bl-hero-lead {
-  grid-row: 1;
-}
-
-.bl-hero-title {
-  max-width: 14ch;
-}
-
-.bl-hero-actions {
-  margin-top: 34px;
-  display: flex;
-  flex-wrap: wrap;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
-.bl-hero-stats {
-  grid-row: 3;
-  align-self: end;
+.bl-product {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 30px;
-}
-
-.bl-hero-note {
-  flex-basis: 100%;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.66rem;
-  font-weight: 300;
-}
-
-.bl-display {
-  font-size: clamp(2.75rem, 4.25vw, 5rem);
-  font-weight: 500;
-  letter-spacing: -0.065em;
-  line-height: 0.98;
-}
-
-.bl-section-title {
-  font-size: clamp(2.25rem, 3.75vw, 4.25rem);
-  font-weight: 500;
-  letter-spacing: -0.06em;
-  line-height: 1;
-}
-
-.bl-hero-stat {
-  display: grid;
-  align-content: start;
-  border-left: 1px solid rgba(255, 255, 255, 0.22);
-  padding-left: 16px;
-}
-
-.bl-hero-stat svg {
-  margin-bottom: 12px;
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.bl-hero-stat strong {
-  font-size: 1rem;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-}
-
-.bl-hero-stat span {
-  max-width: 24ch;
-  margin-top: 2px;
-  color: rgba(255, 255, 255, 0.66);
-  font-size: 0.68rem;
-  font-weight: 300;
-  line-height: 1.35;
-}
-
-.bl-section {
-  padding: 112px 58px;
-}
-
-.bl-feature-image {
-  position: relative;
-  min-height: 650px;
-  overflow: hidden;
-  border-radius: 30px;
-  background: #d8d5cf;
-}
-
-.bl-feature-image-wide {
-  min-height: 0;
-  aspect-ratio: 2 / 1;
-}
-
-.bl-dark-feature {
-  display: grid;
-  grid-template-columns: 62px 1fr;
-  align-items: center;
-  gap: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 26px;
-  background: linear-gradient(140deg, #111310, #272a25);
-  padding: 26px;
-  color: white;
-  box-shadow: 0 18px 44px rgba(20, 22, 18, 0.1);
-}
-
-.bl-dark-feature-icon {
-  display: flex;
-  width: 62px;
-  height: 62px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 18px;
-  background: #f2f0ec;
-  color: var(--bl-ink);
-}
-
-.bl-dark-feature h3 {
-  font-size: 1.08rem;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
-}
-
-.bl-dark-feature p {
-  margin-top: 8px;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 0.78rem;
-  font-weight: 300;
-  line-height: 1.65;
-}
-
-.bl-technology-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(420px, 0.92fr);
-  gap: 54px;
-  overflow: hidden;
-  border-radius: 34px;
-  background: #efede8;
-  padding: 38px 54px 38px 28px;
-}
-
-.bl-massage {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(480px, 0.95fr);
-  min-height: 820px;
-  margin: 0 24px;
-  overflow: hidden;
-  border-radius: 34px;
-  background: var(--bl-ink);
-  color: white;
-}
-
-.bl-massage-media {
-  position: relative;
-  min-height: 700px;
-}
-
-.bl-massage-copy {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 70px 56px;
-}
-
-.bl-control-card {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.055);
-  padding: 24px;
-}
-
-.bl-control-card-accent {
-  border-color: rgba(216, 255, 116, 0.4);
-  background: var(--bl-accent);
-  color: var(--bl-ink);
-}
-
-.bl-control-card h3 {
-  font-size: 1.35rem;
-  font-weight: 500;
-  letter-spacing: -0.035em;
-}
-
-.bl-control-card p {
-  margin-top: 10px;
-  max-width: 48ch;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 0.8rem;
-  font-weight: 300;
-  line-height: 1.7;
-}
-
-.bl-control-card-accent p {
-  color: rgba(17, 19, 16, 0.66);
-}
-
-.bl-control-card span {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  padding: 7px 11px;
-  color: rgba(255, 255, 255, 0.66);
-  font-size: 0.65rem;
-}
-
-.bl-control-card-accent span {
-  border-color: rgba(17, 19, 16, 0.12);
-  color: rgba(17, 19, 16, 0.66);
-}
-
-.bl-catalog {
-  margin: 24px;
-  border-radius: 34px;
-  background: #efede8;
-  padding: 100px 34px 38px;
-}
-
-.bl-model-track {
-  display: grid;
-  grid-auto-columns: minmax(340px, 1fr);
-  grid-auto-flow: column;
-  gap: 16px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-
-.bl-model-track::-webkit-scrollbar {
-  display: none;
-}
-
-.bl-model-card {
-  display: flex;
-  min-height: 720px;
+  min-width: 0;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(17, 19, 16, 0.07);
-  border-radius: 26px;
-  background: #faf9f7;
-  scroll-snap-align: start;
-  box-shadow: 0 16px 40px rgba(22, 24, 20, 0.05);
+  border-radius: var(--bl-radius);
+  background: var(--bl-card);
+  padding: 10px 10px 22px;
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.bl-model-image {
+.bl-product:hover {
+  transform: translateY(-4px);
+}
+
+.bl-product-image {
   position: relative;
-  aspect-ratio: 4 / 3;
+  display: block;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
-  background: #d8d5cf;
+  border-radius: 16px;
+  background: #e4e7ea;
 }
 
-.bl-model-card:hover .bl-model-image img {
-  transform: scale(1.025);
+.bl-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.bl-height-pill {
+.bl-product-image:hover img {
+  transform: scale(1.04);
+}
+
+.bl-product-image > span {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 999px;
-  background: rgba(17, 19, 16, 0.66);
-  padding: 8px 12px;
-  color: white;
-  font-size: 0.7rem;
+  right: 12px;
+  bottom: 12px;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--bl-ink);
+}
+
+.bl-product-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  padding-inline: 12px;
+}
+
+.bl-product h3 {
+  font-size: 1.18rem;
   font-weight: 500;
-  backdrop-filter: blur(10px);
+  letter-spacing: -0.03em;
 }
 
-.bl-guidance-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(420px, 0.78fr);
-  gap: 70px;
+.bl-product-heading p {
+  color: var(--bl-muted);
+  font-size: 0.62rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: right;
+}
+
+.bl-product-description {
+  flex: 1;
+  margin: 10px 0 18px !important;
+  padding-inline: 12px;
+  color: var(--bl-muted);
+  font-size: 0.76rem;
+  line-height: 1.75;
+}
+
+.bl-text-link {
+  display: inline-flex;
   align-items: center;
-  border: 1px solid var(--bl-line);
-  border-radius: 34px;
-  background: #f7f6f3;
-  padding: 70px;
+  gap: 10px;
+  width: fit-content;
+  min-height: 40px;
+  margin-inline: 12px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: gap 200ms ease;
 }
 
-.bl-guidance-steps {
-  overflow: hidden;
-  border: 1px solid var(--bl-line);
-  border-radius: 26px;
-  background: white;
-  box-shadow: 0 20px 50px rgba(22, 24, 20, 0.06);
-}
-
-.bl-guidance-step {
-  display: grid;
-  grid-template-columns: 28px 48px 1fr;
+.bl-text-link:hover {
   gap: 16px;
-  align-items: start;
-  padding: 24px;
-  border-bottom: 1px solid var(--bl-line);
 }
 
-.bl-guidance-step:last-child {
+.bl-catalog-note {
+  margin-top: 26px !important;
+  color: var(--bl-muted);
+  font-size: 0.68rem;
+}
+
+/* ─── Painéis editoriais ────────────────────────────────────── */
+
+.bl-lifestyle,
+.bl-technology,
+.bl-massage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 12px;
+  max-width: none;
+  margin-inline: clamp(10px, 1.2vw, 18px);
+  padding: 0;
+}
+
+.bl-lifestyle-image,
+.bl-massage-image {
+  overflow: hidden;
+  border-radius: var(--bl-radius);
+  aspect-ratio: 1.1;
+  background: #e4e7ea;
+}
+
+.bl-lifestyle-image img,
+.bl-massage-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bl-editorial-copy {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: var(--bl-radius);
+  background: var(--bl-card);
+  padding: clamp(30px, 3.6vw, 60px);
+}
+
+.bl-editorial-copy > p {
+  max-width: 46ch;
+  margin-top: 18px;
+  color: var(--bl-muted);
+  font-size: 0.82rem;
+  line-height: 1.8;
+}
+
+.bl-editorial-copy > p + p {
+  margin-top: 12px;
+}
+
+.bl-editorial-copy > .bl-text-link {
+  margin: 26px 0 0;
+}
+
+/* Bem-estar: foto inteira com o texto por cima — quebra a sequência de pares de cartões. */
+.bl-lifestyle {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: min(720px, 86svh);
+  overflow: hidden;
+  border-radius: var(--bl-radius);
+  color: #fff;
+}
+
+.bl-lifestyle-image {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+.bl-lifestyle-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(10 14 18 / 78%) 0%, rgb(10 14 18 / 42%) 42%, transparent 72%);
+}
+
+.bl-lifestyle .bl-editorial-copy {
+  max-width: 560px;
+  justify-content: flex-end;
+  background: transparent;
+  color: #fff;
+}
+
+.bl-lifestyle .bl-editorial-copy h2 > span:not(.bl-word) {
+  color: var(--bl-accent);
+}
+
+.bl-lifestyle .bl-editorial-copy > p {
+  color: rgb(255 255 255 / 70%);
+}
+
+/* ─── Tecnologia: vídeo das camadas ─────────────────────────── */
+
+/* Mesma divisão dos outros painéis, para a emenda central ficar na mesma linha. */
+.bl-technology {
+  align-items: stretch;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 12px;
+}
+
+.bl-technology > .bl-editorial-copy {
+  background: var(--bl-ink);
+  color: #fff;
+}
+
+.bl-technology .bl-tech-list {
+  margin-top: 34px;
+  border-top: 1px solid rgb(255 255 255 / 16%);
+}
+
+.bl-tech-list > div {
+  padding: 20px 0;
+  border-bottom: 1px solid rgb(255 255 255 / 16%);
+}
+
+.bl-tech-list > div:last-child {
   border-bottom: 0;
 }
 
-.bl-guidance-step > span {
-  padding-top: 13px;
-  color: #9a9d96;
-  font-size: 0.66rem;
-}
-
-.bl-guidance-step-icon {
-  display: flex;
-  width: 48px;
-  height: 48px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 16px;
-  background: #eff0e8;
-}
-
-.bl-guidance-step h3 {
-  padding-top: 3px;
-  font-size: 0.95rem;
+.bl-tech-list dt {
+  font-size: 0.88rem;
   font-weight: 500;
 }
 
-.bl-guidance-step p {
-  margin-top: 5px;
-  color: #73766f;
+.bl-tech-list dd {
+  max-width: 44ch;
+  margin: 8px 0 0;
+  color: rgb(255 255 255 / 62%);
   font-size: 0.76rem;
-  font-weight: 300;
+  line-height: 1.7;
+}
+
+.bl-technology .bl-fine-print {
+  margin-top: 26px;
+  color: rgb(255 255 255 / 48%);
+  font-size: 0.66rem;
+  line-height: 1.7;
+}
+
+.bl-layer-video {
+  position: sticky;
+  top: 104px;
+  display: flex;
+  height: min(88svh, 840px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  border-radius: var(--bl-radius);
+  background: var(--bl-card);
+  padding: 16px 16px 20px;
+  text-align: center;
+}
+
+.bl-layer-video video {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  width: auto;
+  max-width: 100%;
+  /* Recorte vertical: o arquivo tem margem branca em cima e embaixo. */
+  aspect-ratio: 9 / 11.5;
+  object-fit: cover;
+  object-position: center;
+}
+
+.bl-layer-video span {
+  flex: none;
+  margin-top: 16px;
+  color: var(--bl-muted);
+  font-size: 0.66rem;
+}
+
+/* ─── Energia quântica ──────────────────────────────────────── */
+
+/* Bioquântica: texto editorial, com as duas colunas ligadas pela mesma régua. */
+.bl-quantum {
+  max-width: 1240px;
+  margin-inline: auto;
+  padding: clamp(64px, 7vw, 100px) clamp(22px, 3vw, 42px);
+}
+
+.bl-quantum-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: clamp(36px, 4vw, 64px);
+  align-items: start;
+  padding-top: clamp(32px, 3.5vw, 48px);
+  border-top: 1px solid #cbd1d6;
+}
+
+.bl-quantum h2 {
+  max-width: 18ch;
+  font-size: clamp(2.2rem, 3.7vw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  text-wrap: pretty;
+}
+
+.bl-quantum h2 span {
+  display: block;
+  color: #57616b;
+}
+
+.bl-quantum-heading .bl-quantum-note {
+  max-width: 30ch;
+  margin-top: 28px;
+  color: #57616b;
+  font-size: clamp(1rem, 1.35vw, 1.15rem);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.bl-quantum .bl-quantum-body {
+  padding-left: clamp(30px, 3.5vw, 48px);
+  border-left: 1px solid #cbd1d6;
+}
+
+.bl-quantum .bl-quantum-body h3 {
+  margin: 0 0 22px;
+  font-size: clamp(1.25rem, 1.7vw, 1.5rem);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.bl-quantum .bl-quantum-body p {
+  max-width: 52ch;
+  margin-top: 18px;
+  color: #57616b;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+
+.bl-quantum .bl-quantum-body .bl-quantum-lead {
+  margin-top: 0;
+  color: var(--bl-ink);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+}
+
+.bl-quantum-close {
+  max-width: 34ch;
+  margin-top: clamp(34px, 4vw, 58px);
+  padding-top: 26px;
+  border-top: 1px solid var(--bl-line);
+  font-size: clamp(1.05rem, 1.7vw, 1.45rem);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.03em;
+}
+
+/* ─── Cromoterapia: vídeo à direita, fundindo no card ─────── */
+
+.bl-chromo {
+  /* Seção escura: os tokens mudam aqui e o resto do card herda. */
+  --bl-card: #0b0c0d;
+  --bl-ink: #f4f5f6;
+  --bl-muted: rgb(255 255 255 / 0.6);
+  --bl-line: rgb(255 255 255 / 0.14);
+  color: var(--bl-ink);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  max-width: none;
+  margin: 0 clamp(10px, 1.2vw, 18px);
+  border-radius: var(--bl-radius);
+  background: var(--bl-card);
+  padding: clamp(38px, 4.6vw, 76px) clamp(24px, 3.4vw, 64px);
+}
+
+.bl-chromo-media {
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: -1;
+  width: 62%;
+}
+
+.bl-chromo-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Degradê por máscara: o vídeo some no próprio card, sem emenda visível. */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgb(0 0 0 / 0.35) 22%, #000 55%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgb(0 0 0 / 0.35) 22%, #000 55%);
+}
+
+.bl-chromo-content {
+  max-width: min(580px, 46%);
+}
+
+.bl-chromo h2 {
+  max-width: 18ch;
+}
+
+.bl-chromo-body {
+  margin-top: clamp(28px, 3.2vw, 48px);
+}
+
+.bl-chromo-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--bl-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* As cores da cromoterapia, em uma faixa só. */
+.bl-chromo-spectrum {
+  width: 42px;
+  height: 4px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #7b5cff, #3fa9ff, #36d6c3, #ffc44d, #ff5f8a);
+}
+
+.bl-chromo-lead {
+  max-width: 34ch;
+  margin-top: 18px;
+  font-size: clamp(1.02rem, 1.3vw, 1.2rem);
+  font-weight: 400;
+  line-height: 1.55;
+  letter-spacing: -0.015em;
+}
+
+.bl-chromo-points {
+  margin-top: clamp(26px, 3vw, 38px);
+  padding: 0;
+  list-style: none;
+}
+
+.bl-chromo-points li {
+  position: relative;
+  max-width: 50ch;
+  padding: 16px 0 16px 22px;
+  border-top: 1px solid var(--bl-line);
+  color: var(--bl-muted);
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+.bl-chromo-points li::before {
+  content: "";
+  position: absolute;
+  top: 25px;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dot);
+  box-shadow: 0 0 10px var(--dot);
+}
+
+.bl-chromo-points li:nth-child(1) { --dot: #7b5cff; }
+.bl-chromo-points li:nth-child(2) { --dot: #36d6c3; }
+.bl-chromo-points li:nth-child(3) { --dot: #ffc44d; }
+
+.bl-chromo-close {
+  margin-top: clamp(18px, 2vw, 28px);
+}
+
+/* ─── Massagem: números com odômetro ────────────────────────── */
+
+/* Massagem: foto e texto dentro de um único cartão branco. */
+.bl-massage {
+  margin-bottom: 12px;
+  gap: 0;
+  border-radius: var(--bl-radius);
+  background: var(--bl-card);
+  padding: 10px;
+}
+
+/* A foto acompanha a altura do texto, que ficou mais longo. */
+.bl-massage {
+  align-items: stretch;
+}
+
+.bl-massage-image {
+  border-radius: 16px;
+  aspect-ratio: auto;
+  min-height: 420px;
+}
+
+.bl-massage .bl-editorial-copy {
+  background: transparent;
+}
+
+.bl-slideshow {
+  position: relative;
+}
+
+.bl-slideshow img {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.04);
+  transition: opacity 1200ms ease, transform 4800ms ease-out;
+}
+
+.bl-slideshow img.is-active {
+  opacity: 1;
+  transform: none;
+}
+
+/* Texto da massagem: título, etiqueta, momentos e números do sistema completo. */
+.bl-massage .bl-editorial-copy {
+  justify-content: flex-start;
+}
+
+.bl-massage {
+  grid-template-columns: 0.8fr 1.2fr;
+}
+
+.bl-massage h2 {
+  max-width: 22ch;
+}
+
+/* Dois blocos de texto lado a lado: a explicação e os números. */
+.bl-massage-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(28px, 3.4vw, 56px);
+  margin-top: clamp(28px, 3vw, 44px);
+  padding-top: clamp(24px, 2.6vw, 36px);
+  border-top: 1px solid var(--bl-line);
+}
+
+.bl-massage-col > p {
+  max-width: 46ch;
+  margin-top: 12px;
+  color: var(--bl-muted);
+  font-size: 0.82rem;
+  line-height: 1.8;
+}
+
+.bl-massage-col > .bl-text-link {
+  margin: 22px 0 0;
+}
+
+.bl-massage .bl-massage-eyebrow {
+  margin-top: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.bl-massage-col > .bl-massage-eyebrow + p {
+  margin-top: 14px;
+}
+
+.bl-massage-col > .bl-massage-choice {
+  margin-top: 26px;
+  color: var(--bl-ink);
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.bl-massage-moments {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bl-massage-moments li {
+  position: relative;
+  padding: 11px 0 11px 20px;
+  border-top: 1px solid var(--bl-line);
+  color: var(--bl-muted);
+  font-size: 0.82rem;
   line-height: 1.6;
 }
 
-.bl-delivery {
+.bl-massage-moments li:last-child {
+  border-bottom: 1px solid var(--bl-line);
+}
+
+.bl-massage-moments li::before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bl-accent);
+}
+
+.bl-massage-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bl-massage-stats .bl-metric {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  border-radius: 16px;
+  background: var(--bl-paper);
+  padding: 18px 18px 16px;
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  line-height: 1;
+}
+
+.bl-massage-stats .bl-metric small {
+  line-height: 1.35;
+}
+
+.bl-massage-col > .bl-fine-print {
+  margin-top: 12px;
+  font-size: 0.68rem;
+}
+
+.bl-massage-col > .bl-fine-print + p {
+  margin-top: 24px;
+}
+
+.bl-massage-col > .bl-massage-close {
+  max-width: 30ch;
+  margin-top: 26px;
+  color: var(--bl-ink);
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  line-height: 1.3;
+}
+
+.bl-metric {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 14px;
+  font-size: 1.9rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.bl-metric small {
+  color: var(--bl-muted);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* Odômetro: cada dígito sobe até o seu número. */
+.bl-odometer {
+  display: flex;
+  gap: 1px;
+}
+
+.bl-odometer .bl-digit {
+  height: 1.05em;
+  overflow: hidden;
+  line-height: 1.05;
+}
+
+.bl-odometer .bl-reel {
+  display: flex;
+  flex-direction: column;
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Revelar palavras: o título entra palavra a palavra. As palavras só ficam
+   escondidas depois que o JavaScript arma o título; sem ele, o texto aparece. */
+.bl-split .bl-word {
+  display: inline-block;
+  transition: opacity 520ms cubic-bezier(0.16, 1, 0.3, 1), transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bl-split.is-armed .bl-word {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.bl-split.is-armed .bl-word.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+.bl-fine-print {
+  margin-top: 18px;
+  color: var(--bl-muted);
+  font-size: 0.68rem;
+  line-height: 1.7;
+}
+
+/* ─── Chamada final ─────────────────────────────────────────── */
+
+.bl-help {
+  max-width: none;
+  margin: clamp(64px, 7vw, 104px) clamp(10px, 1.2vw, 18px) 0;
+  border-radius: var(--bl-radius);
+  background: var(--bl-deep);
+  padding: clamp(52px, 6vw, 88px) clamp(24px, 4vw, 72px);
+  color: #fff;
+  text-align: left;
+}
+
+.bl-help h2 {
+  max-width: 20ch;
+  font-size: clamp(2rem, 3.6vw, 3.4rem);
+  line-height: 1.06;
+}
+
+.bl-help > p {
+  max-width: 48ch;
+  margin: 20px 0 30px;
+  color: rgb(255 255 255 / 68%);
+  font-size: 0.84rem;
+  line-height: 1.8;
+}
+
+.bl-help .bl-button {
+  background: #fff;
+  color: var(--bl-ink);
+}
+
+.bl-help > span {
+  display: block;
+  margin-top: 16px;
+  color: rgb(255 255 255 / 50%);
+  font-size: 0.66rem;
+}
+
+/* ─── Dúvidas ───────────────────────────────────────────────── */
+
+.bl-faq {
+  display: grid;
+  grid-template-columns: 0.8fr 1.5fr;
+  gap: clamp(28px, 4vw, 70px);
+}
+
+.bl-faq > div > p {
+  margin-top: 14px;
+  color: var(--bl-muted);
+  font-size: 0.82rem;
+}
+
+.bl-faq-list {
+  border-radius: var(--bl-radius);
+  background: var(--bl-card);
+  padding: 6px 26px;
+}
+
+.bl-faq-item + .bl-faq-item {
+  border-top: 1px solid var(--bl-line);
+}
+
+.bl-faq-item button {
   display: flex;
   align-items: center;
-  gap: 28px;
-  border-radius: 30px;
-  background: #e8eadf;
-  padding: 36px 40px;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  padding: 22px 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font-size: 0.86rem;
+  font-weight: 500;
+  line-height: 1.6;
+  text-align: left;
 }
 
-.bl-final-cta {
-  position: relative;
-  min-height: 650px;
-  overflow: hidden;
-  margin: 0 24px 24px;
-  border-radius: 34px;
-  background: var(--bl-ink);
-  padding: 100px 58px;
-  color: white;
+.bl-faq-item button svg {
+  flex-shrink: 0;
+  transition: transform 220ms ease;
 }
 
-.bl-final-image {
-  position: absolute;
-  inset: 0;
+.bl-faq-item button[aria-expanded="true"] svg {
+  transform: rotate(45deg);
 }
+
+.bl-faq-item p {
+  padding: 0 40px 24px 0;
+  color: var(--bl-muted);
+  font-size: 0.79rem;
+  line-height: 1.85;
+}
+
+/* ─── Rodapé ────────────────────────────────────────────────── */
 
 .bl-footer {
-  background: var(--bl-ink);
-  padding: 64px 58px 34px;
-  color: white;
+  max-width: none;
+  margin: clamp(48px, 5vw, 80px) clamp(10px, 1.2vw, 18px) 12px;
+  border-radius: var(--bl-radius);
+  background: var(--bl-card);
+  padding: 44px clamp(24px, 3vw, 48px) 26px;
+  border-top: 0;
 }
 
-@media (min-width: 1180px) {
-  .bl-model-track {
-    grid-auto-columns: calc((100% - 32px) / 3);
-  }
+.bl-footer-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 35px;
+  margin-bottom: 38px;
+}
+
+.bl-footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--bl-line);
+  padding-top: 20px;
+  color: var(--bl-muted);
+  font-size: 0.66rem;
+}
+
+.bl-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+}
+
+/* ─── Responsivo ────────────────────────────────────────────── */
+
+@media (max-width: 1199px) {
+  .bl-massage-columns { grid-template-columns: 1fr; }
+  .bl-massage-col + .bl-massage-col .bl-massage-stats { margin-top: 0; }
 }
 
 @media (max-width: 1023px) {
-  .bl-hero-inner {
-    gap: 40px;
-    padding: 126px 34px 42px;
+  .bl-header { gap: 18px; padding-inline: 18px; }
+  .bl-desktop-nav { gap: 18px; }
+  .bl-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bl-lifestyle, .bl-technology, .bl-massage { grid-template-columns: 1fr; }
+  .bl-faq { grid-template-columns: 1fr; }
+  .bl-massage-image { aspect-ratio: 4 / 3; min-height: 0; }
+  /* Tablet/celular: vídeo vira faixa no topo, degradê desce para o texto. */
+  .bl-chromo { padding-top: 0; }
+  .bl-chromo-media {
+    position: relative;
+    inset: auto;
+    width: auto;
+    height: clamp(240px, 52vw, 420px);
+    margin-inline: calc(-1 * clamp(24px, 3.4vw, 64px));
   }
-
-  .bl-technology-panel,
-  .bl-guidance-panel {
-    grid-template-columns: 1fr;
+  .bl-chromo-media video {
+    -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
   }
-
-  .bl-technology-panel {
-    padding: 30px;
-  }
-
-  .bl-massage {
-    grid-template-columns: 1fr;
-  }
-
-  .bl-massage-media {
-    min-height: 540px;
-  }
-
-  .bl-massage-copy {
-    margin-top: -90px;
-    padding: 70px 38px;
-    background: linear-gradient(to bottom, transparent, var(--bl-ink) 90px);
-  }
-
-  .bl-guidance-panel {
-    padding: 46px;
-  }
+  .bl-chromo-content { max-width: none; margin-top: -24px; position: relative; }
 }
 
 @media (max-width: 767px) {
-  .bl-header {
-    min-height: 74px;
-    padding: 14px 18px;
+  html:has(body.bionlife-active) { scroll-padding-top: 90px; }
+  .bl-header { min-height: 74px; padding: 14px 16px; gap: 12px; }
+  .bl-desktop-nav { display: none; }
+  /* No celular o contato mora dentro do menu; o cabeçalho fica só com a marca. */
+  .bl-header .bl-header-cta { display: none; }
+  .bl-menu-toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--bl-ink);
   }
-
+  .bl-mobile-nav:not([hidden]) {
+    position: absolute;
+    display: grid;
+    top: 100%;
+    inset-inline: 10px;
+    border-radius: 18px;
+    padding: 6px 20px 14px;
+    background: var(--bl-card);
+    box-shadow: 0 18px 40px rgb(16 20 24 / 12%);
+  }
+  .bl-mobile-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-top: 1px solid var(--bl-line);
+    font-size: 0.82rem;
+  }
+  /* No celular o hero sangra de ponta a ponta, sem cartão nem cantos. */
   .bl-hero {
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: auto;
+    min-height: 100svh;
+    margin-inline: 0;
+    border-radius: 0;
+    justify-content: flex-start;
   }
-
-  .bl-hero-inner {
-    gap: 28px;
-    padding: 106px 20px 36px;
+  .bl-hero-image img { object-position: 50% 58%; }
+  .bl-hero::after {
+    background: linear-gradient(180deg, rgb(10 14 18 / 76%) 0%, rgb(10 14 18 / 46%) 34%, rgb(10 14 18 / 6%) 68%, transparent 100%);
   }
-
-  .bl-hero-inner {
-    justify-items: center;
+  /* Título e texto centralizados no alto; o botão desce para o pé do hero. */
+  .bl-hero-copy {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 104px 22px 38px;
     text-align: center;
   }
 
-  .bl-hero-title {
-    margin-inline: auto;
+  .bl-hero-copy .bl-button { margin-top: auto; }
+  .bl-hero h1 { font-size: clamp(2.4rem, 10.5vw, 3.4rem); line-height: 1.02; }
+  .bl-hero-copy > p { margin: 18px 0 0; font-size: 0.92rem; line-height: 1.6; max-width: 26ch; }
+  .bl-desktop-break { display: none; }
+  /* Catálogo: carrossel com a próxima linha aparecendo na borda. */
+  .bl-catalog { padding-inline: 0; }
+  .bl-catalog .bl-section-heading, .bl-catalog-note { padding-inline: 18px; }
+  .bl-product-grid {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-inline: 10px;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 10px;
+    scrollbar-width: none;
+    /* Sem isso o Chrome do celular alarga a página até o fim do carrossel. */
+    contain: paint;
   }
-  .bl-hero-actions {
-    margin-top: 30px;
-    justify-content: center;
+  .bl-product-grid::-webkit-scrollbar { display: none; }
+  .bl-product { flex: 0 0 82%; scroll-snap-align: start; }
+  .bl-product:hover { transform: none; }
+  /* Bem-estar: foto de ponta a ponta, como o hero. */
+  .bl-lifestyle { margin-inline: 0; border-radius: 0; min-height: 88svh; }
+  .bl-lifestyle-image img { object-position: 62% center; }
+  .bl-lifestyle-image::after {
+    background: linear-gradient(180deg, transparent 30%, rgb(10 14 18 / 55%) 58%, rgb(10 14 18 / 88%) 100%);
   }
-
-  .bl-hero-actions .bl-button {
-    min-height: 60px;
-    gap: 26px;
-    padding: 0 34px;
-    font-size: 1rem;
-  }
-
-  .bl-hero-stats {
-    display: grid;
-    width: 100%;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px 0;
-  }
-
-  .bl-hero-note {
-    grid-column: 1 / -1;
-  }
-
-  .bl-hero-stat {
-    justify-items: center;
-    padding: 0 6px;
-  }
-
-  .bl-hero-stat:first-child {
-    border-left: 0;
-  }
-
-  .bl-hero-stat svg {
-    margin-bottom: 8px;
-  }
-
-  .bl-display {
-    font-size: clamp(2.4rem, 12.8vw, 4.2rem);
-  }
-
-  .bl-section-title {
-    font-size: clamp(2.25rem, 11vw, 3.6rem);
-  }
-
-  .bl-section {
-    padding: 82px 20px;
-  }
-
-  .bl-feature-image {
-    min-height: 520px;
-    border-radius: 24px;
-  }
-
-  .bl-feature-image-wide {
-    min-height: 0;
-    aspect-ratio: 4 / 3;
-  }
-
-  .bl-dark-feature {
-    grid-template-columns: 52px 1fr;
-    gap: 15px;
-    border-radius: 22px;
-    padding: 20px;
-  }
-
-  .bl-dark-feature-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-  }
-
-  .bl-technology-panel {
-    gap: 16px;
-    border-radius: 26px;
-    padding: 18px;
-  }
-
-  .bl-massage,
-  .bl-catalog,
-  .bl-final-cta {
-    margin-right: 12px;
-    margin-left: 12px;
-    border-radius: 26px;
-  }
-
-  .bl-massage-media {
-    min-height: 430px;
-  }
-
-  .bl-massage-copy {
-    padding: 70px 22px 54px;
-  }
-
-  .bl-catalog {
-    margin-top: 12px;
-    margin-bottom: 12px;
-    padding: 74px 16px 16px;
-  }
-
-  .bl-model-track {
-    grid-auto-columns: min(86vw, 360px);
-  }
-
-  .bl-model-card {
-    min-height: 700px;
-  }
-
-  .bl-guidance-panel {
-    gap: 44px;
-    border-radius: 26px;
-    padding: 28px 20px;
-  }
-
-  .bl-guidance-step {
-    grid-template-columns: 24px 42px 1fr;
-    gap: 12px;
-    padding: 20px 16px;
-  }
-
-  .bl-guidance-step-icon {
-    width: 42px;
-    height: 42px;
-  }
-
-  .bl-delivery {
-    align-items: flex-start;
-    border-radius: 24px;
-    padding: 28px 22px;
-  }
-
-  .bl-final-cta {
-    min-height: 690px;
-    padding: 90px 24px;
-  }
-
-  .bl-final-image img {
-    object-position: 62% center;
-  }
-
-  .bl-final-image > div {
-    background: linear-gradient(to right, rgba(17, 19, 16, 0.98), rgba(17, 19, 16, 0.76));
-  }
-
-  .bl-footer {
-    padding: 54px 24px 30px;
-  }
+  .bl-lifestyle .bl-editorial-copy { padding: 28px 22px 36px; }
+  .bl-quantum { padding: 60px 22px; }
+  .bl-quantum-inner { grid-template-columns: 1fr; gap: 32px; padding-top: 32px; }
+  .bl-quantum h2 { font-size: clamp(2rem, 7vw, 2.75rem); }
+  .bl-quantum-heading .bl-quantum-note { max-width: 38ch; margin-top: 20px; }
+  .bl-quantum .bl-quantum-body { padding: 28px 0 0; border-left: 0; border-top: 1px solid #cbd1d6; }
+  .bl-massage-image { aspect-ratio: 4 / 3; }
+  .bl-massage .bl-editorial-copy { padding: 26px 14px 18px; }
+  .bl-layer-video { height: min(74svh, 600px); top: 88px; }
+  .bl-faq-list { padding-inline: 18px; }
+  .bl-footer-top { flex-direction: column; gap: 22px; }
+  .bl-footer-bottom { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html:has(body.bionlife-active) { scroll-behavior: auto; }
   .bionlife-page *,
   .bionlife-page *::before,
   .bionlife-page *::after {
+    transition: none !important;
+    animation: none !important;
     scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
   }
+  .bl-split .bl-word { opacity: 1; transform: none; }
 }
