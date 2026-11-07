@@ -1,0 +1,3 @@
+# O Mercado Pago chama o webhook sem JWT do Supabase; a função valida o pagamento direto na API do MP.
+[functions.mp-webhook]
+verify_jwt = false

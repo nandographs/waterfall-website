@@ -12,6 +12,7 @@ const PAGE_DESCRIPTION = "Conheça as linhas de colchões BionLife. Diferentes s
 const navItems = [
   { label: "Colchões", href: "#modelos" },
   { label: "Conforto", href: "#bem-estar" },
+  { label: "Ionização", href: "#ionizacao" },
   { label: "Tecnologia", href: "#tecnologia" },
   { label: "Dúvidas", href: "#duvidas" },
 ];
@@ -23,7 +24,7 @@ const lines = [
     feel: "Completo e sofisticado",
     description: "Construções sofisticadas e a combinação mais completa de recursos da marca.",
     image: "elite",
-    cardImage: "/images/colchoesespeciais.jpg",
+    cardImage: "/images/bionlife-linha-especiais",
   },
   {
     name: "Relax",
@@ -31,7 +32,7 @@ const lines = [
     feel: "Macio e acolhedor",
     description: "Uma superfície que recebe o corpo com suavidade, do primeiro contato ao descanso.",
     image: "sense-pro",
-    cardImage: "/images/colchoesrelax.jpg",
+    cardImage: "/images/bionlife-linha-relax",
   },
   {
     name: "A Vácuo",
@@ -39,7 +40,7 @@ const lines = [
     feel: "Macio e adaptável",
     description: "Conforto que acompanha o corpo, em uma embalagem prática para transportar.",
     image: "dream",
-    cardImage: "/images/colchoesvacuo.jpg",
+    cardImage: "/images/bionlife-linha-vacuo",
   },
   {
     name: "Magnético",
@@ -47,9 +48,12 @@ const lines = [
     feel: "Firme e estruturado",
     description: "Mais firmeza e sustentação, com ionização e recursos magnéticos na construção.",
     image: "benefits",
-    cardImage: "/images/colchoesmagnetico02.jpg",
+    cardImage: "/images/bionlife-linha-magnetico",
   },
 ];
+
+// Fotos das linhas: 480px para celular e cards pequenos, 720px para o resto.
+const lineImageSrcSet = (base: string) => `${base}-sm.webp 480w, ${base}.webp 720w`;
 
 const faqs = [
   {
@@ -89,6 +93,40 @@ const faqs = [
     answer: "Não. São recursos de conforto e bem-estar, e não substituem orientação de um profissional de saúde.",
   },
 ];
+
+// Vídeos pesados só começam a baixar quando a seção se aproxima da tela,
+// para não disputar a conexão com o hero e o catálogo no carregamento inicial.
+// O endereço fica em data-src até lá; o React não mexe no src do <source>.
+function useDeferredVideo(ref: React.RefObject<HTMLVideoElement | null>) {
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+
+    const load = () => {
+      video.querySelectorAll<HTMLSourceElement>("source[data-src]").forEach((source) => {
+        source.src = source.dataset.src ?? "";
+        source.removeAttribute("data-src");
+      });
+      video.load();
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      load();
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        load();
+      },
+      { rootMargin: "600px 0px" },
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [ref]);
+}
 
 function Wordmark() {
   return (
@@ -142,6 +180,105 @@ function Odometer({ value }: { value: number }) {
   );
 }
 
+// Ionização: íons negativos sobem devagar da superfície do colchão e se dissipam.
+// Posições, tamanhos e tempos vêm de uma sequência fixa, então o desenho é igual em todo render.
+const IONS = Array.from({ length: 34 }, (_, index) => {
+  const seed = (index * 37 + 11) % 100;
+  return {
+    left: (index * 61 + 7) % 100,
+    size: 18 + (seed % 4) * 4,
+    duration: 10 + (seed % 7),
+    delay: -((index * 1.7) % 16),
+    drift: ((index % 5) - 2) * 10,
+  };
+});
+
+function IonParticles() {
+  return (
+    <div className="bl-ions" aria-hidden="true">
+      {IONS.map((ion, index) => (
+        <span
+          key={index}
+          style={{
+            left: `${ion.left}%`,
+            width: ion.size,
+            height: ion.size,
+            animationDuration: `${ion.duration}s`,
+            animationDelay: `${ion.delay}s`,
+            "--drift": `${ion.drift}px`,
+          } as React.CSSProperties}
+        >
+          −
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// Magnetismo: o colchão visto de cima, com 80 pastilhas (8 × 10).
+// Cada ponto pulsa com atraso proporcional à distância do centro: a onda se espalha pela superfície.
+const MAGNET_COLUMNS = 8;
+const MAGNET_ROWS = 10;
+
+function MagneticField() {
+  const centerX = (MAGNET_COLUMNS - 1) / 2;
+  const centerY = (MAGNET_ROWS - 1) / 2;
+  const maxDistance = Math.hypot(centerX, centerY);
+
+  return (
+    <div className="bl-magnetic-field" aria-hidden="true">
+      <div className="bl-magnetic-mattress">
+        {Array.from({ length: MAGNET_COLUMNS * MAGNET_ROWS }, (_, index) => {
+          const distance = Math.hypot((index % MAGNET_COLUMNS) - centerX, Math.floor(index / MAGNET_COLUMNS) - centerY);
+          return <span key={index} style={{ "--d": (distance / maxDistance).toFixed(3) } as React.CSSProperties} />;
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Infravermelho: corte do colchão com as pastilhas aquecidas e ondas longas subindo delas.
+const INFRARED_PELLETS = [60, 116, 172, 228, 284, 340];
+
+function infraredWavePath(y: number) {
+  // Onda longa e suave, mais larga que o quadro para poder deslizar de lado sem mostrar a ponta.
+  let d = `M -100 ${y}`;
+  for (let step = 0; step < 16; step += 1) {
+    d += ` q 20 ${step % 2 === 0 ? -9 : 9} 40 0`;
+  }
+  return d;
+}
+
+function InfraredWaves() {
+  return (
+    <div className="bl-infrared-visual" aria-hidden="true">
+      <svg viewBox="0 0 400 320" preserveAspectRatio="xMidYMax slice">
+        <defs>
+          <radialGradient id="bl-ir-pellet">
+            <stop offset="0%" stopColor="#ffd08a" />
+            <stop offset="55%" stopColor="#ff8a3d" />
+            <stop offset="100%" stopColor="#d9481f" />
+          </radialGradient>
+          <linearGradient id="bl-ir-wave" x1="0" x2="1">
+            <stop offset="0%" stopColor="#ff8a3d" stopOpacity="0" />
+            <stop offset="50%" stopColor="#ffb065" />
+            <stop offset="100%" stopColor="#ff8a3d" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[0, 1, 2, 3].map((wave) => (
+          <g className="bl-ir-wave" key={wave} style={{ animationDelay: `${wave * 1.25}s` }}>
+            <path d={infraredWavePath(222)} />
+          </g>
+        ))}
+        <rect className="bl-ir-mattress" x="-10" y="232" width="420" height="100" rx="14" />
+        {INFRARED_PELLETS.map((x, index) => (
+          <ellipse className="bl-ir-pellet" key={x} cx={x} cy="270" rx="17" ry="9" style={{ animationDelay: `${index * 0.35}s` }} />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
 // Massagem: as fotos das quatro linhas se revezam, com troca suave.
 function LineSlideshow() {
   const [active, setActive] = useState(0);
@@ -158,11 +295,13 @@ function LineSlideshow() {
         <img
           key={line.name}
           className={index === active ? "is-active" : undefined}
-          src={line.cardImage}
+          src={`${line.cardImage}.webp`}
+          srcSet={lineImageSrcSet(line.cardImage)}
+          sizes="(max-width: 1023px) 100vw, 40vw"
           alt={index === active ? `Colchão da linha BionLife ${line.name} em um quarto` : ""}
           aria-hidden={index !== active}
-          width={1080}
-          height={1440}
+          width={720}
+          height={960}
           loading="lazy"
           decoding="async"
         />
@@ -177,6 +316,9 @@ export default function BionLifePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const technologyRef = useRef<HTMLElement>(null);
   const layersVideoRef = useRef<HTMLVideoElement>(null);
+  const chromoVideoRef = useRef<HTMLVideoElement>(null);
+  useDeferredVideo(layersVideoRef);
+  useDeferredVideo(chromoVideoRef);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -460,8 +602,8 @@ export default function BionLifePage() {
             <a className="bl-button" href="#modelos">Explorar os colchões <ArrowRight size={16} aria-hidden="true" /></a>
           </div>
           <picture className="bl-hero-image">
-            <source media="(max-width: 639px)" srcSet="/images/herobionlife_mobile.jpg" width={1080} height={1920} />
-            <img src="/images/herobionlife.jpg" alt="Família lendo junta sobre um colchão BionLife azul em um quarto iluminado" width={2560} height={1440} loading="eager" fetchPriority="high" decoding="async" />
+            <source media="(max-width: 639px)" srcSet="/images/bionlife-capa-mobile.webp" width={900} height={1600} />
+            <img src="/images/bionlife-capa.webp" srcSet="/images/bionlife-capa-sm.webp 1280w, /images/bionlife-capa.webp 1920w" sizes="100vw" alt="Família lendo junta sobre um colchão BionLife azul em um quarto iluminado" width={1920} height={1080} loading="eager" fetchPriority="high" decoding="async" />
           </picture>
         </section>
 
@@ -480,10 +622,12 @@ export default function BionLifePage() {
                 >
                   <a className="bl-product-image" href={href} target="_blank" rel="noopener noreferrer" aria-label={`Conhecer a linha ${line.name} com um consultor`}>
                     <img
-                      src={line.cardImage}
+                      src={`${line.cardImage}.webp`}
+                      srcSet={lineImageSrcSet(line.cardImage)}
+                      sizes="(max-width: 767px) 82vw, (max-width: 1023px) 50vw, 25vw"
                       alt={`Colchão da linha BionLife ${line.name} em um quarto`}
-                      width={1080}
-                      height={1440}
+                      width={720}
+                      height={960}
                       loading="lazy"
                       decoding="async"
                     />
@@ -507,7 +651,7 @@ export default function BionLifePage() {
 
         <section id="bem-estar" className="bl-lifestyle bl-section" aria-labelledby="bl-comfort-title">
           <div className="bl-lifestyle-image">
-            <img src="/images/bionlife02.jpg" alt="Família abraçada sobre um colchão BionLife" width={1920} height={1080} loading="lazy" decoding="async" />
+            <img src="/images/bionlife-bemestar.webp" srcSet="/images/bionlife-bemestar-sm.webp 900w, /images/bionlife-bemestar.webp 1600w" sizes="100vw" alt="Família abraçada sobre um colchão BionLife" width={1600} height={900} loading="lazy" decoding="async" />
           </div>
           <div className="bl-editorial-copy">
             <h2 id="bl-comfort-title" className="bl-split">Deitar. Desacelerar. <span>Se sentir em casa.</span></h2>
@@ -517,13 +661,23 @@ export default function BionLifePage() {
           </div>
         </section>
 
+        <section id="ionizacao" className="bl-ionization bl-section" aria-labelledby="bl-ionization-title">
+          <IonParticles />
+          <div className="bl-ionization-content">
+            <h2 id="bl-ionization-title" className="bl-split">Ionização BionLife</h2>
+            <p className="bl-ionization-lead">A Ionização BionLife utiliza minerais que liberam íons negativos no espaço próximo ao corpo enquanto você está deitado.</p>
+            <p>Integrada ao colchão, a tecnologia foi pensada para favorecer uma sensação de relaxamento, equilíbrio e bem-estar. Depois de um dia exigente, ela se soma ao conforto da superfície para tornar o momento de descanso mais agradável.</p>
+            <p className="bl-ionization-close">Um cuidado discreto que acompanha você enquanto descansa.</p>
+          </div>
+        </section>
+
         <section ref={technologyRef} id="tecnologia" className="bl-technology bl-section" aria-labelledby="bl-technology-title">
           <div className="bl-editorial-copy">
             <h2 id="bl-technology-title" className="bl-split">O conforto vem de dentro. <span className="bl-dim">Camadas que trabalham juntas para acolher o corpo e sustentar o descanso.</span></h2>
             <dl className="bl-tech-list">
               <div><dt>Camadas que se adaptam</dt><dd>Espumas diferentes: as de cima acolhem, as de baixo sustentam.</dd></div>
               <div><dt>Resposta aos movimentos</dt><dd>Voltam à forma quando você muda de posição.</dd></div>
-              <div id="ionizacao"><dt>Ionização integrada</dt><dd>Presente na construção BionLife, junto às camadas do colchão.</dd></div>
+              <div><dt>Ionização integrada</dt><dd>Presente na construção BionLife, junto às camadas do colchão.</dd></div>
             </dl>
             <p className="bl-fine-print">Os recursos mudam conforme o modelo.</p>
           </div>
@@ -536,10 +690,49 @@ export default function BionLifePage() {
               aria-label="Animação das camadas internas de um colchão BionLife"
               disablePictureInPicture
             >
-              <source src="/videos/colchaocamadas-scrub.mp4" type="video/mp4" />
+              <source data-src="/videos/colchaocamadas-scrub.mp4" type="video/mp4" />
             </video>
             <span>Imagem ilustrativa</span>
           </div>
+        </section>
+
+        <section id="magnetismo" className="bl-magnetic bl-section" aria-labelledby="bl-magnetic-title">
+          <div className="bl-magnetic-visual">
+            <MagneticField />
+            <div className="bl-magnetic-stats">
+              <p className="bl-metric"><Odometer value={800} /> <small>Gauss de emissão aproximada</small></p>
+              <p className="bl-metric"><Odometer value={80} /> <small>pontos magnéticos, nos modelos compatíveis</small></p>
+            </div>
+          </div>
+          <div className="bl-magnetic-copy">
+            <h2 id="bl-magnetic-title" className="bl-split">Um campo magnético presente durante o seu descanso.</h2>
+            <h3 className="bl-magnetic-eyebrow">Tecnologia Magnética BionLife</h3>
+            <p>Pastilhas magnéticas são distribuídas estrategicamente pela estrutura do colchão para criar um <strong>campo magnético permanente e contínuo</strong> ao redor da superfície de descanso.</p>
+            <p>Com emissão aproximada de <strong>800 Gauss</strong>, a tecnologia magnética integra a proposta de bem-estar da BionLife e atua durante todo o tempo em que você permanece sobre o colchão.</p>
+            <p>Não exige ativação, configuração ou qualquer mudança na rotina.</p>
+            <p>Ela permanece incorporada à estrutura, trabalhando junto às demais tecnologias BionLife enquanto o corpo desacelera e entra em descanso.</p>
+            <div className="bl-magnetic-points">
+              <h3>Até 80 pontos magnéticos distribuídos pelo colchão.</h3>
+              <p>Nos modelos compatíveis, dezenas de pastilhas são posicionadas ao longo da superfície para ampliar a presença do campo magnético e criar uma experiência uniforme em diferentes regiões do corpo.</p>
+            </div>
+            <p>Combinada à ionização, ao infravermelho longo e aos sistemas de massagem, a tecnologia magnética compõe uma experiência de descanso pensada para <strong>relaxamento, conforto e bem-estar</strong>.</p>
+            <p className="bl-quantum-close bl-magnetic-close">Uma tecnologia que você não precisa ligar para estar presente.</p>
+          </div>
+        </section>
+
+        <section id="infravermelho" className="bl-infrared bl-section" aria-labelledby="bl-infrared-title">
+          <div className="bl-infrared-copy">
+            <h2 id="bl-infrared-title" className="bl-split">Uma tecnologia integrada ao seu descanso</h2>
+            <h3 className="bl-infrared-eyebrow">Infravermelho longo BionLife</h3>
+            <p>As pastilhas de infravermelho longo ficam dentro do colchão. Seus minerais bioativos absorvem parte do calor natural do corpo e o reemitem em forma de ondas de infravermelho longo enquanto você descansa.</p>
+            <p>O processo acontece de forma passiva, sem acionamento ou energia elétrica. Integradas à estrutura e distribuídas pela superfície do colchão, as pastilhas acompanham o descanso sem exigir mudanças na sua rotina.</p>
+            <p>O infravermelho longo se soma à ionização, ao magnetismo e às demais tecnologias BionLife em uma experiência pensada para o conforto, o relaxamento e o bem-estar.</p>
+            <div className="bl-infrared-close">
+              <h3>Presente enquanto você descansa</h3>
+              <p>Basta se deitar. O calor do seu corpo interage com uma tecnologia que já faz parte do colchão.</p>
+            </div>
+          </div>
+          <InfraredWaves />
         </section>
 
         <section id="quantica" className="bl-quantum bl-section" aria-labelledby="bl-quantum-title">
@@ -592,8 +785,8 @@ export default function BionLifePage() {
 
         <section id="cromoterapia" className="bl-chromo bl-section" aria-labelledby="bl-chromo-title">
           <div className="bl-chromo-media" aria-hidden="true">
-            <video autoPlay muted loop playsInline preload="metadata">
-              <source src="/videos/cromovid.mp4" type="video/mp4" />
+            <video ref={chromoVideoRef} autoPlay muted loop playsInline preload="metadata">
+              <source data-src="/videos/cromovid.mp4" type="video/mp4" />
             </video>
           </div>
           <div className="bl-chromo-content">

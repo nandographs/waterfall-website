@@ -41,13 +41,24 @@ const replacements = [
   ],
   [
     /<meta property="og:image" content=".*?" \/>/,
-    '<meta property="og:image" content="/images/herobionlife.jpg" />',
+    '<meta property="og:image" content="/images/bionlife-og.jpg" />',
   ],
 ];
 
 for (const [pattern, value] of replacements) {
   html = html.replace(pattern, value);
 }
+
+// O index.html vem do site principal: tira a pré-carga da capa e das fontes da Water Diamond
+// e coloca a da BionLife. A página BionLife é um chunk carregado depois do JS principal,
+// então sem isso a capa só começaria a baixar bem depois.
+html = html.replace(/\s*<link rel="preload" as="(?:font|image)"[^>]*>/g, "");
+const bionlifePreloads = [
+  '<link rel="preload" as="font" type="font/woff2" href="/fonts/archivo-latin.woff2" crossorigin />',
+  '<link rel="preload" as="image" href="/images/bionlife-capa-mobile.webp" media="(max-width: 639px)" fetchpriority="high" />',
+  '<link rel="preload" as="image" href="/images/bionlife-capa.webp" imagesrcset="/images/bionlife-capa-sm.webp 1280w, /images/bionlife-capa.webp 1920w" imagesizes="100vw" media="(min-width: 640px)" fetchpriority="high" />',
+];
+html = html.replace("</head>", `    ${bionlifePreloads.join("\n    ")}\n  </head>`);
 
 await writeFile(indexPath, html, "utf8");
 

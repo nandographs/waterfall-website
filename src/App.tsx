@@ -10,6 +10,10 @@ import AmbientVideo from "@/components/ui/ambient-video";
 const ConsultorPage = lazy(() => import("./pages/ConsultorPage"));
 const FitAcademiaPage = lazy(() => import("./pages/FitAcademiaPage"));
 const BionLifePage = lazy(() => import("./pages/BionLifePage"));
+const LojaPage = lazy(() => import("./pages/LojaPage"));
+const AfiliadosPage = lazy(() => import("./pages/AfiliadosPage"));
+const CarrinhoPage = lazy(() => import("./pages/CarrinhoPage"));
+const PedidoPage = lazy(() => import("./pages/CarrinhoPage").then((m) => ({ default: m.PedidoPage })));
 
 
 // --- Reusable Components ---
@@ -901,13 +905,39 @@ export default function App() {
   const legalDocument = legalDocuments[normalizedPath];
 
   // Subdomínio bionlife.: rota decidida pelo host, não pelo caminho.
-  // O /bionlife existe para abrir a mesma página em dev e em preview,
-  // onde não há subdomínio.
+  // O /bionlife só existe em desenvolvimento, onde não há subdomínio. Em produção
+  // ele não abre a BionLife, senão o Google indexa a página dentro do site principal.
   const host = window.location.hostname.toLowerCase();
-  if (host === "bionlife" || host.startsWith("bionlife.") || normalizedPath === "/bionlife") {
+  const isBionLifeHost = host === "bionlife" || host.startsWith("bionlife.");
+  if (isBionLifeHost || (import.meta.env.DEV && normalizedPath === "/bionlife")) {
     return (
       <Suspense fallback={<RouteFallback />}>
         <BionLifePage />
+      </Suspense>
+    );
+  }
+
+  if (normalizedPath === "/loja" || normalizedPath.startsWith("/loja/")) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <LojaPage />
+      </Suspense>
+    );
+  }
+
+  if (normalizedPath === "/afiliados") {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <AfiliadosPage />
+      </Suspense>
+    );
+  }
+
+  if (normalizedPath === "/carrinho" || normalizedPath === "/pedido") {
+    const Page = normalizedPath === "/carrinho" ? CarrinhoPage : PedidoPage;
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <Page />
       </Suspense>
     );
   }
