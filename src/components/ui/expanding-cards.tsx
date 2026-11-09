@@ -78,7 +78,7 @@ export const ExpandingCards = React.forwardRef<
         <li
           key={item.id}
           className={cn(
-            "group relative min-h-0 min-w-0 cursor-pointer overflow-hidden rounded-3xl border border-white/50 bg-card text-card-foreground shadow-lg",
+            "group relative min-h-0 min-w-0 cursor-pointer overflow-hidden rounded-[22px] bg-obsidian text-frost md:rounded-[28px]",
             "md:min-w-[80px]",
           )}
           onMouseEnter={() => handleInteraction(index)}
@@ -96,10 +96,10 @@ export const ExpandingCards = React.forwardRef<
             decoding="async"
             className="absolute inset-0 h-full w-full scale-110 object-cover grayscale transition-all duration-300 ease-out group-data-[active=true]:scale-100 group-data-[active=true]:grayscale-0"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
 
-          <article className="absolute inset-0 flex flex-col justify-end gap-2 p-4">
-            <h3 className="hidden origin-left rotate-180 text-sm font-light uppercase tracking-[0.22em] text-white/80 opacity-100 transition-all duration-300 ease-out [writing-mode:vertical-rl] md:block group-data-[active=true]:opacity-0">
+          <article className="absolute inset-0 flex flex-col justify-end gap-2 p-5 md:p-6">
+            <h3 className="hidden origin-left rotate-180 text-[0.9375rem] font-medium tracking-[-0.01em] text-white/85 opacity-100 transition-all duration-300 ease-out [writing-mode:vertical-rl] md:block group-data-[active=true]:opacity-0">
               {item.title}
             </h3>
 
@@ -107,11 +107,11 @@ export const ExpandingCards = React.forwardRef<
               {item.icon}
             </div>
 
-            <h3 className="text-xl font-bold text-white opacity-0 transition-all duration-300 delay-150 ease-out group-data-[active=true]:opacity-100">
+            <h3 className="text-2xl font-semibold tracking-[-0.02em] text-white opacity-0 transition-all duration-300 delay-150 ease-out group-data-[active=true]:opacity-100">
               {item.title}
             </h3>
 
-            <p className="w-full max-w-xs text-sm text-white/80 opacity-0 transition-all duration-300 delay-200 ease-out group-data-[active=true]:opacity-100">
+            <p className="w-full max-w-xs text-[0.9375rem] leading-snug text-white/80 opacity-0 transition-all duration-300 delay-200 ease-out group-data-[active=true]:opacity-100">
               {item.description}
             </p>
           </article>

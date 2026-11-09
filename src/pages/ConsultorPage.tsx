@@ -12,7 +12,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { Button, ButtonArrow } from "@/components/ui/button";
 import { submitWeb3Form } from "@/lib/forms";
-import { SiteHeader, SidebarMenu } from "../App";
+import { SiteHeader, SidebarMenu } from "@/components/site-shell";
 
 const ease = [0.21, 0.47, 0.32, 0.98] as const;
 
@@ -144,7 +144,7 @@ export default function ConsultorPage() {
 
   return (
     <div className="consultor-page min-h-screen overflow-x-hidden bg-surface-light text-foreground selection:bg-primary selection:text-white">
-      <SiteHeader scrolled={scrolled} onMenuOpen={() => setIsMenuOpen(true)} onContactClick={() => scrollTo("#contato")} />
+      <SiteHeader scrolled={scrolled} onMenuOpen={() => setIsMenuOpen(true)} cta={{ label: "Quero ser consultor", onClick: () => scrollTo("#contato") }} />
       <SidebarMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
       <main>

@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { useEffect, useState } from "react";
 
 export type Product = {
   slug: string;
@@ -33,6 +33,8 @@ const FALLBACK: Product[] = [
 ];
 
 export async function fetchProducts(): Promise<Product[]> {
+  // Import dinâmico: o cliente do Supabase (~60 KB gzip) não entra no bundle inicial da home.
+  const { supabase } = await import("./supabase");
   if (!supabase) return FALLBACK;
   const { data, error } = await supabase
     .from("products")
@@ -56,3 +58,24 @@ export const formatBRL = (cents: number) =>
 /** Imagem do produto: .webp em /images, com versão -sm para celular. */
 export const productImage = (p: Product) =>
   p.image ? { src: `/images/${p.image}.webp`, srcSet: `/images/${p.image}-sm.webp 480w, /images/${p.image}.webp 720w` } : null;
+
+// --- Cache compartilhado: cabeçalho, home, loja e sacola fazem uma única busca por visita. ---
+let cached: Product[] | null = null;
+let pending: Promise<Product[]> | null = null;
+
+export function loadProducts(): Promise<Product[]> {
+  if (cached) return Promise.resolve(cached);
+  pending ??= fetchProducts().then((list) => (cached = list));
+  return pending;
+}
+
+export function useProducts(): Product[] | null {
+  const [products, setProducts] = useState<Product[] | null>(cached);
+  useEffect(() => {
+    if (!cached) loadProducts().then(setProducts);
+  }, []);
+  return products;
+}
+
+export const isPurchasable = (p: Product | undefined | null): p is Product & { priceCents: number } =>
+  p?.priceCents != null;

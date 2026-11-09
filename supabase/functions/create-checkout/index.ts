@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     if (!customer.name || !/^\S+@\S+\.\S+$/.test(customer.email) || customer.cpf.length !== 11)
       return json({ error: "Confira nome, e-mail e CPF." }, 400);
 
-    const items: { slug: string; qty: number }[] = Array.isArray(body.items) ? body.items : [];
+    const items: { slug: string; qty: number; variant?: string }[] = Array.isArray(body.items) ? body.items : [];
     if (!items.length || items.length > 20) return json({ error: "Carrinho vazio." }, 400);
 
     const { data: products } = await db
@@ -38,7 +38,9 @@ Deno.serve(async (req) => {
       const qty = Number(i.qty);
       if (!p || !Number.isInteger(qty) || qty < 1 || qty > 10) throw new Error(`Produto indisponível: ${str(i.slug, 60)}`);
       if (p.stock !== null && p.stock < qty) throw new Error(`Sem estoque: ${p.name}`);
-      return { p, qty };
+      // Acabamento escolhido na loja (ex.: "Preto"). Só texto curto; não altera preço.
+      const variant = str(i.variant, 30).replace(/[^\p{L}\p{N} -]/gu, "");
+      return { p, qty, variant };
     });
     const subtotal = lines.reduce((s, l) => s + l.p.price_cents * l.qty, 0);
 
@@ -77,7 +79,7 @@ Deno.serve(async (req) => {
     if (error || !order) throw new Error("Falha ao criar o pedido.");
 
     await db.from("order_items").insert(lines.map((l) => ({
-      order_id: order.id, product_id: l.p.id, name: l.p.name, unit_cents: l.p.price_cents, quantity: l.qty,
+      order_id: order.id, product_id: l.p.id, name: l.variant ? `${l.p.name} · ${l.variant}` : l.p.name, unit_cents: l.p.price_cents, quantity: l.qty,
     })));
 
     // Uma linha só, com o total final (já com desconto e frete), evita divergência de centavos.
@@ -90,11 +92,13 @@ Deno.serve(async (req) => {
         external_reference: order.id,
         notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/mp-webhook`,
         back_urls: { success: `${SITE_URL}/pedido?status=approved`, pending: `${SITE_URL}/pedido?status=pending`, failure: `${SITE_URL}/pedido?status=failure` },
-        auto_return: "approved",
+        // O MP recusa auto_return com back_url em localhost; em dev o cliente volta pelo botão.
+        ...(SITE_URL.startsWith("https://") ? { auto_return: "approved" } : {}),
       }),
     });
     const pref = await mp.json();
     if (!mp.ok || !pref.init_point) {
+      console.error("Mercado Pago recusou a preferência", mp.status, JSON.stringify(pref));
       await db.from("orders").update({ status: "cancelled" }).eq("id", order.id);
       throw new Error("Não foi possível iniciar o pagamento.");
     }
