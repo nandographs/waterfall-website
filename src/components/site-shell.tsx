@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Menu, ShoppingBag, X, Youtube } from "lucide-react";
+import { Facebook, Instagram, Menu, ShoppingBag, UserRound, X, Youtube } from "lucide-react";
 import { WHATSAPP_DIRECT_URL } from "@/lib/forms";
 import { useCartCount } from "@/lib/cart";
 
@@ -33,13 +33,27 @@ const followLink = (href: string) => {
   else window.location.href = href;
 };
 
+/** Menu enxuto: conhecer o produto, comprar e ser consultor. "Comprar" é o botão azul ao lado. */
 export const navLinks = [
-  { label: "O problema", href: "#problema" },
-  { label: "Tecnologia", href: "#etapas" },
-  { label: "Modelos", href: "#modelos" },
+  { label: "Ion Center", href: "#ion-center" },
   { label: "Loja", href: "/loja" },
   { label: "Seja um consultor", href: "/consultor" },
 ];
+
+/** Painel do afiliado (link de indicação e comissões). Não confundir com o consultor. */
+export const AFFILIATE_HREF = "/afiliados";
+
+const AffiliateLink = () => (
+  <a
+    href={AFFILIATE_HREF}
+    aria-label="Área do afiliado"
+    title="Área do afiliado"
+    className="flex h-9 items-center gap-1.5 rounded-full px-2 text-[0.8125rem] text-frost/75 transition-colors hover:bg-white/10 hover:text-frost lg:px-3"
+  >
+    <UserRound size={17} strokeWidth={1.8} aria-hidden="true" />
+    <span className="hidden lg:inline">Afiliado</span>
+  </a>
+);
 
 export const socialLinks = [
   { label: "Instagram", href: "https://www.instagram.com/waterfallcompanybr", icon: Instagram },
@@ -91,7 +105,7 @@ export const SiteHeader = ({
         <img src="/images/LOGO.webp" alt="" className="h-[22px] w-auto md:h-7 object-contain brightness-0 invert" />
       </a>
 
-      <ul className="hidden items-center lg:flex">
+      <ul className="hidden items-center md:flex">
         {navLinks.map((link) => (
           <li key={link.label}>
             <button
@@ -106,6 +120,9 @@ export const SiteHeader = ({
       </ul>
 
       <div className="flex items-center gap-1">
+        <span className="hidden md:block">
+          <AffiliateLink />
+        </span>
         <BagLink />
         {cta && (
           <button type="button" onClick={cta.onClick} className="btn-action min-h-9 whitespace-nowrap px-4 text-[0.8125rem]">
@@ -123,7 +140,7 @@ export const SiteHeader = ({
           type="button"
           onClick={onMenuOpen}
           aria-label="Abrir menu de navegação"
-          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-frost transition-colors hover:bg-white/10 lg:hidden"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-frost transition-colors hover:bg-white/10 md:hidden"
         >
           <Menu size={18} />
         </button>
@@ -161,7 +178,7 @@ export const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
         </div>
 
         <nav className="mt-14 flex flex-col">
-          {[...navLinks, { label: "Sacola", href: "/carrinho" }].map((link, i) => (
+          {navLinks.map((link, i) => (
             <button
               type="button"
               key={link.label}
@@ -175,6 +192,23 @@ export const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
             </button>
           ))}
         </nav>
+
+        <ul
+          style={{ transitionDelay: isOpen ? "220ms" : "0ms" }}
+          className={`mt-10 flex flex-col gap-1 border-t border-smoke pt-6 transition-opacity duration-500 ${isOpen ? "opacity-100" : "opacity-0"}`}
+        >
+          {[
+            { label: "Área do afiliado", href: AFFILIATE_HREF, icon: UserRound },
+            { label: "Sacola", href: "/carrinho", icon: ShoppingBag },
+          ].map(({ label, href, icon: Icon }) => (
+            <li key={label}>
+              <a href={href} onClick={onClose} className="flex items-center gap-3 py-2 text-[1.0625rem] text-platinum transition-colors hover:text-frost">
+                <Icon size={18} strokeWidth={1.7} aria-hidden="true" />
+                {label}
+              </a>
+            </li>
+          ))}
+        </ul>
 
         <p className="t-small mt-auto text-platinum">A melhor água do mundo.</p>
       </div>
@@ -217,7 +251,7 @@ export const SiteFooter = () => (
           <ul className="t-caption mt-3 space-y-2 text-platinum">
             <li><a href={WHATSAPP_DIRECT_URL} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-frost">Falar com um consultor</a></li>
             <li><a href="/consultor" className="transition-colors hover:text-frost">Seja um consultor</a></li>
-            <li><a href="/afiliados" className="transition-colors hover:text-frost">Programa de afiliados</a></li>
+            <li><a href={AFFILIATE_HREF} className="transition-colors hover:text-frost">Área do afiliado</a></li>
           </ul>
         </div>
         <div className="flex items-start gap-2">
