@@ -42,6 +42,12 @@ npm run build
 O conteúdo de `dist/` é o que sobe para a hospedagem, incluindo o `.htaccess`
 (headers de segurança, compressão, cache e as rotas da SPA).
 
+O deploy é automático: cada push na `main` roda `.github/workflows/deploy.yml`, que faz o build
+no GitHub e envia por SSH (rsync) para a Hostinger: `dist/` vai para www.waterfall.ind.br e `dist-bionlife/`
+vai para bionlife.waterfall.ind.br (pasta `public_html/bionlife`). Só os arquivos alterados sobem.
+Para publicar sem novo commit: GitHub > Actions > Deploy Hostinger > Run workflow.
+Os secrets e variáveis necessários (chave SSH de deploy e chaves `VITE_*`) estão listados no topo do workflow.
+
 ## Imagens e vídeos
 
 Os arquivos originais em alta ficam em `assets-originais/` e **não** vão para o site.

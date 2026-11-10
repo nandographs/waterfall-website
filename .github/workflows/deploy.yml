@@ -1,0 +1,97 @@
+# Deploy automático para a Hostinger.
+# A cada push na main o GitHub faz o build e envia por SSH (rsync, só o que mudou):
+#   dist/           -> www.waterfall.ind.br       (domains/waterfall.ind.br/public_html)
+#   dist-bionlife/  -> bionlife.waterfall.ind.br  (public_html/bionlife)
+#
+# Secrets (Settings > Secrets and variables > Actions > Secrets):
+#   SSH_PRIVATE_KEY   -> chave privada de deploy (a pública está em hPanel > Avançado > Acesso SSH > Chaves SSH)
+#   SSH_KNOWN_HOSTS   -> linha do ssh-keyscan do servidor (confere com a impressão digital ED25519 do hPanel)
+#   VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+#   VITE_WEB3FORMS_KEY_* (opcionais: sem eles o site usa as chaves padrão de src/lib/forms.ts)
+# Variables (aba Variables):
+#   SSH_HOST, SSH_PORT, SSH_USER, SITE_DIR
+
+name: Deploy Hostinger
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "supabase/**"
+      - "docs/**"
+      - "assets-originais/**"
+      - ".agents/**"
+      - "**/*.md"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run lint
+
+      - name: Build (Waterfall + BionLife)
+        run: npm run build:bionlife
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_WEB3FORMS_KEY_CONTATO: ${{ secrets.VITE_WEB3FORMS_KEY_CONTATO }}
+          VITE_WEB3FORMS_KEY_CONSULTOR: ${{ secrets.VITE_WEB3FORMS_KEY_CONSULTOR }}
+          VITE_WEB3FORMS_KEY_FITACADEMIA: ${{ secrets.VITE_WEB3FORMS_KEY_FITACADEMIA }}
+
+      # Sem essas chaves o site sobe com loja e afiliados quebrados: melhor parar aqui.
+      - name: Conferir build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          missing=0
+          for v in VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY; do
+            if [ -z "${!v}" ]; then echo "::error::Secret $v não configurado"; missing=1; fi
+          done
+          for d in dist dist-bionlife; do
+            test -f $d/index.html && test -f $d/.htaccess || { echo "::error::$d/ incompleto"; missing=1; }
+          done
+          exit $missing
+
+      - name: Preparar SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      # --delay-updates: os arquivos novos só entram no lugar no fim, então o site não fica meio atualizado.
+      # A pasta bionlife/ é outro site (subdomínio) e fica fora da sincronização do site principal.
+      - name: Enviar para a Hostinger
+        env:
+          RSH: ssh -i ~/.ssh/deploy_key -p ${{ vars.SSH_PORT }} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes
+          DEST: ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}:${{ vars.SITE_DIR }}
+        run: |
+          rsync -rlz --checksum --delete --delay-updates --exclude 'bionlife/' --exclude '.well-known/' -e "$RSH" dist/ "$DEST/"
+          rsync -rlz --checksum --delete --delay-updates -e "$RSH" dist-bionlife/ "$DEST/bionlife/"
+
+      - name: Limpar chave
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

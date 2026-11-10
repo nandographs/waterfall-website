@@ -3,9 +3,9 @@ const FORM_ENDPOINT = "https://api.web3forms.com/submit";
 // As chaves ficam em variáveis de ambiente (.env.local). Os valores de fallback
 // mantêm o site funcionando em builds antigos que ainda não têm o .env definido.
 const ACCESS_KEYS = {
-  contato: import.meta.env.VITE_WEB3FORMS_KEY_CONTATO ?? "8994e420-29d7-4bce-b0e8-a5c5fb4b0ccb",
-  consultor: import.meta.env.VITE_WEB3FORMS_KEY_CONSULTOR ?? "68c4bc60-1148-48f3-b2c4-612ea537bafb",
-  fitacademia: import.meta.env.VITE_WEB3FORMS_KEY_FITACADEMIA ?? "1bae73ea-953d-4c39-b6ad-00dc0f92848c",
+  contato: import.meta.env.VITE_WEB3FORMS_KEY_CONTATO || "8994e420-29d7-4bce-b0e8-a5c5fb4b0ccb",
+  consultor: import.meta.env.VITE_WEB3FORMS_KEY_CONSULTOR || "68c4bc60-1148-48f3-b2c4-612ea537bafb",
+  fitacademia: import.meta.env.VITE_WEB3FORMS_KEY_FITACADEMIA || "1bae73ea-953d-4c39-b6ad-00dc0f92848c",
 } as const;
 
 export type FormKind = keyof typeof ACCESS_KEYS;
