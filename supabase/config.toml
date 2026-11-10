@@ -7,8 +7,5 @@ verify_jwt = false
 [functions.create-checkout]
 verify_jwt = false
 
-[functions.affiliate-signup]
-verify_jwt = false
-
 [functions.track-click]
 verify_jwt = false

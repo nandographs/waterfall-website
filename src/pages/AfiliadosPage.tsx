@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import type React from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import { FUNCTIONS_URL } from "@/lib/affiliate";
 import { formatBRL } from "@/lib/catalog";
 import { SidebarMenu, SiteFooter, SiteHeader } from "@/components/site-shell";
 
@@ -14,10 +13,53 @@ type Affiliate = { name: string; code: string; status: string; commission_pct: n
 type Commission = { amount_cents: number; status: string; release_at: string | null; created_at: string };
 
 const steps = [
-  { icon: Link2, title: "Cadastre-se", text: "Escolha o código do seu link. A equipe analisa e avisa por e-mail quando aprovar." },
+  { icon: Link2, title: "Cadastre-se", text: "Crie sua conta e escolha o código do seu link. A equipe analisa e avisa por e-mail quando aprovar." },
   { icon: Copy, title: "Compartilhe", text: "Divulgue seu link ou cupom. Cada venda feita por ele fica registrada no seu painel." },
   { icon: Wallet, title: "Receba por Pix", text: "A comissão é liberada após o prazo de segurança e paga pela equipe via Pix." },
 ];
+
+const authRedirect = () => `${window.location.origin}/afiliados`;
+const ALREADY = "Esse e-mail já tem conta. Entre ao lado ou use “Esqueci minha senha”.";
+const WEAK = "Senha fraca: use pelo menos 8 caracteres.";
+
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true">
+      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
+      <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
+      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
+    </svg>
+  );
+}
+
+/** Login social: volta para /afiliados já autenticado. Quem ainda não tem perfil completa o cadastro no painel. */
+function GoogleButton({ label, dark = false }: { label: string; dark?: boolean }) {
+  const [busy, setBusy] = useState(false);
+  const go = async () => {
+    setBusy(true);
+    const { error } = await supabase!.auth.signInWithOAuth({ provider: "google", options: { redirectTo: authRedirect() } });
+    if (error) setBusy(false);
+  };
+  return (
+    <>
+      <button
+        type="button"
+        onClick={go}
+        disabled={busy}
+        className="mt-7 flex min-h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-black/10 bg-white px-6 text-base font-medium text-obsidian transition-colors hover:bg-white/90 disabled:opacity-60"
+      >
+        <GoogleIcon />
+        {busy ? "Abrindo o Google…" : label}
+      </button>
+      <div className={`t-caption mt-6 flex items-center gap-3 ${dark ? "text-platinum" : "text-pewter"}`}>
+        <span className={`h-px flex-1 ${dark ? "bg-white/15" : "bg-black/10"}`} />
+        ou com e-mail
+        <span className={`h-px flex-1 ${dark ? "bg-white/15" : "bg-black/10"}`} />
+      </div>
+    </>
+  );
+}
 
 function Signup() {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -25,27 +67,60 @@ function Signup() {
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!FUNCTIONS_URL) return setMsg({ ok: false, text: "Cadastro indisponível no momento." });
-    const f = new FormData(e.currentTarget);
+    if (!supabase) return setMsg({ ok: false, text: "Cadastro indisponível no momento." });
+    const form = e.currentTarget;
+    const f = new FormData(form);
+    const name = String(f.get("name")).trim();
+    const email = String(f.get("email")).trim().toLowerCase();
+    const code = String(f.get("code")).trim().toLowerCase();
+    const pix = String(f.get("pix") ?? "").trim();
+    const password = String(f.get("password"));
+    if (password !== String(f.get("password2"))) return setMsg({ ok: false, text: "As senhas não conferem." });
+
     setBusy(true);
-    const res = await fetch(`${FUNCTIONS_URL}/affiliate-signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
-      body: JSON.stringify({ name: f.get("name"), email: f.get("email"), code: f.get("code"), pixKey: f.get("pix") }),
-    }).catch(() => null);
-    const data = await res?.json().catch(() => ({}));
+    setMsg(null);
+    const { data: free, error: codeErr } = await supabase.rpc("affiliate_code_available", { p_code: code, p_email: email });
+    if (codeErr || free === false) {
+      setBusy(false);
+      return setMsg({ ok: false, text: codeErr ? "Não foi possível enviar. Tente novamente." : "Esse código já está em uso. Escolha outro." });
+    }
+
+    // A conta nasce no Supabase Auth; o trigger no banco cria o perfil do afiliado como "pending".
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: authRedirect(), data: { name, affiliate_code: code, pix_key: pix || null } },
+    });
     setBusy(false);
-    setMsg(res?.ok
-      ? { ok: true, text: "Cadastro recebido. Avisaremos por e-mail quando for aprovado; depois é só entrar aqui ao lado." }
-      : { ok: false, text: data?.error ?? "Não foi possível enviar. Tente novamente." });
+
+    if (error) {
+      const text = /already registered|already exists/i.test(error.message)
+        ? ALREADY
+        : /password/i.test(error.message)
+          ? WEAK
+          : "Não foi possível enviar. Tente novamente.";
+      return setMsg({ ok: false, text });
+    }
+    // Com confirmação de e-mail ligada, um e-mail já cadastrado volta sem identidades.
+    if (data.user && data.user.identities?.length === 0) return setMsg({ ok: false, text: ALREADY });
+
+    form.reset();
+    setMsg({
+      ok: true,
+      text: data.session
+        ? "Conta criada. A equipe vai analisar seu cadastro e avisar por e-mail quando aprovar."
+        : "Conta criada. Confirme pelo link que enviamos ao seu e-mail; depois a equipe analisa e avisa quando aprovar.",
+    });
   }
 
   return (
     <form id="cadastro" onSubmit={submit} className="flex h-full scroll-mt-24 flex-col rounded-[28px] bg-frost p-7 md:p-10">
       <h2 className="t-headline-lg">Quero ser afiliado.</h2>
-      <p className="t-small mt-2 text-pewter">Leva um minuto. Você recebe a resposta por e-mail.</p>
+      <p className="t-small mt-2 text-pewter">Leva um minuto. Você cria seu acesso agora e recebe a aprovação por e-mail.</p>
 
-      <div className="mt-7 space-y-4">
+      <GoogleButton label="Cadastrar com Google" />
+
+      <div className="mt-6 space-y-4">
         <label className="block">
           <span className={labelClass}>Nome completo</span>
           <input name="name" required autoComplete="name" className="wd-input" />
@@ -54,6 +129,16 @@ function Signup() {
           <span className={labelClass}>E-mail</span>
           <input name="email" type="email" required autoComplete="email" className="wd-input" />
         </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className={labelClass}>Senha</span>
+            <input name="password" type="password" required minLength={8} autoComplete="new-password" className="wd-input" />
+          </label>
+          <label className="block">
+            <span className={labelClass}>Repita a senha</span>
+            <input name="password2" type="password" required minLength={8} autoComplete="new-password" className="wd-input" />
+          </label>
+        </div>
         <label className="block">
           <span className={labelClass}>Código do seu link</span>
           <input
@@ -82,51 +167,199 @@ function Signup() {
         </p>
       )}
       <button type="submit" disabled={busy} className="btn-action mt-7 min-h-12 w-full text-base">
-        {busy ? "Enviando…" : "Enviar cadastro"}
+        {busy ? "Enviando…" : "Criar conta de afiliado"}
       </button>
     </form>
   );
 }
 
 function Login() {
-  const [sent, setSent] = useState(false);
+  const [mode, setMode] = useState<"login" | "forgot">("login");
+  const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const email = String(new FormData(e.currentTarget).get("email"));
+    const f = new FormData(e.currentTarget);
+    const email = String(f.get("email")).trim().toLowerCase();
     setBusy(true);
-    const { error } = await supabase!.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/afiliados`, shouldCreateUser: true },
-    });
+    setError(null);
+    if (mode === "forgot") {
+      const { error } = await supabase!.auth.resetPasswordForEmail(email, { redirectTo: authRedirect() });
+      setBusy(false);
+      if (error) return setError("Não foi possível enviar o link. Tente novamente.");
+      return setNotice("Se houver uma conta com esse e-mail, enviamos um link para criar uma nova senha.");
+    }
+    const { error } = await supabase!.auth.signInWithPassword({ email, password: String(f.get("password")) });
     setBusy(false);
-    if (error) setError("Não foi possível enviar o link. Tente novamente.");
-    else setSent(true);
+    if (error) {
+      setError(
+        /not confirmed/i.test(error.message)
+          ? "Confirme seu e-mail pelo link que enviamos antes de entrar."
+          : /invalid/i.test(error.message)
+            ? "E-mail ou senha incorretos."
+            : "Não foi possível entrar. Tente novamente.",
+      );
+    }
   }
+
+  const switchMode = (m: "login" | "forgot") => {
+    setMode(m);
+    setError(null);
+    setNotice(null);
+  };
 
   return (
     <form id="entrar" onSubmit={submit} className="flex h-full scroll-mt-24 flex-col rounded-[28px] bg-obsidian p-7 text-frost md:p-10">
-      <h2 className="t-headline-lg">Já sou afiliado.</h2>
-      {sent ? (
-        <div className="mt-6 flex items-start gap-3">
-          <Check size={20} className="mt-0.5 shrink-0 text-halo" aria-hidden="true" />
-          <p className="t-body text-frost">Enviamos um link de acesso para o seu e-mail. Abra por ele para entrar.</p>
-        </div>
+      <h2 className="t-headline-lg">{mode === "login" ? "Já sou afiliado." : "Esqueci a senha."}</h2>
+      {notice ? (
+        <>
+          <div className="mt-6 flex items-start gap-3">
+            <Check size={20} className="mt-0.5 shrink-0 text-halo" aria-hidden="true" />
+            <p className="t-body text-frost">{notice}</p>
+          </div>
+          <button type="button" onClick={() => switchMode("login")} className="t-small mt-6 cursor-pointer self-start text-halo hover:underline">
+            Voltar para o login
+          </button>
+        </>
       ) : (
         <>
-          <p className="t-small mt-2 text-platinum">Sem senha: enviamos um link de acesso para o seu e-mail.</p>
-          <label className="mt-7 block">
+          <p className="t-small mt-2 text-platinum">
+            {mode === "login" ? "Entre com o Google ou com o e-mail e a senha da sua conta." : "Enviamos um link para você criar uma nova senha."}
+          </p>
+          {mode === "login" && <GoogleButton label="Entrar com Google" dark />}
+          <label className={`${mode === "login" ? "mt-6" : "mt-7"} block`}>
             <span className="mb-1.5 block text-[0.8125rem] font-medium text-platinum">E-mail cadastrado</span>
             <input name="email" type="email" required autoComplete="email" className="wd-input" />
           </label>
+          {mode === "login" && (
+            <label className="mt-4 block">
+              <span className="mb-1.5 block text-[0.8125rem] font-medium text-platinum">Senha</span>
+              <input name="password" type="password" required autoComplete="current-password" className="wd-input" />
+            </label>
+          )}
           {error && <p role="alert" className="t-small mt-4 font-medium text-red-400">{error}</p>}
           <button type="submit" disabled={busy} className="btn-action mt-7 min-h-12 w-full text-base">
-            {busy ? "Enviando…" : "Receber link de acesso"}
+            {busy ? "Enviando…" : mode === "login" ? "Entrar" : "Enviar link"}
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode(mode === "login" ? "forgot" : "login")}
+            className="t-small mt-4 cursor-pointer self-start text-halo hover:underline"
+          >
+            {mode === "login" ? "Esqueci minha senha" : "Voltar para o login"}
           </button>
         </>
       )}
+    </form>
+  );
+}
+
+/** Aberto pelo link de recuperação: o Supabase já criou a sessão, falta gravar a senha nova. */
+function NewPassword({ onDone }: { onDone: () => void }) {
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    const password = String(f.get("password"));
+    if (password !== String(f.get("password2"))) return setError("As senhas não conferem.");
+    setBusy(true);
+    setError(null);
+    const { error } = await supabase!.auth.updateUser({ password });
+    setBusy(false);
+    if (error) setError(/password/i.test(error.message) ? WEAK : "Não foi possível salvar. Tente novamente.");
+    else onDone();
+  }
+
+  return (
+    <form onSubmit={submit} className="max-w-md rounded-[28px] bg-frost p-7 md:p-10">
+      <h1 className="t-headline-lg">Crie sua nova senha.</h1>
+      <div className="mt-7 space-y-4">
+        <label className="block">
+          <span className={labelClass}>Nova senha</span>
+          <input name="password" type="password" required minLength={8} autoComplete="new-password" className="wd-input" />
+        </label>
+        <label className="block">
+          <span className={labelClass}>Repita a senha</span>
+          <input name="password2" type="password" required minLength={8} autoComplete="new-password" className="wd-input" />
+        </label>
+      </div>
+      {error && <p role="alert" className="t-small mt-4 font-medium text-red-600">{error}</p>}
+      <button type="submit" disabled={busy} className="btn-action mt-7 min-h-12 w-full text-base">
+        {busy ? "Salvando…" : "Salvar senha"}
+      </button>
+    </form>
+  );
+}
+
+/** Conta criada pelo Google ainda sem perfil de afiliado: pede o código do link e o Pix. */
+function CompleteSignup({ session, onDone }: { session: Session; onDone: () => void }) {
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const meta = session.user.user_metadata ?? {};
+  const defaultName = String(meta.full_name ?? meta.name ?? "");
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    setBusy(true);
+    setError(null);
+    const { error } = await supabase!.rpc("affiliate_register", {
+      p_name: String(f.get("name")).trim(),
+      p_code: String(f.get("code")).trim().toLowerCase(),
+      p_pix: String(f.get("pix") ?? "").trim() || null,
+    });
+    setBusy(false);
+    if (!error) return onDone();
+    setError(
+      /code_taken/.test(error.message)
+        ? "Esse código já está em uso. Escolha outro."
+        : /affiliate_code_invalid/.test(error.message)
+          ? "Código: 3 a 30 letras minúsculas, números, - ou _."
+          : /already_registered/.test(error.message)
+            ? "Esta conta já tem cadastro de afiliado. Recarregue a página."
+            : "Não foi possível concluir. Tente novamente.",
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="max-w-xl rounded-[28px] bg-frost p-7 md:p-10">
+      <h1 className="t-headline-lg">Complete seu cadastro.</h1>
+      <p className="t-small mt-2 text-pewter">
+        Você entrou como <span className="text-obsidian">{session.user.email}</span>. Falta escolher o código do seu link; depois a equipe analisa e avisa por e-mail.
+      </p>
+      <div className="mt-7 space-y-4">
+        <label className="block">
+          <span className={labelClass}>Nome completo</span>
+          <input name="name" required defaultValue={defaultName} autoComplete="name" className="wd-input" />
+        </label>
+        <label className="block">
+          <span className={labelClass}>Código do seu link</span>
+          <input
+            name="code"
+            required
+            autoComplete="off"
+            placeholder="ex.: maria"
+            pattern={"[A-Za-z0-9_\\-]{3,30}"}
+            title="De 3 a 30 letras, números, _ ou -"
+            className="wd-input"
+          />
+          <span className="t-caption mt-1.5 block text-pewter">Seu link fica assim: {window.location.host}/?ref=<span className="text-obsidian">codigo</span></span>
+        </label>
+        <label className="block">
+          <span className={labelClass}>
+            Chave Pix para receber <span className="font-normal">(opcional)</span>
+          </span>
+          <input name="pix" autoComplete="off" className="wd-input" />
+        </label>
+      </div>
+      {error && <p role="alert" className="t-small mt-4 font-medium text-red-600">{error}</p>}
+      <button type="submit" disabled={busy} className="btn-action mt-7 min-h-12 w-full text-base">
+        {busy ? "Enviando…" : "Enviar cadastro"}
+      </button>
     </form>
   );
 }
@@ -159,6 +392,7 @@ function Dashboard({ session }: { session: Session }) {
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [coupon, setCoupon] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -175,7 +409,7 @@ function Dashboard({ session }: { session: Session }) {
       setClicks(k.count ?? 0);
       setCoupon(cp.data?.code ?? null);
     })();
-  }, []);
+  }, [version]);
 
   useEffect(() => {
     if (!copied) return;
@@ -191,15 +425,7 @@ function Dashboard({ session }: { session: Session }) {
       </div>
     );
   }
-  if (!aff) {
-    return (
-      <Notice
-        icon={ShieldAlert}
-        title="Nenhum cadastro encontrado."
-        text={`Não há cadastro de afiliado para ${session.user.email}. Se ainda não se cadastrou, saia e preencha o formulário de cadastro.`}
-      />
-    );
-  }
+  if (!aff) return <CompleteSignup session={session} onDone={() => setVersion((v) => v + 1)} />;
   if (aff.status !== "active") {
     return aff.status === "pending" ? (
       <Notice icon={Clock} title="Seu cadastro está em análise." text="Avisaremos por e-mail assim que for aprovado. Depois disso, seu link e seus números aparecem aqui." />
@@ -263,13 +489,18 @@ function Dashboard({ session }: { session: Session }) {
 
 export default function AfiliadosPage() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
+  const [recovering, setRecovering] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Área do afiliado | Water Diamond";
     if (!supabase) return setSession(null);
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s);
+      if (event === "PASSWORD_RECOVERY") setRecovering(true);
+      if (event === "SIGNED_OUT") setRecovering(false);
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 
@@ -294,7 +525,7 @@ export default function AfiliadosPage() {
               <LogOut size={15} aria-hidden="true" /> Sair
             </button>
           </div>
-          <Dashboard session={session} />
+          {recovering ? <NewPassword onDone={() => setRecovering(false)} /> : <Dashboard session={session} />}
         </main>
       ) : (
         <main>
