@@ -22,6 +22,12 @@ const authRedirect = () => `${window.location.origin}/afiliados`;
 const ALREADY = "Esse e-mail já tem conta. Entre ao lado ou use “Esqueci minha senha”.";
 const WEAK = "Senha fraca: use pelo menos 8 caracteres.";
 
+/**
+ * Login com Google pausado: o provedor está desligado no Supabase (as credenciais continuam salvas).
+ * Para reativar, ligue o Google em Authentication > Sign In / Providers e mude para true.
+ */
+const GOOGLE_LOGIN_ENABLED = false;
+
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true">
@@ -118,9 +124,9 @@ function Signup() {
       <h2 className="t-headline-lg">Quero ser afiliado.</h2>
       <p className="t-small mt-2 text-pewter">Leva um minuto. Você cria seu acesso agora e recebe a aprovação por e-mail.</p>
 
-      <GoogleButton label="Cadastrar com Google" />
+      {GOOGLE_LOGIN_ENABLED && <GoogleButton label="Cadastrar com Google" />}
 
-      <div className="mt-6 space-y-4">
+      <div className={`${GOOGLE_LOGIN_ENABLED ? "mt-6" : "mt-7"} space-y-4`}>
         <label className="block">
           <span className={labelClass}>Nome completo</span>
           <input name="name" required autoComplete="name" className="wd-input" />
@@ -226,10 +232,14 @@ function Login() {
       ) : (
         <>
           <p className="t-small mt-2 text-platinum">
-            {mode === "login" ? "Entre com o Google ou com o e-mail e a senha da sua conta." : "Enviamos um link para você criar uma nova senha."}
+            {mode !== "login"
+              ? "Enviamos um link para você criar uma nova senha."
+              : GOOGLE_LOGIN_ENABLED
+                ? "Entre com o Google ou com o e-mail e a senha da sua conta."
+                : "Entre com o e-mail e a senha da sua conta."}
           </p>
-          {mode === "login" && <GoogleButton label="Entrar com Google" dark />}
-          <label className={`${mode === "login" ? "mt-6" : "mt-7"} block`}>
+          {GOOGLE_LOGIN_ENABLED && mode === "login" && <GoogleButton label="Entrar com Google" dark />}
+          <label className={`${GOOGLE_LOGIN_ENABLED && mode === "login" ? "mt-6" : "mt-7"} block`}>
             <span className="mb-1.5 block text-[0.8125rem] font-medium text-platinum">E-mail cadastrado</span>
             <input name="email" type="email" required autoComplete="email" className="wd-input" />
           </label>
