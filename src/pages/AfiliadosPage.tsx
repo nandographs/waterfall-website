@@ -1,7 +1,7 @@
 import { Check, ChevronRight, Clock, Copy, Link2, LogOut, ShieldAlert, Wallet } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type React from "react";
-import type { Session } from "@supabase/supabase-js";
+import type { EmailOtpType, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { formatBRL } from "@/lib/catalog";
 import { SidebarMenu, SiteFooter, SiteHeader } from "@/components/site-shell";
@@ -67,8 +67,87 @@ function GoogleButton({ label, dark = false }: { label: string; dark?: boolean }
   );
 }
 
+/** Reenvia o e-mail de confirmação do cadastro (o link anterior deixa de valer). */
+async function resendConfirmation(email: string): Promise<string | null> {
+  const { error } = await supabase!.auth.resend({ type: "signup", email, options: { emailRedirectTo: authRedirect() } });
+  if (!error) return null;
+  console.error("[afiliados] reenvio falhou:", error);
+  return /security purposes|after \d+ seconds|rate limit/i.test(error.message)
+    ? "Aguarde um minuto antes de pedir outro e-mail."
+    : "Não foi possível reenviar agora. Tente de novo em alguns minutos.";
+}
+
+function ResendButton({ email, dark = false }: { email: string; dark?: boolean }) {
+  const [state, setState] = useState<{ busy?: boolean; text?: string; ok?: boolean }>({});
+  const go = async () => {
+    setState({ busy: true });
+    const err = await resendConfirmation(email);
+    setState(err ? { text: err } : { ok: true, text: "Enviamos um novo e-mail. Use o link mais recente." });
+  };
+  return (
+    <span className="mt-3 block">
+      {state.text ? (
+        <span className={`t-small font-medium ${state.ok ? (dark ? "text-frost" : "text-obsidian") : dark ? "text-red-400" : "text-red-600"}`}>{state.text}</span>
+      ) : (
+        <button type="button" onClick={go} disabled={state.busy} className={`t-small cursor-pointer font-medium hover:underline ${dark ? "text-halo" : "text-link"}`}>
+          {state.busy ? "Reenviando…" : "Reenviar e-mail de confirmação"}
+        </button>
+      )}
+    </span>
+  );
+}
+
+/** Link do e-mail que falhou (expirado, já usado ou substituído por um mais novo): explica e oferece reenvio. */
+function LinkProblem({ text }: { text: string }) {
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<{ busy?: boolean; text?: string; ok?: boolean }>({});
+  const ref = useRef<HTMLFormElement>(null);
+  // Quem chega pelo link do e-mail cai no topo da página: leva o aviso para a vista.
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setState({ busy: true });
+    const err = await resendConfirmation(email.trim().toLowerCase());
+    setState(err ? { text: err } : { ok: true, text: "Enviamos um novo e-mail de confirmação. Use o link desse e-mail." });
+  }
+  return (
+    <form ref={ref} onSubmit={submit} role="alert" className="mb-5 flex scroll-mt-24 items-start gap-5 rounded-[28px] border border-black/10 bg-white p-7 md:p-8">
+      <ShieldAlert size={26} strokeWidth={1.5} className="mt-0.5 shrink-0 text-obsidian" aria-hidden="true" />
+      <div className="min-w-0 flex-1">
+        <p className="t-headline font-semibold">Esse link não funcionou.</p>
+        <p className="t-small mt-1.5 max-w-2xl text-pewter">{text}</p>
+        {state.ok ? (
+          <p className="t-small mt-4 flex items-start gap-2 font-medium text-obsidian">
+            <Check size={16} className="mt-0.5 shrink-0 text-action" aria-hidden="true" />
+            {state.text}
+          </p>
+        ) : (
+          <div className="mt-4 flex max-w-xl flex-col gap-3 sm:flex-row">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Seu e-mail de cadastro"
+              autoComplete="email"
+              aria-label="Seu e-mail de cadastro"
+              className="wd-input min-w-0 flex-1"
+            />
+            <button type="submit" disabled={state.busy} className="btn-action min-h-12 shrink-0 px-6">
+              {state.busy ? "Enviando…" : "Reenviar e-mail"}
+            </button>
+          </div>
+        )}
+        {state.text && !state.ok && <p className="t-small mt-3 font-medium text-red-600">{state.text}</p>}
+      </div>
+    </form>
+  );
+}
+
 function Signup() {
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string; resendTo?: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -103,6 +182,16 @@ function Signup() {
 
     if (error) {
       console.error("[afiliados] cadastro falhou:", error);
+      // O envio do e-mail pode demorar mais que o limite do Supabase (504): a conta é criada e o
+      // e-mail costuma chegar mesmo assim. Cadastrar de novo geraria outro link e invalidaria o primeiro.
+      if (error.status === 504 || /deadline|timeout|timed out/i.test(error.message)) {
+        form.reset();
+        return setMsg({
+          ok: true,
+          resendTo: email,
+          text: "Recebemos seu cadastro. O e-mail de confirmação pode levar alguns minutos para chegar: não cadastre de novo. Se não chegar em 10 minutos, peça outro.",
+        });
+      }
       const text = /already registered|already exists/i.test(error.message)
         ? ALREADY
         : /password/i.test(error.message)
@@ -116,6 +205,7 @@ function Signup() {
     form.reset();
     setMsg({
       ok: true,
+      resendTo: data.session ? undefined : email,
       text: data.session
         ? "Conta criada. Seu link de afiliado já está ativo."
         : "Conta criada. Confirme pelo link que enviamos ao seu e-mail: ao confirmar, seu link de afiliado já fica ativo.",
@@ -125,7 +215,7 @@ function Signup() {
   return (
     <form id="cadastro" onSubmit={submit} className="flex h-full scroll-mt-24 flex-col rounded-[28px] bg-frost p-7 md:p-10">
       <h2 className="t-headline-lg">Quero ser afiliado.</h2>
-      <p className="t-small mt-2 text-pewter">Leva um minuto. Você cria seu acesso agora e recebe a aprovação por e-mail.</p>
+      <p className="t-small mt-2 text-pewter">Leva um minuto. Você cria seu acesso agora e ativa pelo link que chega no seu e-mail.</p>
 
       {GOOGLE_LOGIN_ENABLED && <GoogleButton label="Cadastrar com Google" />}
 
@@ -170,12 +260,15 @@ function Signup() {
       </div>
 
       {msg && (
-        <p role="alert" className={`t-small mt-5 flex items-start gap-2 font-medium ${msg.ok ? "text-obsidian" : "text-red-600"}`}>
-          {msg.ok && <Check size={16} className="mt-0.5 shrink-0 text-action" aria-hidden="true" />}
-          {msg.text}
-        </p>
+        <div role="alert" className="mt-5">
+          <p className={`t-small flex items-start gap-2 font-medium ${msg.ok ? "text-obsidian" : "text-red-600"}`}>
+            {msg.ok && <Check size={16} className="mt-0.5 shrink-0 text-action" aria-hidden="true" />}
+            {msg.text}
+          </p>
+          {msg.resendTo && <ResendButton email={msg.resendTo} />}
+        </div>
       )}
-      <button type="submit" disabled={busy} className="btn-action mt-7 min-h-12 w-full text-base">
+      <button type="submit" disabled={busy || !!msg?.resendTo} className="btn-action mt-7 min-h-12 w-full text-base">
         {busy ? "Enviando…" : "Criar conta de afiliado"}
       </button>
     </form>
@@ -186,6 +279,7 @@ function Login() {
   const [mode, setMode] = useState<"login" | "forgot">("login");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [unconfirmed, setUnconfirmed] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -194,6 +288,7 @@ function Login() {
     const email = String(f.get("email")).trim().toLowerCase();
     setBusy(true);
     setError(null);
+    setUnconfirmed(null);
     if (mode === "forgot") {
       const { error } = await supabase!.auth.resetPasswordForEmail(email, { redirectTo: authRedirect() });
       setBusy(false);
@@ -203,6 +298,7 @@ function Login() {
     const { error } = await supabase!.auth.signInWithPassword({ email, password: String(f.get("password")) });
     setBusy(false);
     if (error) {
+      if (/not confirmed/i.test(error.message)) setUnconfirmed(email);
       setError(
         /not confirmed/i.test(error.message)
           ? "Confirme seu e-mail pelo link que enviamos antes de entrar."
@@ -217,6 +313,7 @@ function Login() {
     setMode(m);
     setError(null);
     setNotice(null);
+    setUnconfirmed(null);
   };
 
   return (
@@ -253,6 +350,7 @@ function Login() {
             </label>
           )}
           {error && <p role="alert" className="t-small mt-4 font-medium text-red-400">{error}</p>}
+          {unconfirmed && <ResendButton email={unconfirmed} dark />}
           <button type="submit" disabled={busy} className="btn-action mt-7 min-h-12 w-full text-base">
             {busy ? "Enviando…" : mode === "login" ? "Entrar" : "Enviar link"}
           </button>
@@ -500,16 +598,51 @@ function Dashboard({ session }: { session: Session }) {
   );
 }
 
+// O token do link só pode ser usado uma vez; o StrictMode roda o efeito duas vezes em dev.
+let emailLinkHandled = false;
+
 export default function AfiliadosPage() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [recovering, setRecovering] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Área do afiliado | Water Diamond";
     if (!supabase) return setSession(null);
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((event, s) => {
+    const db = supabase;
+
+    // Links dos e-mails: ?token_hash=...&type=email|recovery. A confirmação é feita aqui pelo site
+    // (e não no clique do link), então o "pré-clique" de segurança do Outlook/Hotmail não gasta o link.
+    const url = new URL(window.location.href);
+    const tokenHash = url.searchParams.get("token_hash");
+    const type = url.searchParams.get("type") as EmailOtpType | null;
+    const hashParams = new URLSearchParams(url.hash.slice(1));
+    const cleanUrl = () => window.history.replaceState(null, "", url.pathname);
+    const expiredText =
+      "Ele expirou, já foi usado ou foi substituído por um e-mail mais novo. Se você já confirmou, é só entrar com e-mail e senha. Se não, peça um novo e-mail abaixo.";
+
+    if (hashParams.get("error")) {
+      setLinkError(expiredText);
+      cleanUrl();
+    }
+
+    if (tokenHash && type && !emailLinkHandled) {
+      emailLinkHandled = true;
+      db.auth.verifyOtp({ token_hash: tokenHash, type }).then(({ data, error }) => {
+        cleanUrl();
+        if (error) {
+          console.error("[afiliados] confirmação do link falhou:", error);
+          setLinkError(expiredText);
+          setSession(null);
+        } else {
+          setSession(data.session);
+        }
+      });
+    } else {
+      db.auth.getSession().then(({ data }) => setSession(data.session));
+    }
+    const { data } = db.auth.onAuthStateChange((event, s) => {
       setSession(s);
       if (event === "PASSWORD_RECOVERY") setRecovering(true);
       if (event === "SIGNED_OUT") setRecovering(false);
@@ -578,6 +711,7 @@ export default function AfiliadosPage() {
           {/* Cadastro e acesso */}
           <section className="py-20 md:py-28">
             <div className={shell}>
+              {linkError && <LinkProblem text={linkError} />}
               <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-5">
                 <Signup />
                 {supabase ? (
