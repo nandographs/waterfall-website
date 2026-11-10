@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Check, Droplet, EyeOff, Sparkles, Shield, Activity, ChevronRight, User, X } from 'lucide-react';
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import HighlightsCarousel, { type Highlight } from "@/components/highlights-carousel";
+import ContaminantsExplorer from "@/components/contaminants-explorer";
 import { submitWeb3Form, WHATSAPP_AFTER_FORM_URL } from "@/lib/forms";
 import { FloatingWhatsAppButton, SidebarMenu, SiteFooter, SiteHeader, WhatsAppIcon, goToBuy, scrollToSection } from "@/components/site-shell";
 import IonCenterBuy, { lowestPrice, priceText } from "@/components/ion-center-buy";
@@ -1021,10 +1022,7 @@ function HomePage() {
       <section id="tecnologia" className={`overflow-hidden bg-carbon ${sectionY}`}>
         <div className={shell}>
           <FadeIn>
-            <h2 className="t-display max-w-[16ch]">Da origem ao seu copo, muita coisa pode acontecer.</h2>
-            <p className="t-body mt-6 max-w-xl text-platinum">
-              A água que você consome passa por captação, tratamento, distribuição e reservação antes de chegar à sua rotina. Em cada etapa, existem fatores invisíveis que podem interferir diretamente na qualidade final.
-            </p>
+            <h2 className="t-display md:max-w-[28ch]">Da origem ao seu copo, muita coisa pode acontecer.</h2>
           </FadeIn>
         </div>
 
@@ -1032,37 +1030,18 @@ function HomePage() {
           <HighlightsCarousel items={waterJourney} />
         </FadeIn>
 
-        <div className={shell}>
-          <FadeIn delay={0.15}>
-            <p className="t-headline mt-16 max-w-2xl md:mt-20">
-              Entre a origem e o consumo, existe um caminho inteiro que você não vê, <span className="text-platinum">mas sente todos os dias.</span>
-            </p>
-          </FadeIn>
-        </div>
       </section>
 
-      {/* CONTAMINAÇÃO — palco escuro */}
-      <section className={`bg-stage ${sectionY}`}>
-        <div className={shell}>
+      {/* CONTAMINAÇÃO — cartão preto sobre o carbono: pílulas à esquerda, o copo à direita */}
+      <section className={`bg-carbon ${sectionY}`}>
+        <div className="mx-auto w-full max-w-[1920px] px-3 md:px-6">
           <FadeIn>
-            <p className="t-eyebrow text-signal">Contaminantes invisíveis</p>
-            <h2 className="t-display mt-3 max-w-[16ch]">Sua água pode carregar mais do que você imagina.</h2>
-            <p className="t-body mt-6 max-w-2xl text-platinum">
-              A contaminação da água pode surgir em diferentes camadas — físicas, químicas e biológicas — muitas vezes sem alterar sua aparência. Por isso, uma solução simples nem sempre é suficiente.
-            </p>
+            <ContaminantsExplorer
+              eyebrow="Contaminantes invisíveis"
+              title="Sua água pode carregar mais do que você imagina."
+              items={contaminationLayers}
+            />
           </FadeIn>
-
-          <ul className="mt-16 grid border-t border-smoke md:mt-20 lg:grid-cols-5">
-            {contaminationLayers.map((item, index) => (
-              <FadeIn key={item.title} delay={0.06 + index * 0.05} className="border-b border-smoke lg:border-b-0 lg:border-l lg:first:border-l-0 lg:first:*:pl-0">
-                <li className="grid h-full gap-x-6 gap-y-3 py-7 sm:grid-cols-[3rem_minmax(0,14rem)_1fr] sm:items-start lg:flex lg:flex-col lg:gap-4 lg:px-6 lg:py-10">
-                  <span className="text-frost">{item.icon}</span>
-                  <h3 className="t-title">{item.title}</h3>
-                  <p className="t-small text-platinum">{item.desc}</p>
-                </li>
-              </FadeIn>
-            ))}
-          </ul>
         </div>
       </section>
 
