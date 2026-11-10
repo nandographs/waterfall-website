@@ -4,9 +4,9 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import ExpandingCardsDemo from "@/components/ui/demo";
 import { submitWeb3Form, WHATSAPP_AFTER_FORM_URL } from "@/lib/forms";
 import { FloatingWhatsAppButton, SidebarMenu, SiteFooter, SiteHeader, WhatsAppIcon, goToBuy, scrollToSection } from "@/components/site-shell";
-import IonCenterBuy, { priceText } from "@/components/ion-center-buy";
+import IonCenterBuy, { lowestPrice, priceText } from "@/components/ion-center-buy";
 import { ionCenterProducts, type IonCenterModel } from "@/lib/ion-center";
-import { isPurchasable, useProducts } from "@/lib/catalog";
+import { formatBRL, isPurchasable, useProducts } from "@/lib/catalog";
 import AmbientVideo from "@/components/ui/ambient-video";
 // Rotas secundárias entram em chunks próprios: quem abre a home não baixa o código delas.
 const ConsultorPage = lazy(() => import("./pages/ConsultorPage"));
@@ -789,7 +789,9 @@ const systemStages = [
 
 function HomePage() {
   const [scrolled, setScrolled] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
   const products = useProducts();
+  const startingAt = lowestPrice(products);
   const [buySlug, setBuySlug] = useState(ionCenterProducts[0].slug);
 
   // Qualquer "Comprar X" da página leva ao configurador já com o modelo escolhido.
@@ -805,6 +807,7 @@ function HomePage() {
       frame = requestAnimationFrame(() => {
         frame = 0;
         setScrolled(window.scrollY > 50);
+        setPastHero(window.scrollY > window.innerHeight * 0.6);
       });
     };
     handleScroll();
@@ -852,24 +855,30 @@ function HomePage() {
           <div className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black via-black/70 to-transparent" />
         </div>
 
-        <div className={`${shell} pb-16 pt-32 md:pb-24`}>
+        {/* Marca e título à esquerda; preço e compra à direita, na mesma linha de base. */}
+        <div className={`${shell} pb-14 pt-32 md:pb-20`}>
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between md:gap-12"
           >
-            <p className="t-eyebrow flex items-center gap-2 text-frost">
-              <Droplet size={18} strokeWidth={2} aria-hidden="true" />
-              Water Diamond Ion Center
-            </p>
-            <h1 className="t-hero mt-4 max-w-[11ch] text-frost">A melhor água do mundo.</h1>
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
-              <button type="button" onClick={goToBuy} className="btn-action">
+            <div>
+              <p className="flex items-center gap-2 text-[1.0625rem] uppercase leading-none tracking-[-0.005em] text-frost md:text-[1.375rem]">
+                <Droplet size={20} strokeWidth={2.2} className="-mt-0.5 md:h-6 md:w-6" aria-hidden="true" />
+                <span><span className="font-bold">Water Diamond</span> <span className="font-normal">Ion Center</span></span>
+              </p>
+              <h1 className="t-hero mt-3 max-w-[12ch] bg-gradient-to-b from-frost via-frost to-[#a1a1a6] bg-clip-text pb-[0.08em] text-transparent">
+                A melhor água do mundo.
+              </h1>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1 self-start rounded-full bg-graphite/55 p-1.5 pl-5 backdrop-blur-xl md:mb-2 md:self-auto">
+              <p className="whitespace-nowrap pr-3 text-[0.9375rem] text-frost/80 [font-variant-numeric:tabular-nums]">
+                {startingAt !== null ? <>A partir de <span className="text-frost">{formatBRL(startingAt)}</span></> : "Três modelos"}
+              </p>
+              <button type="button" onClick={goToBuy} className="btn-action min-h-10 px-5">
                 Comprar
-              </button>
-              <button type="button" onClick={() => openContact()} className="link-arrow text-halo">
-                Falar com um consultor
-                <ChevronRight size={18} aria-hidden="true" />
               </button>
             </div>
           </motion.div>
@@ -1458,7 +1467,7 @@ function HomePage() {
 
       <SidebarMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
-      <FloatingWhatsAppButton />
+      <FloatingWhatsAppButton hidden={!pastHero} />
 
       <AnimatePresence>
         {isModalOpen && (

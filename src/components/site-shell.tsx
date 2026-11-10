@@ -216,13 +216,16 @@ export const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
   );
 };
 
-export const FloatingWhatsAppButton = () => (
+/** `hidden` tira o botão de cena (ex.: enquanto o hero já tem o próprio CTA no canto). */
+export const FloatingWhatsAppButton = ({ hidden = false }: { hidden?: boolean }) => (
   <a
+    aria-hidden={hidden || undefined}
+    tabIndex={hidden ? -1 : undefined}
     href={WHATSAPP_DIRECT_URL}
     target="_blank"
     rel="noopener noreferrer"
     aria-label="Falar com um consultor no WhatsApp"
-    className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white transition-transform duration-300 hover:-translate-y-0.5 hover:bg-[#1ebe5d] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-4 md:bottom-8 md:right-8"
+    className={`fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white transition-all duration-300 hover:-translate-y-0.5 ${hidden ? "pointer-events-none translate-y-4 scale-90 opacity-0" : "opacity-100"} hover:bg-[#1ebe5d] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-4 md:bottom-8 md:right-8`}
   >
     <WhatsAppIcon className="h-7 w-7" />
   </a>
