@@ -13,7 +13,7 @@ type Affiliate = { name: string; code: string; status: string; commission_pct: n
 type Commission = { amount_cents: number; status: string; release_at: string | null; created_at: string };
 
 const steps = [
-  { icon: Link2, title: "Cadastre-se", text: "Crie sua conta e escolha o código do seu link. A equipe analisa e avisa por e-mail quando aprovar." },
+  { icon: Link2, title: "Cadastre-se", text: "Crie sua conta e escolha o código do seu link. Confirmou o e-mail, seu link já está ativo." },
   { icon: Copy, title: "Compartilhe", text: "Divulgue seu link ou cupom. Cada venda feita por ele fica registrada no seu painel." },
   { icon: Wallet, title: "Receba por Pix", text: "A comissão é liberada após o prazo de segurança e paga pela equipe via Pix." },
 ];
@@ -92,7 +92,8 @@ function Signup() {
       return setMsg({ ok: false, text: codeErr ? "Não foi possível enviar. Tente novamente." : "Esse código já está em uso. Escolha outro." });
     }
 
-    // A conta nasce no Supabase Auth; o trigger no banco cria o perfil do afiliado como "pending".
+    // A conta nasce no Supabase Auth; o trigger no banco cria o perfil do afiliado como "pending"
+    // e outro trigger o ativa quando o e-mail é confirmado (aprovação automática).
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -116,8 +117,8 @@ function Signup() {
     setMsg({
       ok: true,
       text: data.session
-        ? "Conta criada. A equipe vai analisar seu cadastro e avisar por e-mail quando aprovar."
-        : "Conta criada. Confirme pelo link que enviamos ao seu e-mail; depois a equipe analisa e avisa quando aprovar.",
+        ? "Conta criada. Seu link de afiliado já está ativo."
+        : "Conta criada. Confirme pelo link que enviamos ao seu e-mail: ao confirmar, seu link de afiliado já fica ativo.",
     });
   }
 
@@ -341,7 +342,7 @@ function CompleteSignup({ session, onDone }: { session: Session; onDone: () => v
     <form onSubmit={submit} className="max-w-xl rounded-[28px] bg-frost p-7 md:p-10">
       <h1 className="t-headline-lg">Complete seu cadastro.</h1>
       <p className="t-small mt-2 text-pewter">
-        Você entrou como <span className="text-obsidian">{session.user.email}</span>. Falta escolher o código do seu link; depois a equipe analisa e avisa por e-mail.
+        Você entrou como <span className="text-obsidian">{session.user.email}</span>. Falta escolher o código do seu link; ele fica ativo na hora.
       </p>
       <div className="mt-7 space-y-4">
         <label className="block">
@@ -440,7 +441,7 @@ function Dashboard({ session }: { session: Session }) {
   if (!aff) return <CompleteSignup session={session} onDone={() => setVersion((v) => v + 1)} />;
   if (aff.status !== "active") {
     return aff.status === "pending" ? (
-      <Notice icon={Clock} title="Seu cadastro está em análise." text="Avisaremos por e-mail assim que for aprovado. Depois disso, seu link e seus números aparecem aqui." />
+      <Notice icon={Clock} title="Falta confirmar seu e-mail." text="Abra o link que enviamos para o seu e-mail. Assim que confirmar, seu link e seus números aparecem aqui." />
     ) : (
       <Notice icon={ShieldAlert} title="Seu acesso está bloqueado." text="Fale com a equipe Waterfall para entender o motivo." />
     );

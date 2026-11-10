@@ -20,7 +20,8 @@
   Em Authentication > Policies (ou Providers > Email), defina a senha mínima em 8 caracteres.
 - Em Authentication > URL Configuration, coloque `SITE_URL` como Site URL e `SITE_URL/afiliados` nas Redirect URLs
   (usado pela confirmação de e-mail e pelo "Esqueci minha senha").
-- Aprovar: em Table Editor > `affiliates`, mude `status` de `pending` para `active` (o cupom com o mesmo código é criado sozinho).
+- Aprovação automática (`0007`): o afiliado vira `active` quando confirma o e-mail, e o cupom com o mesmo código é criado sozinho.
+  O e-mail de confirmação sai pelo SMTP da Hostinger (no-reply@waterfall.ind.br) com o modelo em Authentication > Emails.
   Ajuste `commission_pct` do afiliado e, se quiser desconto no cupom, `coupons.discount_pct`.
 - Bloquear: `status = blocked` (o login continua funcionando, mas o painel não mostra nada).
 - Pagar comissão: some as comissões liberadas (`release_at` vencido, status `pending`/`approved`), pague por Pix e marque `status = paid`.
