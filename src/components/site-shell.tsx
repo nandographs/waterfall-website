@@ -78,7 +78,8 @@ export const SiteHeader = ({
 }: {
   scrolled?: boolean;
   onMenuOpen: () => void;
-  cta?: { label: string; onClick: () => void } | null;
+  /** `shortLabel` substitui o rótulo em telas estreitas, para o botão não quebrar linha. */
+  cta?: { label: string; shortLabel?: string; onClick: () => void } | null;
 }) => (
   <nav data-site-header className="wd fixed inset-x-0 top-0 z-50 px-3 pt-3 md:px-6">
     <div
@@ -107,8 +108,15 @@ export const SiteHeader = ({
       <div className="flex items-center gap-1">
         <BagLink />
         {cta && (
-          <button type="button" onClick={cta.onClick} className="btn-action min-h-9 px-4 text-[0.8125rem]">
-            {cta.label}
+          <button type="button" onClick={cta.onClick} className="btn-action min-h-9 whitespace-nowrap px-4 text-[0.8125rem]">
+            {cta.shortLabel ? (
+              <>
+                <span className="sm:hidden">{cta.shortLabel}</span>
+                <span className="hidden sm:inline">{cta.label}</span>
+              </>
+            ) : (
+              cta.label
+            )}
           </button>
         )}
         <button

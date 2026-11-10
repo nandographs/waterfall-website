@@ -337,12 +337,6 @@ button {
   }
 }
 
-@layer components {
-  .consultor-input {
-    @apply min-h-13 w-full rounded-xl border border-navy-800/12 bg-input px-4 text-base text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10;
-  }
-}
-
 /* --- Vitrine: tipografia e controles da home Ion Center ---
    A hierarquia vem só da tipografia: tracking negativo que aperta conforme o tamanho cresce,
    entrelinha curta nos títulos e generosa no corpo. Sem sombras, sem gradientes decorativos. */
@@ -433,19 +427,15 @@ button {
   }
 }
 
-.consultor-page {
-  background-image: radial-gradient(circle at 10% 20%, rgba(0, 154, 206, 0.045), transparent 26%);
-}
-
-.consultor-page button,
-.consultor-page a {
+.wd button,
+.wd a {
   -webkit-tap-highlight-color: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .consultor-page *,
-  .consultor-page *::before,
-  .consultor-page *::after {
+  .wd *,
+  .wd *::before,
+  .wd *::after {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
