@@ -858,8 +858,11 @@ function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
           >
-            <h1 className="t-hero max-w-[11ch] text-frost">A melhor água do mundo.</h1>
-            <p className="t-body mt-5 text-platinum">Water Diamond Ion Center</p>
+            <p className="t-eyebrow flex items-center gap-2 text-frost">
+              <Droplet size={18} strokeWidth={2} aria-hidden="true" />
+              Water Diamond Ion Center
+            </p>
+            <h1 className="t-hero mt-4 max-w-[11ch] text-frost">A melhor água do mundo.</h1>
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
               <button type="button" onClick={goToBuy} className="btn-action">
                 Comprar
