@@ -23,9 +23,9 @@ type Row = {
 // Fallback local: mantém a loja renderizando sem Supabase configurado (dev, preview).
 // Espelha o seed de supabase/migrations/0001_loja_afiliados.sql.
 const FALLBACK: Product[] = [
-  { slug: "ion-center-slim", brand: "waterdiamond", name: "Ion Center Slim", headline: "Compacto e discreto", image: "SLIMIMG", priceCents: null, requiresConsultant: true },
-  { slug: "ion-center-smart", brand: "waterdiamond", name: "Ion Center Smart", headline: "Tecnologia e praticidade", image: "SMARTIMG", priceCents: null, requiresConsultant: true },
-  { slug: "ion-center-turbo", brand: "waterdiamond", name: "Ion Center Turbo", headline: "Máximo desempenho", image: "TURBOIMG", priceCents: null, requiresConsultant: true },
+  { slug: "ion-center-slim", brand: "waterdiamond", name: "Ion Center Slim", headline: "Compacto e discreto", image: "SLIMIMG", priceCents: 249000, requiresConsultant: true },
+  { slug: "ion-center-smart", brand: "waterdiamond", name: "Ion Center Smart", headline: "Tecnologia e praticidade", image: "SMARTIMG", priceCents: 349000, requiresConsultant: true },
+  { slug: "ion-center-turbo", brand: "waterdiamond", name: "Ion Center Turbo", headline: "Máximo desempenho", image: "TURBOIMG", priceCents: 399000, requiresConsultant: true },
   { slug: "colchao-bionlife-especiais", brand: "bionlife", name: "BionLife Especiais", headline: "Completo e sofisticado", image: "bionlife-linha-especiais", priceCents: null, requiresConsultant: false },
   { slug: "colchao-bionlife-relax", brand: "bionlife", name: "BionLife Relax", headline: "Macio e acolhedor", image: "bionlife-linha-relax", priceCents: null, requiresConsultant: false },
   { slug: "colchao-bionlife-vacuo", brand: "bionlife", name: "BionLife A Vácuo", headline: "Macio e adaptável", image: "bionlife-linha-vacuo", priceCents: null, requiresConsultant: false },
