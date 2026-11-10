@@ -4,9 +4,27 @@
     {
       "name": "vite-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "bionlife-build",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--outDir",
+        "dist-bionlife",
+        "--port",
+        "4173",
+        "--strictPort"
+      ],
+      "port": 4173,
+      "url": "http://bionlife.localhost:4173"
     }
   ]
 }

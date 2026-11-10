@@ -43,13 +43,25 @@ const MANIFEST = [
   ['bionlife/colchao (4).png', 1100, 640, 'bionlife-dream'],
   ['bionlife/colchao (5).png', 1100, 640, 'bionlife-sense-pro'],
   ['bionlife/colchao (6).png', 1100, 640, 'bionlife-elite'],
+  // Página BionLife atual: capa, foto de bem-estar e as quatro linhas do catálogo.
+  ['bionlife/herobionlife.jpg', 1920, 1280, 'bionlife-capa'],
+  ['bionlife/herobionlife_mobile.jpg', 900, 0, 'bionlife-capa-mobile'],
+  ['bionlife/bionlife02.jpg', 1600, 900, 'bionlife-bemestar'],
+  ['bionlife/colchoesespeciais.jpg', 720, 480, 'bionlife-linha-especiais'],
+  ['bionlife/colchoesrelax.jpg', 720, 480, 'bionlife-linha-relax'],
+  ['bionlife/colchoesvacuo.jpg', 720, 480, 'bionlife-linha-vacuo'],
+  ['bionlife/colchoesmagnetico02.jpg', 720, 480, 'bionlife-linha-magnetico'],
 ];
+
+// Filtro opcional: `node scripts/optimize-images.mjs bionlife/` processa só os arquivos que contêm o texto.
+const filter = process.argv[2];
+const entries = filter ? MANIFEST.filter(([file]) => file.includes(filter)) : MANIFEST;
 
 const kb = (n) => `${(n / 1024).toFixed(0)} KB`;
 let before = 0;
 let after = 0;
 
-for (const [file, wideWidth, smallWidth, outputName] of MANIFEST) {
+for (const [file, wideWidth, smallWidth, outputName] of entries) {
   const src = path.join(SRC_DIR, file);
   const base = outputName ?? path.basename(file).replace(/\.(png|jpe?g)$/i, '');
   const input = await readFile(src);

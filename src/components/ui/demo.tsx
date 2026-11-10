@@ -57,7 +57,7 @@ const waterJourneyCards: CardItem[] = [
 
 export default function ExpandingCardsDemo() {
   return (
-    <div className="w-full rounded-3xl border border-[#dbe7ed] bg-white/70 p-4 shadow-xl backdrop-blur-sm md:p-5">
+    <div className="w-full">
       <ExpandingCards
         items={waterJourneyCards}
         defaultActiveIndex={1}

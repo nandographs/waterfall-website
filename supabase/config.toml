@@ -1,0 +1,14 @@
+# O Mercado Pago chama o webhook sem JWT do Supabase; a função valida o pagamento direto na API do MP.
+[functions.mp-webhook]
+verify_jwt = false
+
+# O site chama estas funções só com a publishable key (não é JWT). Elas validam a entrada
+# e usam a service role internamente.
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.affiliate-signup]
+verify_jwt = false
+
+[functions.track-click]
+verify_jwt = false

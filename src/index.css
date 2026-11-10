@@ -2,6 +2,8 @@
 
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Inter variável com eixo de tamanho óptico, empacotada pelo Vite (auto-hospedada, compatível com a CSP). */
+@import "@fontsource-variable/inter/opsz.css";
 
 /* Poppins auto-hospedada (latin + latin-ext) — evita requisições a fonts.googleapis.com/gstatic. */
 @font-face {
@@ -166,6 +168,28 @@
 
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+
+  /* --- Vitrine (home Ion Center): palco escuro, produto em destaque --- */
+  --stage: #000000;
+  --carbon: #111111;
+  --obsidian: #1d1d1f;
+  --graphite: #333336;
+  --smoke: #424245;
+  --frost: #f5f5f7;
+  --platinum: #86868b; /* texto secundário sobre escuro */
+  --pewter: #6e6e73;   /* texto secundário sobre claro (contraste AA) */
+  --hairline: #d2d2d7;
+  --action: #0270d0;   /* única cor de botão preenchido */
+  --action-hover: #015fb3;
+  --link: #0266c4;
+  --halo: #38c7f5;     /* link/acento sobre escuro */
+  --signal: #f56900;   /* etiqueta de categoria sobre escuro */
+  --signal-ink: #c44d00; /* etiqueta de categoria sobre claro */
+  --refill-ultra: #ff6b3d;
+  --refill-carbon: #4fca6a;
+  --refill-block: #33c2dc;
+  --refill-alka: #a492ff;
+  --font-display: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 @theme inline {
@@ -220,6 +244,23 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  --color-stage: var(--stage);
+  --color-carbon: var(--carbon);
+  --color-obsidian: var(--obsidian);
+  --color-graphite: var(--graphite);
+  --color-smoke: var(--smoke);
+  --color-frost: var(--frost);
+  --color-platinum: var(--platinum);
+  --color-pewter: var(--pewter);
+  --color-hairline: var(--hairline);
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-link: var(--link);
+  --color-halo: var(--halo);
+  --color-signal: var(--signal);
+  --color-signal-ink: var(--signal-ink);
+  --font-display: var(--font-display);
+
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
@@ -250,7 +291,7 @@
 
   html,
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   body {
@@ -276,6 +317,12 @@ button {
   letter-spacing: 0.16em;
 }
 
+/* Fora de @layer de propósito: precisa vencer a regra global acima, que também não tem camada. */
+.wd button {
+  text-transform: none;
+  letter-spacing: inherit;
+}
+
 @layer components {
   .title-accent {
     @apply text-primary;
@@ -290,25 +337,105 @@ button {
   }
 }
 
+/* --- Vitrine: tipografia e controles da home Ion Center ---
+   A hierarquia vem só da tipografia: tracking negativo que aperta conforme o tamanho cresce,
+   entrelinha curta nos títulos e generosa no corpo. Sem sombras, sem gradientes decorativos. */
 @layer components {
-  .consultor-input {
-    @apply min-h-13 w-full rounded-xl border border-navy-800/12 bg-input px-4 text-base text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10;
+  .wd {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv11", "ss03";
+    letter-spacing: -0.011em;
+  }
+
+  .wd h1,
+  .wd h2,
+  .wd h3,
+  .wd h4 {
+    font-weight: 600;
+  }
+
+  .t-hero {
+    font-size: clamp(3rem, 1.9rem + 5.2vw, 5.75rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    font-weight: 650 !important;
+  }
+
+  .t-display {
+    font-size: clamp(2.375rem, 1.65rem + 3vw, 4rem);
+    line-height: 1.06;
+    letter-spacing: -0.034em;
+  }
+
+  .t-headline-lg {
+    font-size: clamp(1.75rem, 1.35rem + 1.5vw, 2.5rem);
+    line-height: 1.1;
+    letter-spacing: -0.026em;
+  }
+
+  .t-headline {
+    font-size: 1.5rem;
+    line-height: 1.17;
+    letter-spacing: -0.02em;
+  }
+
+  .t-title {
+    font-size: 1.1875rem;
+    line-height: 1.26;
+    letter-spacing: -0.014em;
+    font-weight: 600;
+  }
+
+  .t-body {
+    font-size: 1.0625rem;
+    line-height: 1.53;
+    letter-spacing: -0.012em;
+  }
+
+  .t-small {
+    font-size: 0.875rem;
+    line-height: 1.45;
+    letter-spacing: -0.008em;
+  }
+
+  .t-eyebrow {
+    font-size: 1.0625rem;
+    line-height: 1.24;
+    letter-spacing: -0.012em;
+    font-weight: 600;
+  }
+
+  .t-caption {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    letter-spacing: -0.004em;
+  }
+
+  .btn-action {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-action px-5 text-[0.9375rem] font-medium text-white transition-colors duration-200 hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .link-arrow {
+    @apply inline-flex cursor-pointer items-center gap-0.5 text-[1.0625rem] font-normal transition-opacity duration-200 hover:underline hover:underline-offset-4;
+  }
+
+  .wd-input {
+    @apply w-full rounded-[12px] border border-hairline bg-white px-4 py-3 text-[0.9375rem] text-obsidian outline-none transition placeholder:text-pewter/70 focus:border-action focus:ring-4 focus:ring-action/15;
   }
 }
 
-.consultor-page {
-  background-image: radial-gradient(circle at 10% 20%, rgba(0, 154, 206, 0.045), transparent 26%);
-}
-
-.consultor-page button,
-.consultor-page a {
+.wd button,
+.wd a {
   -webkit-tap-highlight-color: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .consultor-page *,
-  .consultor-page *::before,
-  .consultor-page *::after {
+  .wd *,
+  .wd *::before,
+  .wd *::after {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
