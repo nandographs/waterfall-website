@@ -97,7 +97,7 @@ export const SiteHeader = ({
 }) => (
   <nav data-site-header className="wd fixed inset-x-0 top-0 z-50 px-3 pt-3 md:px-6">
     <div
-      className={`mx-auto flex h-12 max-w-[1080px] md:h-14 items-center justify-between gap-3 rounded-full pl-5 pr-1.5 md:pl-6 md:pr-2.5 text-frost backdrop-blur-xl backdrop-saturate-150 transition-colors duration-500 ${
+      className={`mx-auto flex h-12 max-w-[1920px] md:h-14 items-center justify-between gap-3 rounded-full pl-5 pr-1.5 md:pl-8 md:pr-2.5 text-frost backdrop-blur-xl backdrop-saturate-150 transition-colors duration-500 ${
         scrolled ? "bg-obsidian/85" : "bg-black/35"
       }`}
     >
