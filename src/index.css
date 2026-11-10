@@ -475,3 +475,13 @@ button {
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
+/* Barra de progresso do ponto ativo no carrossel de destaques. */
+@keyframes wd-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}

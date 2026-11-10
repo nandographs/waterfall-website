@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, Droplet, Sparkles, Shield, Activity, ChevronRight, User, X } from 'lucide-react';
+import { Check, Droplet, EyeOff, Sparkles, Shield, Activity, ChevronRight, User, X } from 'lucide-react';
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import ExpandingCardsDemo from "@/components/ui/demo";
+import HighlightsCarousel, { type Highlight } from "@/components/highlights-carousel";
 import { submitWeb3Form, WHATSAPP_AFTER_FORM_URL } from "@/lib/forms";
 import { FloatingWhatsAppButton, SidebarMenu, SiteFooter, SiteHeader, WhatsAppIcon, goToBuy, scrollToSection } from "@/components/site-shell";
 import IonCenterBuy, { lowestPrice, priceText } from "@/components/ion-center-buy";
@@ -751,6 +751,44 @@ export default function App() {
 }
 
 const shell = "mx-auto w-full max-w-[1440px] px-5 md:px-12";
+
+const waterJourney: Highlight[] = [
+  {
+    id: "captacao",
+    title: "Captação",
+    description: "Tudo começa na fonte. Rios, represas e poços já carregam características e impurezas do ambiente de origem.",
+    image: "CAPTACAO",
+    alt: "Torre de captação de água em uma represa cercada por morros",
+  },
+  {
+    id: "tratamento",
+    title: "Tratamento",
+    description: "A água recebe processos para distribuição, mas isso não elimina todas as variáveis que afetam sua composição final.",
+    image: "TRATAMENTO",
+    alt: "Tanques de uma estação de tratamento de água",
+  },
+  {
+    id: "distribuicao",
+    title: "Distribuição",
+    description: "No trajeto até a casa, ela passa por redes, conexões e tubulações que podem alterar a pureza percebida.",
+    image: "DISTRIBUICAO",
+    alt: "Tubulações de distribuição de água atravessando uma cidade",
+  },
+  {
+    id: "reservacao",
+    title: "Reservatórios",
+    description: "Caixas d'água e sistemas internos acumulam tempo, resíduos e manutenção irregular antes do consumo diário.",
+    image: "RESERVATORIOS",
+    alt: "Interior de uma caixa-d'água residencial",
+  },
+  {
+    id: "consumo",
+    title: "Consumo",
+    description: "É no copo, no café e no preparo dos alimentos que todo esse caminho finalmente impacta a sua rotina.",
+    image: "CONSUMO",
+    alt: "Mão enchendo um copo com água da torneira",
+  },
+];
 const sectionY = "py-24 md:py-32";
 
 const dailyUses = [
@@ -939,64 +977,65 @@ function HomePage() {
         </div>
       </section>
 
-      {/* O PROBLEMA INVISÍVEL — faixa clara */}
-      <section id="problema" className={`bg-white text-obsidian ${sectionY}`}>
-        <div className={shell}>
-          <FadeIn>
+      {/* O PROBLEMA INVISÍVEL — texto sobre a parte clara da foto, água de fora a fora embaixo.
+          O fundo usa o mesmo branco quente do topo da foto, para ela emendar sem borda. */}
+      <section id="problema" className="relative overflow-hidden bg-[#faf8f2] text-obsidian">
+        <div className={`${shell} relative z-10 pt-24 md:pt-32`}>
+          <FadeIn className="md:ml-auto md:w-1/2 md:pl-6 lg:pl-10">
             <p className="t-eyebrow text-signal-ink">O problema invisível</p>
-            <h2 className="t-display mt-3 max-w-[18ch]">
-              Sua água parece limpa, <span className="text-pewter">mas aparência não garante pureza.</span>
+            <h2 className="t-display mt-3 max-w-[15ch]">
+              Sua água parece limpa, mas aparência não garante pureza.
             </h2>
-          </FadeIn>
-
-          <div className="mt-14 grid items-center gap-10 md:mt-20 lg:grid-cols-12 lg:gap-16">
-            <FadeIn className="lg:col-span-7">
-              <img
-                src="/images/GALAO_FILTRO_CAIXA.webp"
-                srcSet="/images/GALAO_FILTRO_CAIXA-sm.webp 700w, /images/GALAO_FILTRO_CAIXA.webp 1200w"
-                sizes="(max-width: 1024px) 100vw, 58vw"
-                width={1200}
-                height={675}
-                loading="lazy"
-                decoding="async"
-                alt="Galão, filtro de barro e caixa-d'água: as soluções mais comuns"
-                className="h-auto w-full object-contain"
-              />
-            </FadeIn>
-            <FadeIn delay={0.1} className="lg:col-span-5">
-              <p className="t-body text-pewter">
-                Antes de chegar ao seu copo, a sua água passa por tratamentos, tubulações, reservatórios e instalações internas. Nesse caminho, ela pode entrar em contato com partículas sólidas, resíduos químicos, microrganismos e substâncias que não aparecem na cor, no cheiro ou no sabor. Por isso, mesmo transparente e sem odor aparente, ela ainda pode carregar elementos invisíveis que fazem parte do que você consome todos os dias.
-              </p>
-              <p className="t-headline mt-8 border-t border-hairline pt-8">
-                O maior problema da sua água não é o que aparece. É o que passa despercebido.
-              </p>
-            </FadeIn>
-          </div>
-        </div>
-      </section>
-
-      {/* O CAMINHO DA ÁGUA — faixa cinza-clara */}
-      <section id="tecnologia" className={`bg-frost text-obsidian ${sectionY}`}>
-        <div className={shell}>
-          <FadeIn>
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:items-end lg:gap-16">
-              <div>
-                <p className="t-eyebrow text-signal-ink">O caminho da água</p>
-                <h2 className="t-display mt-3 max-w-[16ch]">Da origem ao seu copo, muita coisa pode acontecer.</h2>
-              </div>
-              <p className="t-body max-w-xl text-pewter">
-                A água que você consome passa por captação, tratamento, distribuição e reservação antes de chegar à sua rotina. Em cada etapa, existem fatores invisíveis que podem interferir diretamente na qualidade final.
+            <p className="t-body mt-7 max-w-xl text-obsidian/85">
+              Antes de chegar ao seu copo, a sua água passa por tratamentos, tubulações, reservatórios e instalações internas. Nesse caminho, ela pode entrar em contato com partículas sólidas, resíduos químicos, microrganismos e substâncias que não aparecem na cor, no cheiro ou no sabor. Por isso, mesmo transparente e sem odor aparente, ela ainda pode carregar elementos invisíveis que fazem parte do que você consome todos os dias.
+            </p>
+            <div className="mt-10 flex max-w-md items-start gap-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-obsidian">
+                <EyeOff size={18} strokeWidth={2} aria-hidden="true" />
+              </span>
+              <p className="t-title">
+                O maior problema da sua água não é o que aparece.{' '}
+                <span className="text-obsidian/70">É o que passa despercebido.</span>
               </p>
             </div>
           </FadeIn>
+        </div>
 
-          <FadeIn delay={0.1} className="mt-14 md:mt-20">
-            <ExpandingCardsDemo />
+        {/* A foto (16:9) sobe por baixo do texto só até onde ainda é clara (~37% da altura). */}
+        <div className="pointer-events-none relative -mt-[16vw] md:-mt-[16vw]" aria-hidden="true">
+          <img
+            src="/images/agua-ondas.webp"
+            srcSet="/images/agua-ondas-sm.webp 960w, /images/agua-ondas.webp 1920w"
+            sizes="100vw"
+            width={1920}
+            height={1080}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="block h-[320px] w-full object-cover object-[60%_50%] md:h-auto"
+          />
+        </div>
+      </section>
+
+      {/* O CAMINHO DA ÁGUA — palco carbono com carrossel de destaques */}
+      <section id="tecnologia" className={`overflow-hidden bg-carbon ${sectionY}`}>
+        <div className={shell}>
+          <FadeIn>
+            <h2 className="t-display max-w-[16ch]">Da origem ao seu copo, muita coisa pode acontecer.</h2>
+            <p className="t-body mt-6 max-w-xl text-platinum">
+              A água que você consome passa por captação, tratamento, distribuição e reservação antes de chegar à sua rotina. Em cada etapa, existem fatores invisíveis que podem interferir diretamente na qualidade final.
+            </p>
           </FadeIn>
+        </div>
 
+        <FadeIn delay={0.1} className="mt-14 md:mt-20">
+          <HighlightsCarousel items={waterJourney} />
+        </FadeIn>
+
+        <div className={shell}>
           <FadeIn delay={0.15}>
             <p className="t-headline mt-16 max-w-2xl md:mt-20">
-              Entre a origem e o consumo, existe um caminho inteiro que você não vê, <span className="text-pewter">mas sente todos os dias.</span>
+              Entre a origem e o consumo, existe um caminho inteiro que você não vê, <span className="text-platinum">mas sente todos os dias.</span>
             </p>
           </FadeIn>
         </div>
