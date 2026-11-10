@@ -21,6 +21,30 @@ const steps = [
 const authRedirect = () => `${window.location.origin}/afiliados`;
 const ALREADY = "Esse e-mail já tem conta. Entre ao lado ou use “Esqueci minha senha”.";
 const WEAK = "Senha fraca: use pelo menos 8 caracteres.";
+const MAIL_DOWN = "Nosso envio de e-mail está instável agora e seu cadastro não foi concluído. Tente de novo em alguns minutos.";
+
+type AuthErr = { status?: number; code?: string; message: string } | null;
+
+/**
+ * O SMTP da Hostinger às vezes recusa a conexão ("421 Failed to connect to relay server").
+ * Nesse caso o Supabase devolve 500 e desfaz a operação (a conta não é criada), então dá para
+ * repetir com segurança. Não vale para o 504: aí a conta foi criada e o e-mail sai atrasado.
+ */
+const isMailSendFailure = (e: AuthErr) =>
+  !!e && e.status !== 504 && /error sending|smtp|relay|gomail/i.test(e.message) && !/database error/i.test(e.message);
+const isTimeout = (e: AuthErr) => !!e && (e.status === 504 || /deadline|timeout|timed out/i.test(e.message));
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function withMailRetry<T extends { error: AuthErr }>(send: () => Promise<T>): Promise<T> {
+  let res = await send();
+  for (const delay of [2500, 5000]) {
+    if (!isMailSendFailure(res.error)) break;
+    console.warn("[afiliados] envio de e-mail falhou, tentando de novo:", res.error);
+    await wait(delay);
+    res = await send();
+  }
+  return res;
+}
 
 /**
  * Login com Google pausado: o provedor está desligado no Supabase (as credenciais continuam salvas).
@@ -69,12 +93,17 @@ function GoogleButton({ label, dark = false }: { label: string; dark?: boolean }
 
 /** Reenvia o e-mail de confirmação do cadastro (o link anterior deixa de valer). */
 async function resendConfirmation(email: string): Promise<string | null> {
-  const { error } = await supabase!.auth.resend({ type: "signup", email, options: { emailRedirectTo: authRedirect() } });
+  const { error } = await withMailRetry(() =>
+    supabase!.auth.resend({ type: "signup", email, options: { emailRedirectTo: authRedirect() } }),
+  );
   if (!error) return null;
   console.error("[afiliados] reenvio falhou:", error);
+  if (isTimeout(error)) return null; // o e-mail sai atrasado, mas sai
   return /security purposes|after \d+ seconds|rate limit/i.test(error.message)
     ? "Aguarde um minuto antes de pedir outro e-mail."
-    : "Não foi possível reenviar agora. Tente de novo em alguns minutos.";
+    : isMailSendFailure(error)
+      ? "Nosso envio de e-mail está instável agora. Tente de novo em alguns minutos."
+      : "Não foi possível reenviar agora. Tente de novo em alguns minutos.";
 }
 
 function ResendButton({ email, dark = false }: { email: string; dark?: boolean }) {
@@ -173,18 +202,20 @@ function Signup() {
 
     // A conta nasce no Supabase Auth; o trigger no banco cria o perfil do afiliado como "pending"
     // e outro trigger o ativa quando o e-mail é confirmado (aprovação automática).
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: authRedirect(), data: { name, affiliate_code: code, pix_key: pix || null } },
-    });
+    const { data, error } = await withMailRetry(() =>
+      supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: authRedirect(), data: { name, affiliate_code: code, pix_key: pix || null } },
+      }),
+    );
     setBusy(false);
 
     if (error) {
       console.error("[afiliados] cadastro falhou:", error);
       // O envio do e-mail pode demorar mais que o limite do Supabase (504): a conta é criada e o
       // e-mail costuma chegar mesmo assim. Cadastrar de novo geraria outro link e invalidaria o primeiro.
-      if (error.status === 504 || /deadline|timeout|timed out/i.test(error.message)) {
+      if (isTimeout(error)) {
         form.reset();
         return setMsg({
           ok: true,
@@ -194,9 +225,13 @@ function Signup() {
       }
       const text = /already registered|already exists/i.test(error.message)
         ? ALREADY
-        : /password/i.test(error.message)
-          ? WEAK
-          : "Não foi possível enviar. Tente novamente.";
+        : isMailSendFailure(error)
+          ? MAIL_DOWN
+          : /database error saving new user/i.test(error.message)
+            ? "Não foi possível criar a conta com esse código. Tente outro código para o seu link."
+            : /password/i.test(error.message)
+              ? WEAK
+              : "Não foi possível enviar. Tente novamente.";
       return setMsg({ ok: false, text });
     }
     // Com confirmação de e-mail ligada, um e-mail já cadastrado volta sem identidades.
@@ -290,9 +325,18 @@ function Login() {
     setError(null);
     setUnconfirmed(null);
     if (mode === "forgot") {
-      const { error } = await supabase!.auth.resetPasswordForEmail(email, { redirectTo: authRedirect() });
+      const { error } = await withMailRetry(() => supabase!.auth.resetPasswordForEmail(email, { redirectTo: authRedirect() }));
       setBusy(false);
-      if (error) return setError("Não foi possível enviar o link. Tente novamente.");
+      if (error && !isTimeout(error)) {
+        console.error("[afiliados] envio do link de senha falhou:", error);
+        return setError(
+          isMailSendFailure(error)
+            ? "Nosso envio de e-mail está instável agora. Tente de novo em alguns minutos."
+            : /security purposes|after \d+ seconds|rate limit/i.test(error.message)
+              ? "Aguarde um minuto antes de pedir outro e-mail."
+              : "Não foi possível enviar o link. Tente novamente.",
+        );
+      }
       return setNotice("Se houver uma conta com esse e-mail, enviamos um link para criar uma nova senha.");
     }
     const { error } = await supabase!.auth.signInWithPassword({ email, password: String(f.get("password")) });
