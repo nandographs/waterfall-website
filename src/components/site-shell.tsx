@@ -82,12 +82,12 @@ export const SiteHeader = ({
 }) => (
   <nav data-site-header className="wd fixed inset-x-0 top-0 z-50 px-3 pt-3 md:px-6">
     <div
-      className={`mx-auto flex h-12 max-w-[1080px] items-center justify-between gap-3 rounded-full pl-5 pr-1.5 text-frost backdrop-blur-xl backdrop-saturate-150 transition-colors duration-500 ${
+      className={`mx-auto flex h-12 max-w-[1080px] md:h-14 items-center justify-between gap-3 rounded-full pl-5 pr-1.5 md:pl-6 md:pr-2.5 text-frost backdrop-blur-xl backdrop-saturate-150 transition-colors duration-500 ${
         scrolled ? "bg-obsidian/85" : "bg-black/35"
       }`}
     >
       <a href="/" aria-label="Water Diamond, página inicial" className="flex shrink-0 items-center">
-        <img src="/images/LOGO.webp" alt="" className="h-[18px] w-auto object-contain brightness-0 invert" />
+        <img src="/images/LOGO.webp" alt="" className="h-[22px] w-auto md:h-7 object-contain brightness-0 invert" />
       </a>
 
       <ul className="hidden items-center lg:flex">
@@ -141,7 +141,7 @@ export const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
     >
       <div className="flex h-full flex-col px-7 pb-10 pt-6">
         <div className="flex items-center justify-between">
-          <img src="/images/LOGO.webp" alt="Water Diamond" className="h-[18px] w-auto object-contain brightness-0 invert" />
+          <img src="/images/LOGO.webp" alt="Water Diamond" className="h-6 w-auto object-contain brightness-0 invert" />
           <button
             type="button"
             onClick={onClose}
@@ -191,7 +191,7 @@ export const SiteFooter = () => (
     <div className="mx-auto w-full max-w-[1440px]">
       <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_auto]">
         <div>
-          <img src="/images/LOGO.webp" alt="Water Diamond" className="h-6 w-auto object-contain brightness-0 invert" />
+          <img src="/images/LOGO.webp" alt="Water Diamond" className="h-8 w-auto object-contain brightness-0 invert" />
           <p className="t-small mt-4 max-w-xs text-platinum">A melhor água do mundo.</p>
         </div>
         <div>
