@@ -43,18 +43,6 @@ export const navLinks = [
 /** Painel do afiliado (link de indicação e comissões). Não confundir com o consultor. */
 export const AFFILIATE_HREF = "/afiliados";
 
-const AffiliateLink = () => (
-  <a
-    href={AFFILIATE_HREF}
-    aria-label="Área do afiliado"
-    title="Área do afiliado"
-    className="flex h-9 items-center gap-1.5 rounded-full px-2 text-[0.8125rem] text-frost/75 transition-colors hover:bg-white/10 hover:text-frost lg:px-3"
-  >
-    <UserRound size={17} strokeWidth={1.8} aria-hidden="true" />
-    <span className="hidden lg:inline">Afiliado</span>
-  </a>
-);
-
 export const socialLinks = [
   { label: "Instagram", href: "https://www.instagram.com/waterfallcompanybr", icon: Instagram },
   { label: "Facebook", href: "https://www.facebook.com/waterfallcompanybr", icon: Facebook },
@@ -75,7 +63,7 @@ export const BagLink = ({ className = "" }: { className?: string }) => {
       aria-label={count ? `Sacola, ${count} ${count === 1 ? "item" : "itens"}` : "Sacola vazia"}
       className={`relative flex h-9 w-9 items-center justify-center rounded-full text-frost transition-colors hover:bg-white/10 ${className}`}
     >
-      <ShoppingBag size={17} strokeWidth={1.8} />
+      <ShoppingBag size={16} strokeWidth={1.7} />
       {count > 0 && (
         <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-frost px-1 text-[10px] font-semibold leading-none text-obsidian [font-variant-numeric:tabular-nums]">
           {count}
@@ -85,68 +73,76 @@ export const BagLink = ({ className = "" }: { className?: string }) => {
   );
 };
 
+/**
+ * Cabeçalho no padrão das páginas de produto da Apple: uma barra fina (44px) de ponta a ponta,
+ * preta translúcida com desfoque; logo, links em 12px distribuídos numa faixa central e, à direita,
+ * a sacola e um CTA azul pequeno (quando há `cta`).
+ */
 export const SiteHeader = ({
-  scrolled = true,
   onMenuOpen,
   cta = { label: "Comprar", onClick: goToBuy },
 }: {
+  /** Mantido por compatibilidade; o fundo agora é sempre o mesmo. */
   scrolled?: boolean;
   onMenuOpen: () => void;
+  /** Não usado desde que o cabeçalho voltou a ter uma barra só; mantido por compatibilidade. */
+  title?: string;
   /** `shortLabel` substitui o rótulo em telas estreitas, para o botão não quebrar linha. */
   cta?: { label: string; shortLabel?: string; onClick: () => void } | null;
 }) => (
-  <nav data-site-header className="wd fixed inset-x-0 top-0 z-50 px-3 pt-3 md:px-6">
-    <div
-      className={`mx-auto flex h-12 max-w-[1920px] md:h-14 items-center justify-between gap-3 rounded-full pl-5 pr-1.5 md:pl-8 md:pr-2.5 text-frost backdrop-blur-xl backdrop-saturate-150 transition-colors duration-500 ${
-        scrolled ? "bg-obsidian/85" : "bg-black/35"
-      }`}
-    >
-      <a href="/" aria-label="Water Diamond, página inicial" className="flex shrink-0 items-center">
-        <img src="/images/LOGO.webp" alt="" className="h-[22px] w-auto md:h-7 object-contain brightness-0 invert" />
-      </a>
+  <header data-site-header className="wd fixed inset-x-0 top-0 z-50 text-frost">
+    {/* Barra global */}
+    <nav aria-label="Principal" className="bg-[rgba(22,22,23,0.8)] backdrop-blur-xl backdrop-saturate-[1.8]">
+      <div className="mx-auto flex h-12 max-w-[1080px] items-center justify-between px-4 md:h-11 md:px-6">
+        <a href="/" aria-label="Water Diamond, página inicial" className="flex shrink-0 items-center opacity-90 transition-opacity hover:opacity-100">
+          <img src="/images/LOGO.webp" alt="" className="h-5 w-auto object-contain brightness-0 invert" />
+        </a>
 
-      <ul className="hidden items-center md:flex">
-        {navLinks.map((link) => (
-          <li key={link.label}>
+        <ul className="hidden flex-1 items-center justify-evenly px-8 md:flex">
+          {[...navLinks, { label: "Área do afiliado", href: AFFILIATE_HREF }].map((link) => (
+            <li key={link.label}>
+              <button
+                type="button"
+                onClick={() => followLink(link.href)}
+                className="cursor-pointer px-2 py-1 text-[0.75rem] tracking-[-0.01em] text-frost/80 transition-colors duration-200 hover:text-frost"
+              >
+                {link.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex items-center gap-1.5">
+          <BagLink />
+          {cta && (
             <button
               type="button"
-              onClick={() => followLink(link.href)}
-              className="cursor-pointer rounded-full px-3 py-1.5 text-[0.8125rem] text-frost/75 transition-colors duration-200 hover:text-frost"
+              onClick={cta.onClick}
+              className="btn-action min-h-7 whitespace-nowrap rounded-full px-3.5 py-1 text-[0.75rem] font-normal"
             >
-              {link.label}
+              {cta.shortLabel ? (
+                <>
+                  <span className="sm:hidden">{cta.shortLabel}</span>
+                  <span className="hidden sm:inline">{cta.label}</span>
+                </>
+              ) : (
+                cta.label
+              )}
             </button>
-          </li>
-        ))}
-      </ul>
-
-      <div className="flex items-center gap-1">
-        <span className="hidden md:block">
-          <AffiliateLink />
-        </span>
-        <BagLink />
-        {cta && (
-          <button type="button" onClick={cta.onClick} className="btn-action min-h-9 whitespace-nowrap px-4 text-[0.8125rem]">
-            {cta.shortLabel ? (
-              <>
-                <span className="sm:hidden">{cta.shortLabel}</span>
-                <span className="hidden sm:inline">{cta.label}</span>
-              </>
-            ) : (
-              cta.label
-            )}
+          )}
+          <button
+            type="button"
+            onClick={onMenuOpen}
+            aria-label="Abrir menu de navegação"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-frost/90 transition-colors hover:text-frost md:hidden"
+          >
+            <Menu size={18} />
           </button>
-        )}
-        <button
-          type="button"
-          onClick={onMenuOpen}
-          aria-label="Abrir menu de navegação"
-          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-frost transition-colors hover:bg-white/10 md:hidden"
-        >
-          <Menu size={18} />
-        </button>
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
+
+  </header>
 );
 
 export const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {

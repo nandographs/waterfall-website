@@ -151,7 +151,7 @@ export default function ConsultorPage() {
 
   return (
     <div className="wd min-h-screen bg-stage text-frost selection:bg-action/30">
-      <SiteHeader scrolled={scrolled} onMenuOpen={() => setIsMenuOpen(true)} cta={{ label: "Quero ser consultor", shortLabel: "Fazer parte", onClick: goToForm }} />
+      <SiteHeader scrolled={scrolled} onMenuOpen={() => setIsMenuOpen(true)} title="Seja um consultor" cta={{ label: "Quero ser consultor", shortLabel: "Fazer parte", onClick: goToForm }} />
       <SidebarMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
       <main>
