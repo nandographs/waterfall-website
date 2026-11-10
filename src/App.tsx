@@ -33,26 +33,10 @@ const FadeIn = ({ children, delay = 0, className = "" }: { children: React.React
   </motion.div>
 );
 
-const commonFilterBenefits = [
-  "Retém partículas",
-  "Reduz odores",
-  "Melhora o sabor",
-  "Atua no cloro",
-];
-
-const fullTreatmentBenefits = [
-  "Remoção física",
-  "Redução química",
-  "Purificação profunda",
-  "Equilíbrio mineral",
-  "Alcalinização",
-  "Ionização",
-];
-
 const contaminationLayers = [
   {
     title: "Partículas físicas",
-    desc: "Areia, barro, ferrugem e sedimentos que alteram a pureza da água.",
+    desc: "Areia, barro, ferrugem e sedimentos que se soltam da rede e da caixa d'água.",
     icon: (
       <svg viewBox="0 0 48 48" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M11 31c5-8 8-14 13-14 4 0 6 3 9 3 3 0 4-2 4-5" />
@@ -66,7 +50,7 @@ const contaminationLayers = [
   },
   {
     title: "Microplásticos",
-    desc: "Fragmentos minúsculos que podem estar presentes mesmo sem sinais visíveis.",
+    desc: "Fragmentos pequenos demais para enxergar, já encontrados em água de torneira no mundo todo.",
     icon: (
       <svg viewBox="0 0 48 48" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M17 15h14l4 7-4 11H17l-4-11 4-7Z" />
@@ -78,7 +62,7 @@ const contaminationLayers = [
   },
   {
     title: "Substâncias químicas",
-    desc: "Cloro, metais e compostos dissolvidos que afetam sabor, odor e qualidade.",
+    desc: "Metais e compostos dissolvidos que vêm do solo, da indústria e das próprias tubulações.",
     icon: (
       <svg viewBox="0 0 48 48" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M18 14v8l-6 10a7 7 0 0 0 6 10h12a7 7 0 0 0 6-10l-6-10v-8" />
@@ -89,7 +73,7 @@ const contaminationLayers = [
   },
   {
     title: "Cloro residual",
-    desc: "Usado no tratamento, mas em excesso pode impactar o paladar e o cheiro.",
+    desc: "Protege a água durante o trajeto e é o responsável por aquele gosto e cheiro de piscina.",
     icon: (
       <svg viewBox="0 0 48 48" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M24 11c4 6 8 10 8 16a8 8 0 1 1-16 0c0-6 4-10 8-16Z" />
@@ -100,7 +84,7 @@ const contaminationLayers = [
   },
   {
     title: "Microrganismos",
-    desc: "Bactérias, vírus e coliformes ligados a riscos biológicos invisíveis.",
+    desc: "Bactérias e coliformes que encontram espaço em caixas d'água e trechos de rede mal conservados.",
     icon: (
       <svg viewBox="0 0 48 48" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <circle cx="24" cy="24" r="8" />
@@ -209,7 +193,7 @@ const refillVisualBlocks = [
     refill: "Max Ultra",
     title: "Ultra filtragem",
     description: "Remove partículas físicas como areia, ferrugem, sedimentos, microplásticos e microrganismos com membrana de 0,5μ.",
-    result: "Resultado: água mais limpa desde a primeira etapa.",
+    result: "A água segue para a próxima etapa já sem a sujeira que dá para reter fisicamente.",
     image: "/images/MAX.webp",
     imageSm: "/images/MAX-sm.webp",
     alt: "Refil MAX Water Diamond",
@@ -222,7 +206,7 @@ const refillVisualBlocks = [
     refill: "Max Carbon",
     title: "Purificação",
     description: "Reduz cloro, odores, resíduos químicos, compostos orgânicos e substâncias que alteram o sabor da água.",
-    result: "Resultado: água mais pura, leve e agradável.",
+    result: "É aqui que o gosto de cloro vai embora.",
     image: "/images/CARBON.webp",
     imageSm: "/images/CARBON-sm.webp",
     alt: "Refil Carbon Water Diamond",
@@ -234,8 +218,8 @@ const refillVisualBlocks = [
     name: "BLOCK",
     refill: "Max Block",
     title: "Purificação profunda",
-    description: "Utiliza carvão ativado compactado para reter metais pesados, bactérias, partículas finas e impurezas persistentes.",
-    result: "Resultado: mais controle, segurança e qualidade no consumo diário.",
+    description: "Usa carvão ativado compactado para reter metais pesados, bactérias e as partículas finas que passaram pelas etapas anteriores.",
+    result: "Com ela, o que chega ao copo já passou por três barreiras diferentes.",
     image: "/images/BLOCK.webp",
     imageSm: "/images/BLOCK-sm.webp",
     alt: "Refil Block Water Diamond",
@@ -247,8 +231,8 @@ const refillVisualBlocks = [
     name: "ALKA",
     refill: "Max Alka",
     title: "Alcalinização e minerais",
-    description: "Eleva o pH para uma faixa alcalina entre 8,5 e 9,5 e reintroduz minerais como cálcio, magnésio e potássio.",
-    result: "Resultado: água mais equilibrada, mineralizada e completa.",
+    description: "Eleva o pH para a faixa alcalina, entre 8,5 e 9,5, e devolve minerais como cálcio, magnésio e potássio.",
+    result: "A água recupera o equilíbrio que perdeu no caminho até a sua casa.",
     image: "/images/ALKA.webp",
     imageSm: "/images/ALKA-sm.webp",
     alt: "Refil ALKA Water Diamond",
@@ -757,35 +741,35 @@ const waterJourney: Highlight[] = [
   {
     id: "captacao",
     title: "Captação",
-    description: "Tudo começa na fonte. Rios, represas e poços já carregam características e impurezas do ambiente de origem.",
+    description: "Rios, represas e poços já trazem sedimentos e impurezas do lugar de onde a água sai.",
     image: "CAPTACAO",
     alt: "Torre de captação de água em uma represa cercada por morros",
   },
   {
     id: "tratamento",
     title: "Tratamento",
-    description: "A água recebe processos para distribuição, mas isso não elimina todas as variáveis que afetam sua composição final.",
+    description: "A estação deixa a água pronta para viajar pela rede, com o cloro que a protege até o fim do trajeto.",
     image: "TRATAMENTO",
     alt: "Tanques de uma estação de tratamento de água",
   },
   {
     id: "distribuicao",
     title: "Distribuição",
-    description: "No trajeto até a casa, ela passa por redes, conexões e tubulações que podem alterar a pureza percebida.",
+    description: "Até chegar à sua rua, ela atravessa quilômetros de tubulação, muitas vezes antiga, que pode soltar ferrugem e resíduos.",
     image: "DISTRIBUICAO",
     alt: "Tubulações de distribuição de água atravessando uma cidade",
   },
   {
     id: "reservacao",
     title: "Reservatórios",
-    description: "Caixas d'água e sistemas internos acumulam tempo, resíduos e manutenção irregular antes do consumo diário.",
+    description: "Na caixa d'água, ela fica parada por horas ou dias, e a limpeza nem sempre acontece no prazo.",
     image: "RESERVATORIOS",
     alt: "Interior de uma caixa-d'água residencial",
   },
   {
     id: "consumo",
     title: "Consumo",
-    description: "É no copo, no café e no preparo dos alimentos que todo esse caminho finalmente impacta a sua rotina.",
+    description: "Tudo o que ela recolheu pelo caminho chega ao copo, ao café e à panela do jeito que saiu da torneira.",
     image: "CONSUMO",
     alt: "Mão enchendo um copo com água da torneira",
   },
@@ -793,11 +777,11 @@ const waterJourney: Highlight[] = [
 const sectionY = "py-24 md:py-32";
 
 const dailyUses = [
-  { icon: Droplet, title: "Para beber", desc: "Água mais pura, equilibrada e agradável para o consumo diário." },
-  { icon: Sparkles, title: "Para cozinhar", desc: "Uma água melhor para preparar alimentos, caldos, massas e refeições da família." },
-  { icon: Activity, title: "Para o café", desc: "A qualidade da água interfere diretamente no aroma, sabor e percepção final da bebida." },
-  { icon: Shield, title: "Para frutas e verduras", desc: "Mais cuidado na higienização dos alimentos que chegam à mesa." },
-  { icon: User, title: "Para a família", desc: "Uma escolha que participa da rotina de todos, todos os dias." },
+  { icon: Droplet, title: "Para beber", desc: "Leve, sem gosto de cloro, boa de tomar gelada ou natural." },
+  { icon: Sparkles, title: "Para cozinhar", desc: "Arroz, feijão e massas absorvem a água do cozimento, e o sabor dela vai junto para o prato." },
+  { icon: Activity, title: "Para o café", desc: "O café é quase todo água. Sem cloro e sedimentos no caminho, o aroma do grão aparece." },
+  { icon: Shield, title: "Para frutas e verduras", desc: "O que vai cru para a mesa passa a ser lavado com água tratada." },
+  { icon: User, title: "Para a família", desc: "Da mamadeira ao chimarrão, todo mundo em casa bebe da mesma torneira." },
 ];
 
 const faucetModels = [
@@ -805,25 +789,14 @@ const faucetModels = [
     title: "Modelo Faucet",
     image: "/images/FAUCET.webp",
     alt: "Torneira modelo Faucet em cozinha moderna",
-    desc: "Uma opção elegante para quem deseja uma saída dedicada para água tratada, com visual limpo e prático.",
+    desc: "Uma torneira separada, só para a água tratada, com desenho discreto que cabe em qualquer bancada.",
   },
   {
     title: "Modelo Gourmet",
     image: "/images/GOURMET.webp",
     alt: "Torneira gourmet preta instalada em bancada de cozinha",
-    desc: "Ideal para cozinhas sofisticadas, ambientes planejados e espaços gourmet, unindo funcionalidade, estética e experiência premium.",
+    desc: "Bica alta e acabamento preto, pensada para cozinhas planejadas e espaços gourmet.",
   },
-];
-
-const systemStages = [
-  "Ultra filtragem",
-  "Purificação",
-  "Purificação profunda",
-  "Alcalinização",
-  "Mineralização",
-  "Ionização Water Diamond®",
-  "Reorganização molecular",
-  "Equilíbrio eletromagnético",
 ];
 
 function HomePage() {
@@ -985,18 +958,18 @@ function HomePage() {
           <FadeIn className="md:ml-auto md:w-1/2 md:pl-6 lg:pl-10">
             <p className="t-eyebrow text-signal-ink">O problema invisível</p>
             <h2 className="t-display mt-3 max-w-[15ch]">
-              Sua água parece limpa, mas aparência não garante pureza.
+              Água transparente pode carregar o que você não vê.
             </h2>
             <p className="t-body mt-7 max-w-xl text-obsidian/85">
-              Antes de chegar ao seu copo, a sua água passa por tratamentos, tubulações, reservatórios e instalações internas. Nesse caminho, ela pode entrar em contato com partículas sólidas, resíduos químicos, microrganismos e substâncias que não aparecem na cor, no cheiro ou no sabor. Por isso, mesmo transparente e sem odor aparente, ela ainda pode carregar elementos invisíveis que fazem parte do que você consome todos os dias.
+              Cor, cheiro e gosto dizem pouco sobre o que está dissolvido na água. Partículas, resíduos químicos e microrganismos podem estar no copo mesmo quando ela parece perfeita, e é essa água que você bebe e usa para cozinhar todos os dias.
             </p>
             <div className="mt-10 flex max-w-md items-start gap-4">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-obsidian">
                 <EyeOff size={18} strokeWidth={2} aria-hidden="true" />
               </span>
               <p className="t-title">
-                O maior problema da sua água não é o que aparece.{' '}
-                <span className="text-obsidian/70">É o que passa despercebido.</span>
+                Olhar o copo diz pouco{' '}
+                <span className="text-obsidian/70">sobre o que tem dentro dele.</span>
               </p>
             </div>
           </FadeIn>
@@ -1022,7 +995,7 @@ function HomePage() {
       <section id="tecnologia" className={`overflow-hidden bg-carbon ${sectionY}`}>
         <div className={shell}>
           <FadeIn>
-            <h2 className="t-display md:max-w-[28ch]">Da origem ao seu copo, muita coisa pode acontecer.</h2>
+            <h2 className="t-display md:max-w-[28ch]">O caminho até o seu copo é mais longo do que parece.</h2>
           </FadeIn>
         </div>
 
@@ -1038,7 +1011,7 @@ function HomePage() {
           <FadeIn>
             <ContaminantsExplorer
               eyebrow="Contaminantes invisíveis"
-              title="Sua água pode carregar mais do que você imagina."
+              title="O que pode estar no seu copo."
               items={contaminationLayers}
             />
           </FadeIn>
@@ -1056,11 +1029,11 @@ function HomePage() {
                   Água pura também precisa de equilíbrio.
                 </h2>
                 <div className="t-body mt-6 max-w-md space-y-4 text-platinum">
-                  <p>Não basta remover impurezas. A água que você consome também precisa manter um pH adequado e uma composição mineral equilibrada.</p>
-                  <p>Em processos convencionais, ela pode perder minerais importantes e se tornar mais ácida do que o ideal, comprometendo a sensação de qualidade no consumo diário.</p>
+                  <p>Tirar as impurezas é metade do trabalho. A água que você bebe também precisa de pH adequado e de minerais na medida certa.</p>
+                  <p>Ao longo do tratamento e da filtragem, ela costuma perder cálcio, magnésio e potássio e ficar mais ácida, com um gosto mais chapado.</p>
                 </div>
                 <p className="t-title mt-8 max-w-md border-t border-smoke pt-6 text-frost">
-                  pH baixo e baixa mineralização afastam a água do padrão natural e reduzem parte do equilíbrio que ela deveria entregar.
+                  A água de boas nascentes chega levemente alcalina e cheia de minerais, e é esse equilíbrio que vale trazer para casa.
                 </p>
               </div>
               <div className="flex items-center justify-center px-7 pb-12 md:py-16">
@@ -1081,59 +1054,13 @@ function HomePage() {
         </div>
       </section>
 
-      {/* FILTRAR NÃO É TRATAR — faixa clara */}
-      <section className={`bg-white text-obsidian ${sectionY}`}>
-        <div className={shell}>
-          <FadeIn>
-            <h2 className="t-display max-w-[20ch]">
-              Filtrar é importante. <span className="text-pewter">Mas filtrar não é tratar por completo.</span>
-            </h2>
-            <p className="t-body mt-6 max-w-xl text-pewter">
-              Muitos filtros comuns foram desenvolvidos para resolver apenas parte do problema.
-            </p>
-          </FadeIn>
-
-          <div className="mt-14 grid gap-4 md:mt-20 md:grid-cols-2 md:gap-5">
-            <FadeIn>
-              <div className="h-full rounded-[28px] bg-frost p-8 md:p-12">
-                <p className="t-small font-semibold text-pewter">O que um filtro comum costuma resolver</p>
-                <ul className="mt-6 border-t border-hairline">
-                  {commonFilterBenefits.map((item) => (
-                    <li key={item} className="t-title border-b border-hairline py-4 font-medium text-obsidian/80">{item}</li>
-                  ))}
-                </ul>
-              </div>
-            </FadeIn>
-            <FadeIn delay={0.08}>
-              <div className="h-full rounded-[28px] bg-obsidian p-8 text-frost md:p-12">
-                <p className="t-small font-semibold text-platinum">O que um tratamento completo também considera</p>
-                <ul className="mt-6 border-t border-smoke">
-                  {fullTreatmentBenefits.map((item) => (
-                    <li key={item} className="t-title flex items-center justify-between gap-4 border-b border-smoke py-4">
-                      {item}
-                      <Check size={18} className="shrink-0 text-halo" aria-hidden="true" />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </FadeIn>
-          </div>
-
-          <FadeIn>
-            <p className="t-body mt-10 max-w-2xl text-pewter">
-              Em outras palavras: um filtro pode melhorar a experiência imediata. Um sistema de tratamento busca elevar o padrão da água de forma mais ampla e consistente.
-            </p>
-          </FadeIn>
-        </div>
-      </section>
-
       {/* UMA NOVA CATEGORIA — palco com a linha completa */}
       <section id="ion-center" className={`bg-stage ${sectionY}`}>
         <div className={shell}>
           <FadeIn>
             <p className="t-eyebrow text-signal">Uma nova categoria</p>
             <h2 className="t-display mt-3 max-w-[22ch]">
-              <span className="text-platinum">Não é um filtro.</span> É uma central de tratamento de água.
+              Tudo o que a sua água precisa. <span className="text-platinum">Em uma só central de tratamento.</span>
             </h2>
           </FadeIn>
 
@@ -1187,23 +1114,16 @@ function HomePage() {
             <FadeIn className="order-1 md:order-2">
               <p className="t-eyebrow text-signal-ink">Water Diamond Ion Center</p>
               <h2 className="t-headline-lg mt-3">
-                Uma central de tratamento de água desenvolvida para quem entende que água não é detalhe.
+                Feito para dividir a bancada com o resto da sua cozinha.
               </h2>
               <p className="t-body mt-5 text-pewter">
-                O Ion Center combina tecnologia, ciência e design para entregar uma experiência completa de água tratada dentro de casa. Com ele, a água passa por etapas complementares que atuam desde a remoção de impurezas até a ionização Water Diamond®.
+                O tratamento inteiro fica num só aparelho, que pode ficar à vista na bancada, preso na parede ou escondido embaixo da pia. A água da rede entra de um lado e sai do outro pronta para beber, depois de passar pelos refis e pela ionização Water Diamond®.
               </p>
 
-              <p className="t-title mt-10">Em um único sistema:</p>
-              <ul className="mt-4 flex flex-wrap gap-2">
-                {systemStages.map((item) => (
-                  <li key={item} className="t-small rounded-full bg-white px-3.5 py-1.5 text-obsidian">{item}</li>
-                ))}
-              </ul>
-
               <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-hairline pt-8">
-                <p className="t-small text-pewter">Disponível em branco e preto.</p>
+                <p className="t-small text-pewter">Acabamento branco ou preto.</p>
                 <button type="button" onClick={() => scrollToSection('#etapas')} className="link-arrow text-link">
-                  Ver cada etapa do sistema
+                  Ver o que acontece em cada etapa
                   <ChevronRight size={18} aria-hidden="true" />
                 </button>
               </div>
@@ -1218,11 +1138,11 @@ function HomePage() {
           <FadeIn>
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:items-end lg:gap-16">
               <div>
-                <p className="t-eyebrow text-signal">Quatro refis, uma sequência</p>
-                <h2 className="t-display mt-3">Um sistema completo precisa agir em sequência.</h2>
+                <p className="t-eyebrow text-signal">Quatro refis e a ionização</p>
+                <h2 className="t-display mt-3">Cada etapa cuida de uma parte da água.</h2>
               </div>
               <p className="t-body max-w-xl text-platinum">
-                Cada refil assume uma função específica. Em vez de repetir a mesma filtragem, o Ion Center conduz a água por camadas complementares: remoção física, purificação química, retenção profunda e equilíbrio mineral.
+                Os quatro refis trabalham em sequência, cada um com a sua função: o primeiro segura as partículas, o segundo tira o cloro e os químicos, o terceiro retém o que é fino demais e o quarto devolve pH e minerais. No fim, a água passa pelo bastão de ionização.
               </p>
             </div>
           </FadeIn>
@@ -1266,10 +1186,10 @@ function HomePage() {
               <h2 className="t-display mt-3">Ionização Water Diamond®</h2>
               <p className="t-headline mt-4 text-platinum">Equilíbrio e reorganização da água</p>
               <p className="t-body mt-8 max-w-md text-platinum">
-                Atua no estado elétrico e estrutural da água, convertendo íons positivos em íons negativos e reorganizando sua estrutura molecular.
+                O bastão Water Diamond® atua na carga elétrica da água: converte íons positivos em negativos e reorganiza a estrutura das moléculas.
               </p>
               <p className="t-body mt-8 max-w-md border-t border-smoke pt-6 font-medium text-frost">
-                Resultado: água mais equilibrada, organizada e em um novo padrão de qualidade.
+                É o último passo antes do copo, e o que dá à água o padrão Water Diamond.
               </p>
             </FadeIn>
             <FadeIn delay={0.1} className="flex justify-center md:justify-end">
@@ -1287,16 +1207,62 @@ function HomePage() {
         </div>
       </section>
 
+      {/* USO DIÁRIO — faixa cinza-clara */}
+      <section className={`bg-frost text-obsidian ${sectionY}`}>
+        <div className={shell}>
+          <FadeIn>
+            <h2 className="t-display max-w-[18ch]">Uma água melhor muda tudo o que passa por ela.</h2>
+            <p className="t-body mt-6 max-w-xl text-pewter">
+              Ela está no copo, mas também no café, na comida e na pia onde você lava as frutas.
+            </p>
+          </FadeIn>
+
+          <ul className="mt-14 grid border-t border-hairline md:mt-20 lg:grid-cols-5">
+            {dailyUses.map((benefit, i) => (
+              <FadeIn key={benefit.title} delay={i * 0.05} className="border-b border-hairline lg:border-b-0 lg:border-l lg:first:border-l-0 lg:first:*:pl-0">
+                <li className="grid h-full gap-x-6 gap-y-3 py-7 sm:grid-cols-[3rem_minmax(0,14rem)_1fr] sm:items-start lg:flex lg:flex-col lg:gap-3 lg:px-6 lg:py-10">
+                  <benefit.icon size={26} strokeWidth={1.6} className="text-obsidian" aria-hidden="true" />
+                  <h3 className="t-title lg:mt-2">{benefit.title}</h3>
+                  <p className="t-small text-pewter">{benefit.desc}</p>
+                </li>
+              </FadeIn>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* POR QUE ISSO IMPORTA — declaração em duas tonalidades */}
+      <section id="porque" className={`bg-stage ${sectionY}`}>
+        <div className={shell}>
+          <FadeIn>
+            <h2 className="t-display max-w-[24ch]">
+              A água é a coisa mais simples da sua rotina,{' '}
+              <span className="text-platinum">e talvez por isso seja a que menos recebe atenção.</span>
+            </h2>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <div className="mt-14 grid gap-10 border-t border-smoke pt-10 md:mt-20 md:grid-cols-2 md:gap-16">
+              <p className="t-body text-platinum">
+                Quem decide cuidar da saúde costuma começar por suplementos, dieta, treino e sono, e esquece a água, que está em tudo isso e em quase todo o resto do dia.
+              </p>
+              <p className="t-headline text-frost">
+                Tratar a água de casa é uma das decisões de saúde mais simples que você pode tomar.
+              </p>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
       {/* COMPARAR MODELOS — colunas lado a lado, faixa clara */}
-      <section id="modelos" className={`bg-white text-obsidian ${sectionY}`}>
+      <section id="modelos" className={`bg-frost text-obsidian ${sectionY}`}>
         <div className={shell}>
           <FadeIn>
             <p className="t-eyebrow text-signal-ink">Linha Water Diamond Ion Center</p>
             <h2 className="t-display mt-3 max-w-[20ch]">
-              Uma tecnologia. <span className="text-pewter">Três formas de viver a melhor água.</span>
+              Três modelos <span className="text-pewter">com o mesmo tratamento.</span>
             </h2>
             <p className="t-body mt-6 max-w-xl text-pewter">
-              Todos entregam o mesmo tratamento Water Diamond. O que muda é a forma de uso, a capacidade e a experiência.
+              A água sai igual dos três. Muda o tamanho, a água gelada e o jeito de instalar, então a escolha depende de quantas pessoas usam e de onde ele vai ficar.
             </p>
           </FadeIn>
 
@@ -1309,7 +1275,7 @@ function HomePage() {
                     <h3 className="t-headline-lg">{product.name}</h3>
                     <p className="t-title mt-2 font-medium text-pewter">{product.headline}</p>
                     <p className="t-headline mt-6 [font-variant-numeric:tabular-nums]">
-                      {products ? priceText(catalogItem) : <span className="inline-block h-6 w-28 animate-pulse rounded-lg bg-frost align-middle" />}
+                      {products ? priceText(catalogItem) : <span className="inline-block h-6 w-28 animate-pulse rounded-lg bg-white align-middle" />}
                     </p>
                     <p className="t-body mt-5 text-pewter">{product.description}</p>
 
@@ -1342,34 +1308,14 @@ function HomePage() {
         </div>
       </section>
 
-      {/* COMPRAR — configurador: modelo, acabamento, sacola */}
-      <section id="comprar" className={`bg-frost text-obsidian ${sectionY}`}>
-        <div className={shell}>
-          <FadeIn>
-            <p className="t-eyebrow text-signal-ink">Comprar</p>
-            <h2 className="t-display mt-3 max-w-[18ch]">
-              Leve a melhor água do mundo <span className="text-pewter">para dentro de casa.</span>
-            </h2>
-          </FadeIn>
-          <div className="mt-14 md:mt-20">
-            <IonCenterBuy
-              products={products}
-              slug={buySlug}
-              onSlugChange={setBuySlug}
-              onConsult={(label) => openContact(label)}
-            />
-          </div>
-        </div>
-      </section>
-
       {/* TORNEIRAS E APLICAÇÕES — faixa clara */}
       <section id="especificacoes" className={`bg-white text-obsidian ${sectionY}`}>
         <div className={shell}>
           <FadeIn>
             <p className="t-eyebrow text-signal-ink">Torneiras e aplicações</p>
-            <h2 className="t-display mt-3 max-w-[18ch]">A tecnologia se adapta ao seu ambiente.</h2>
+            <h2 className="t-display mt-3 max-w-[18ch]">Escolha por onde a água sai.</h2>
             <p className="t-body mt-6 max-w-xl text-pewter">
-              A linha Ion Center pode ser integrada a diferentes formas de uso, dependendo da estrutura da cozinha e da experiência desejada.
+              O Ion Center pode ganhar uma torneira só para a água tratada. São dois modelos, e o consultor ajuda a ver qual encaixa na sua bancada.
             </p>
           </FadeIn>
 
@@ -1403,49 +1349,23 @@ function HomePage() {
         </div>
       </section>
 
-      {/* USO DIÁRIO — faixa cinza-clara */}
-      <section className={`bg-frost text-obsidian ${sectionY}`}>
+      {/* COMPRAR — configurador: modelo, acabamento, sacola */}
+      <section id="comprar" className={`bg-frost text-obsidian ${sectionY}`}>
         <div className={shell}>
           <FadeIn>
-            <h2 className="t-display max-w-[18ch]">Uma água melhor muda tudo o que passa por ela.</h2>
-            <p className="t-body mt-6 max-w-xl text-pewter">
-              A água não está presente apenas no copo. Ela está nos detalhes da rotina.
-            </p>
-          </FadeIn>
-
-          <ul className="mt-14 grid border-t border-hairline md:mt-20 lg:grid-cols-5">
-            {dailyUses.map((benefit, i) => (
-              <FadeIn key={benefit.title} delay={i * 0.05} className="border-b border-hairline lg:border-b-0 lg:border-l lg:first:border-l-0 lg:first:*:pl-0">
-                <li className="grid h-full gap-x-6 gap-y-3 py-7 sm:grid-cols-[3rem_minmax(0,14rem)_1fr] sm:items-start lg:flex lg:flex-col lg:gap-3 lg:px-6 lg:py-10">
-                  <benefit.icon size={26} strokeWidth={1.6} className="text-obsidian" aria-hidden="true" />
-                  <h3 className="t-title lg:mt-2">{benefit.title}</h3>
-                  <p className="t-small text-pewter">{benefit.desc}</p>
-                </li>
-              </FadeIn>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* POR QUE ISSO IMPORTA — declaração em duas tonalidades */}
-      <section id="porque" className={`bg-stage ${sectionY}`}>
-        <div className={shell}>
-          <FadeIn>
-            <h2 className="t-display max-w-[24ch]">
-              Porque a água é simples demais para ser ignorada.{' '}
-              <span className="text-platinum">E importante demais para ser tratada de qualquer forma.</span>
+            <p className="t-eyebrow text-signal-ink">Comprar</p>
+            <h2 className="t-display mt-3 max-w-[18ch]">
+              Leve a melhor água do mundo <span className="text-pewter">para dentro de casa.</span>
             </h2>
           </FadeIn>
-          <FadeIn delay={0.1}>
-            <div className="mt-14 grid gap-10 border-t border-smoke pt-10 md:mt-20 md:grid-cols-2 md:gap-16">
-              <p className="t-body text-platinum">
-                Cuidar da saúde costuma começar pelo que é complexo: suplementos, alimentação, treino, sono. Antes de tudo isso existe algo mais básico, presente no corpo, na cozinha e em cada hábito do dia.
-              </p>
-              <p className="t-headline text-frost">
-                Tratar melhor a água não é luxo. É uma decisão de qualidade de vida.
-              </p>
-            </div>
-          </FadeIn>
+          <div className="mt-14 md:mt-20">
+            <IonCenterBuy
+              products={products}
+              slug={buySlug}
+              onSlugChange={setBuySlug}
+              onConsult={(label) => openContact(label)}
+            />
+          </div>
         </div>
       </section>
 
@@ -1466,7 +1386,7 @@ function HomePage() {
           <FadeIn>
             <h2 className="t-display mx-auto max-w-[16ch]">Sua água pode estar em outro nível.</h2>
             <p className="t-body mx-auto mt-6 max-w-xl text-frost/75">
-              Conheça a linha Water Diamond Ion Center e descubra qual modelo combina com a sua casa, sua rotina e sua forma de viver.
+              Se ainda tiver dúvida sobre o modelo ou a instalação, um consultor ajuda você a escolher.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
               <button type="button" onClick={goToBuy} className="btn-action">
