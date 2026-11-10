@@ -4,9 +4,9 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import ExpandingCardsDemo from "@/components/ui/demo";
 import { submitWeb3Form, WHATSAPP_AFTER_FORM_URL } from "@/lib/forms";
 import { FloatingWhatsAppButton, SidebarMenu, SiteFooter, SiteHeader, WhatsAppIcon, goToBuy, scrollToSection } from "@/components/site-shell";
-import IonCenterBuy, { lowestPrice, priceText } from "@/components/ion-center-buy";
+import IonCenterBuy, { priceText } from "@/components/ion-center-buy";
 import { ionCenterProducts, type IonCenterModel } from "@/lib/ion-center";
-import { formatBRL, isPurchasable, useProducts } from "@/lib/catalog";
+import { isPurchasable, useProducts } from "@/lib/catalog";
 import AmbientVideo from "@/components/ui/ambient-video";
 // Rotas secundárias entram em chunks próprios: quem abre a home não baixa o código delas.
 const ConsultorPage = lazy(() => import("./pages/ConsultorPage"));
@@ -790,7 +790,6 @@ const systemStages = [
 function HomePage() {
   const [scrolled, setScrolled] = useState(false);
   const products = useProducts();
-  const startingAt = lowestPrice(products);
   const [buySlug, setBuySlug] = useState(ionCenterProducts[0].slug);
 
   // Qualquer "Comprar X" da página leva ao configurador já com o modelo escolhido.
@@ -859,16 +858,8 @@ function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
           >
-            <p className="t-eyebrow flex items-center gap-2 text-frost">
-              <Droplet size={18} strokeWidth={2} aria-hidden="true" />
-              Water Diamond Ion Center
-            </p>
-            <h1 className="t-hero mt-4 max-w-[11ch] text-frost">A melhor água do mundo.</h1>
-            <p className="t-body mt-5 text-platinum [font-variant-numeric:tabular-nums]">
-              {startingAt !== null
-                ? <>Três modelos, a partir de <span className="text-frost">{formatBRL(startingAt)}</span>.</>
-                : "Três modelos. Uma tecnologia de tratamento completo."}
-            </p>
+            <h1 className="t-hero max-w-[11ch] text-frost">A melhor água do mundo.</h1>
+            <p className="t-body mt-5 text-platinum">Water Diamond Ion Center</p>
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
               <button type="button" onClick={goToBuy} className="btn-action">
                 Comprar
