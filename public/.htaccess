@@ -39,8 +39,10 @@ Options -Indexes
   Header always set Strict-Transport-Security "max-age=31536000"
 
   # Content Security Policy: só permite recursos do próprio domínio.
-  # A única exceção é a API do Web3Forms, usada pelos formulários de contato.
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self' https://api.web3forms.com; form-action 'self' https://api.web3forms.com; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
+  # Exceções em connect-src: a API do Web3Forms (formulários de contato) e o projeto
+  # do Supabase (loja, checkout, afiliados e login). Sem o Supabase aqui, o navegador
+  # bloqueia toda chamada a ele.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self' https://api.web3forms.com https://ovhdaadmhlbgvquowdtr.supabase.co; form-action 'self' https://api.web3forms.com; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
 
   # Isola o site de outras abas do mesmo processo do navegador.
   Header always set Cross-Origin-Opener-Policy "same-origin"

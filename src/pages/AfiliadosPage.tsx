@@ -88,6 +88,7 @@ function Signup() {
     const { data: free, error: codeErr } = await supabase.rpc("affiliate_code_available", { p_code: code, p_email: email });
     if (codeErr || free === false) {
       setBusy(false);
+      if (codeErr) console.error("[afiliados] checagem do código falhou:", codeErr);
       return setMsg({ ok: false, text: codeErr ? "Não foi possível enviar. Tente novamente." : "Esse código já está em uso. Escolha outro." });
     }
 
@@ -100,6 +101,7 @@ function Signup() {
     setBusy(false);
 
     if (error) {
+      console.error("[afiliados] cadastro falhou:", error);
       const text = /already registered|already exists/i.test(error.message)
         ? ALREADY
         : /password/i.test(error.message)
