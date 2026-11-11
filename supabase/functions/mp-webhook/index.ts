@@ -26,7 +26,12 @@ Deno.serve(async (req) => {
   if (Math.round(pay.transaction_amount * 100) !== order.total_cents) return new Response("amount mismatch", { status: 200 });
 
   if (pay.status === "approved" && order.status === "pending") {
-    await db.from("orders").update({ status: "paid", paid_at: new Date().toISOString(), mp_payment_id: String(pay.id) }).eq("id", order.id);
+    // O MP costuma mandar duas notificações quase juntas. A troca de status só vale se o pedido
+    // ainda estiver pendente; quem não conseguir trocar para aqui e não mexe em estoque nem comissão.
+    const { data: claimed } = await db.from("orders")
+      .update({ status: "paid", paid_at: new Date().toISOString(), mp_payment_id: String(pay.id) })
+      .eq("id", order.id).eq("status", "pending").select("id");
+    if (!claimed?.length) return new Response("ok", { status: 200 });
 
     const { data: items } = await db.from("order_items").select("product_id, unit_cents, quantity").eq("order_id", order.id);
     for (const it of items ?? []) {
@@ -52,10 +57,11 @@ Deno.serve(async (req) => {
       }
     }
   } else if ((pay.status === "refunded" || pay.status === "charged_back") && order.status === "paid") {
-    await db.from("orders").update({ status: "refunded" }).eq("id", order.id);
+    const { data: claimed } = await db.from("orders").update({ status: "refunded" }).eq("id", order.id).eq("status", "paid").select("id");
+    if (!claimed?.length) return new Response("ok", { status: 200 });
     await db.from("commissions").update({ status: "cancelled" }).eq("order_id", order.id).neq("status", "paid");
   } else if ((pay.status === "cancelled" || pay.status === "rejected") && order.status === "pending") {
-    await db.from("orders").update({ status: "cancelled" }).eq("id", order.id);
+    await db.from("orders").update({ status: "cancelled" }).eq("id", order.id).eq("status", "pending");
   }
   return new Response("ok", { status: 200 });
 });

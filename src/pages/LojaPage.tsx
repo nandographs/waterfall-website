@@ -32,9 +32,9 @@ const bionlifeUrl = () =>
 const consultUrl = (label: string) => whatsappLink(`Olá! Vim pela loja e quero um orçamento do ${label}.`);
 
 const TRUST = [
-  { icon: CreditCard, title: "Pix, cartão ou boleto", text: "Pagamento processado pelo Mercado Pago." },
+  { icon: CreditCard, title: "Pix, cartão ou boleto", text: "Pagamento processado pelo Asaas." },
   { icon: Truck, title: "Frete no checkout", text: "O valor da entrega aparece antes de você pagar." },
-  { icon: ShieldCheck, title: "Compra segura", text: "Os dados do pagamento ficam com o Mercado Pago, não com o site." },
+  { icon: ShieldCheck, title: "Compra segura", text: "Os dados do pagamento ficam com o Asaas, não com o site." },
   { icon: MessageCircle, title: "Consultor no WhatsApp", text: "Ajuda para escolher antes e depois da compra." },
 ];
 
@@ -131,7 +131,7 @@ function SimpleProduct({ product }: { product: Product }) {
           <p className="text-[1.75rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums]">{priceText(product)}</p>
           <p className="t-small mt-3 text-pewter">
             {purchasable
-              ? "Pagamento pelo Mercado Pago: Pix, cartão ou boleto. Frete calculado ao finalizar."
+              ? "Pagamento pelo Asaas: Pix, cartão ou boleto. Frete calculado ao finalizar."
               : "Um consultor envia o orçamento e tira suas dúvidas pelo WhatsApp."}
           </p>
           {purchasable ? (

@@ -1,14 +1,25 @@
 # Backend da loja (Supabase)
 
-1. Rode `migrations/0001_loja_afiliados.sql` e `0002_estoque.sql` no SQL Editor.
+1. Rode `migrations/0001_loja_afiliados.sql`, `0002_estoque.sql` e `0008_pagamento_asaas.sql` no SQL Editor.
 2. Secrets (Project Settings > Edge Functions, ou `supabase secrets set`):
-   - `MP_ACCESS_TOKEN`: token de produção (ou de teste) do Mercado Pago
+   - `ASAAS_API_KEY`: chave de API do Asaas (Integrações > Chaves de API)
+   - `ASAAS_API_URL`: `https://api.asaas.com/v3` em produção (padrão) ou `https://api-sandbox.asaas.com/v3` para testes
+   - `ASAAS_WEBHOOK_TOKEN`: um texto aleatório longo, o mesmo cadastrado no webhook do Asaas (passo 4)
    - `SITE_URL`: ex. `https://seudominio.com.br` (sem barra final)
    - `SHIPPING_CENTS`: frete fixo em centavos (0 = grátis)
    - `COMMISSION_HOLD_DAYS`: dias até liberar a comissão (padrão 7)
-3. Deploy: `supabase functions deploy create-checkout` e `supabase functions deploy mp-webhook`
+   - `STORE_OPEN`: `true` libera o checkout. Sem ele a função responde "loja em manutenção".
+     No site, a trava é `STORE_OPEN` em `src/lib/catalog.ts`.
+3. Deploy: `supabase functions deploy create-checkout` e `supabase functions deploy asaas-webhook`
    (o `config.toml` já desliga o JWT só do webhook).
-4. No Mercado Pago, a `notification_url` é enviada a cada pagamento; não precisa configurar no painel.
+4. No Asaas, em Integrações > Webhooks, crie um webhook de **Cobranças**:
+   - URL: `https://ovhdaadmhlbgvquowdtr.supabase.co/functions/v1/asaas-webhook`
+   - Token de autenticação: o mesmo valor de `ASAAS_WEBHOOK_TOKEN`
+   - Eventos: pagamento confirmado, pagamento recebido, estornado, chargeback e cobrança removida
+   - Envio sequencial, versão da API v3
+   O checkout gera uma fatura do Asaas em que o cliente escolhe Pix, cartão ou boleto (vencimento em 3 dias).
+   O retorno automático para `/pedido` só funciona se o domínio de `SITE_URL` estiver cadastrado em
+   Minha Conta > Informações comerciais (site) no Asaas.
 5. Cadastre preços em `products.price_cents`. Produtos sem preço não vão ao carrinho.
 
 ## Afiliados (Supabase Auth)
@@ -30,3 +41,7 @@
   Quem entra pelo Google sem perfil vê "Complete seu cadastro" no painel (código + Pix), que chama `affiliate_register()`.
   Para qualquer conta Google conseguir entrar, o app precisa estar "Em produção" em Google Auth Platform > Público-alvo.
 - A Edge Function `affiliate-signup` não é mais usada: apague do projeto com `supabase functions delete affiliate-signup`.
+
+## Mercado Pago (desativado)
+- O checkout usa só o Asaas. O `mp-webhook` continua publicado só para fechar pedidos antigos ainda pendentes no Mercado Pago.
+  Depois disso, apague com `supabase functions delete mp-webhook`, remova a pasta `functions/mp-webhook` e o secret `MP_ACCESS_TOKEN`.

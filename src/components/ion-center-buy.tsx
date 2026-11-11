@@ -198,7 +198,7 @@ export default function IonCenterBuy({
           </div>
           <p className="t-small mt-3 text-pewter">
             {purchasable
-              ? "Pagamento pelo Mercado Pago: Pix, cartão ou boleto. Frete calculado ao finalizar."
+              ? "Pagamento pelo Asaas: Pix, cartão ou boleto. Frete calculado ao finalizar."
               : "Um consultor monta o orçamento com você, incluindo a instalação ideal para a sua cozinha."}
           </p>
 
