@@ -2,7 +2,7 @@ import { CheckCircle2, ChevronRight, Clock, Lock, Minus, Plus, XCircle } from "l
 import { useEffect, useState } from "react";
 import type React from "react";
 import { clearCart, lineKey, setQty, useCart } from "@/lib/cart";
-import { formatBRL, isPurchasable, productImage, useProducts, type Product } from "@/lib/catalog";
+import { STORE_OPEN, formatBRL, isPurchasable, productImage, useProducts, type Product } from "@/lib/catalog";
 import { FUNCTIONS_URL, getAffiliateRef } from "@/lib/affiliate";
 import { WHATSAPP_DIRECT_URL } from "@/lib/forms";
 import { findIonCenterModel, galleryFor, type Finish } from "@/lib/ion-center";
@@ -90,11 +90,32 @@ export default function CarrinhoPage() {
       });
       const data = await res.json();
       if (!res.ok || !data.url) throw new Error(data.error ?? "Não foi possível iniciar o pagamento.");
-      window.location.href = data.url; // checkout hospedado do Mercado Pago
+      window.location.href = data.url; // fatura hospedada do Asaas
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");
       setBusy(false);
     }
+  }
+
+  if (!STORE_OPEN) {
+    return (
+      <Shell>
+        <div className={`${shell} py-10 text-center md:py-20`}>
+          <h1 className="t-display">Loja em manutenção.</h1>
+          <p className="t-body mx-auto mt-5 max-w-md text-pewter">
+            Estamos ajustando o pagamento e as compras pelo site voltam em breve. Enquanto isso, um consultor
+            faz o seu pedido pelo WhatsApp.
+          </p>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
+            <a href={WHATSAPP_DIRECT_URL} target="_blank" rel="noopener noreferrer" className="btn-action">Falar com um consultor</a>
+            <a href="/loja" className="link-arrow text-link">
+              Ver a loja
+              <ChevronRight size={18} aria-hidden="true" />
+            </a>
+          </div>
+        </div>
+      </Shell>
+    );
   }
 
   if (!products) {
@@ -254,7 +275,7 @@ export default function CarrinhoPage() {
             </button>
             <p className="t-caption mt-4 flex items-start gap-2 text-pewter">
               <Lock size={14} className="mt-px shrink-0" aria-hidden="true" />
-              Você conclui o pagamento no ambiente do Mercado Pago, com Pix, cartão ou boleto.
+              Você conclui o pagamento no ambiente do Asaas, com Pix, cartão ou boleto.
             </p>
             <a href={WHATSAPP_DIRECT_URL} target="_blank" rel="noopener noreferrer" className="link-arrow mt-6 text-[0.9375rem] text-link">
               Dúvidas? Fale com um consultor
@@ -267,7 +288,7 @@ export default function CarrinhoPage() {
   );
 }
 
-/** Página de retorno do Mercado Pago: /pedido?status=approved|pending|failure */
+/** Página de retorno do Asaas: /pedido?status=approved|pending|failure */
 export function PedidoPage() {
   const status = new URLSearchParams(window.location.search).get("status");
   useEffect(() => {

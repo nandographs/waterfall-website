@@ -1,18 +1,46 @@
-// Cria o pedido (preços lidos do banco, nunca do navegador) e a preferência de pagamento no Mercado Pago.
+// Cria o pedido (preços lidos do banco, nunca do navegador) e a cobrança no Asaas.
+// O cliente paga na fatura hospedada do Asaas e escolhe ali Pix, cartão ou boleto.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-const MP_TOKEN = Deno.env.get("MP_ACCESS_TOKEN")!;
+const ASAAS_KEY = Deno.env.get("ASAAS_API_KEY")!;
+// Produção: https://api.asaas.com/v3 · Sandbox: https://api-sandbox.asaas.com/v3
+const ASAAS_URL = (Deno.env.get("ASAAS_API_URL") ?? "https://api.asaas.com/v3").replace(/\/$/, "");
 const SITE_URL = Deno.env.get("SITE_URL")!;
 // Frete fixo em centavos até existir regra por região/produto. 0 = frete grátis.
 const SHIPPING_CENTS = Number(Deno.env.get("SHIPPING_CENTS") ?? 0);
 
 const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
+const asaas = async (path: string, init: RequestInit = {}) => {
+  const res = await fetch(`${ASAAS_URL}${path}`, {
+    ...init,
+    headers: { access_token: ASAAS_KEY, "Content-Type": "application/json", "User-Agent": "waterdiamond-loja", ...init.headers },
+  });
+  return { ok: res.ok, status: res.status, data: await res.json().catch(() => null) };
+};
+
+// Reaproveita o cliente pelo CPF para não duplicar cadastro no Asaas a cada compra.
+async function asaasCustomer(c: { name: string; email: string; phone: string; cpf: string }) {
+  const found = await asaas(`/customers?cpfCnpj=${c.cpf}&limit=1`);
+  const existing = found.ok ? found.data?.data?.[0] : null;
+  const payload = { name: c.name, email: c.email, cpfCnpj: c.cpf, ...(c.phone ? { mobilePhone: c.phone.replace(/\D/g, "") } : {}) };
+  const res = existing
+    ? await asaas(`/customers/${existing.id}`, { method: "PUT", body: JSON.stringify(payload) })
+    : await asaas("/customers", { method: "POST", body: JSON.stringify(payload) });
+  if (!res.ok || !res.data?.id) {
+    console.error("Asaas recusou o cliente", res.status, JSON.stringify(res.data));
+    return null;
+  }
+  return res.data.id as string;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Método não permitido" }, 405);
+  // Loja em manutenção até o secret STORE_OPEN ser "true".
+  if (Deno.env.get("STORE_OPEN") !== "true") return json({ error: "Loja em manutenção. Fale com um consultor pelo WhatsApp." }, 503);
 
   try {
     const body = await req.json();
@@ -82,27 +110,34 @@ Deno.serve(async (req) => {
       order_id: order.id, product_id: l.p.id, name: l.variant ? `${l.p.name} · ${l.variant}` : l.p.name, unit_cents: l.p.price_cents, quantity: l.qty,
     })));
 
-    // Uma linha só, com o total final (já com desconto e frete), evita divergência de centavos.
-    const mp = await fetch("https://api.mercadopago.com/checkout/preferences", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${MP_TOKEN}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        items: [{ title: `Pedido #${order.number} Water Diamond`, quantity: 1, currency_id: "BRL", unit_price: total / 100 }],
-        payer: { name: customer.name, email: customer.email },
-        external_reference: order.id,
-        notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/mp-webhook`,
-        back_urls: { success: `${SITE_URL}/pedido?status=approved`, pending: `${SITE_URL}/pedido?status=pending`, failure: `${SITE_URL}/pedido?status=failure` },
-        // O MP recusa auto_return com back_url em localhost; em dev o cliente volta pelo botão.
-        ...(SITE_URL.startsWith("https://") ? { auto_return: "approved" } : {}),
-      }),
-    });
-    const pref = await mp.json();
-    if (!mp.ok || !pref.init_point) {
-      console.error("Mercado Pago recusou a preferência", mp.status, JSON.stringify(pref));
+    // Uma cobrança só, com o total final (já com desconto e frete), evita divergência de centavos.
+    // billingType UNDEFINED deixa o cliente escolher Pix, cartão ou boleto na fatura.
+    const customerId = await asaasCustomer(customer);
+    const due = new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10);
+    const pay = customerId
+      ? await asaas("/payments", {
+        method: "POST",
+        body: JSON.stringify({
+          customer: customerId,
+          billingType: "UNDEFINED",
+          value: total / 100,
+          dueDate: due,
+          description: `Pedido #${order.number} Water Diamond`,
+          externalReference: order.id,
+          // O Asaas só aceita successUrl no domínio cadastrado na conta; em localhost o cliente volta pelo botão.
+          ...(SITE_URL.startsWith("https://")
+            ? { callback: { successUrl: `${SITE_URL}/pedido?status=approved`, autoRedirect: true } }
+            : {}),
+        }),
+      })
+      : null;
+    if (!pay?.ok || !pay.data?.invoiceUrl) {
+      if (pay) console.error("Asaas recusou a cobrança", pay.status, JSON.stringify(pay.data));
       await db.from("orders").update({ status: "cancelled" }).eq("id", order.id);
       throw new Error("Não foi possível iniciar o pagamento.");
     }
-    return json({ url: pref.init_point, orderNumber: order.number });
+    await db.from("orders").update({ payment_id: pay.data.id }).eq("id", order.id);
+    return json({ url: pay.data.invoiceUrl, orderNumber: order.number });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Erro inesperado." }, 400);
   }

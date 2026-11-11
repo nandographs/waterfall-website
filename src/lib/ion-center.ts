@@ -42,7 +42,7 @@ export const ionCenterProducts: IonCenterModel[] = [
     image: "/images/SLIMIMG.webp",
     imageSm: "/images/SLIMIMG-sm.webp",
     imageAlt: "Ion Center Slim instalado sob a bancada de uma cozinha branca",
-    description: "Ideal para quem busca uma central de tratamento eficiente, elegante e integrada ao ambiente.",
+    description: "O mais fino da linha, com 11,5 cm de profundidade. Vai na parede, na bancada ou embaixo da pia e entrega água natural.",
     highlights: [
       "Design slim",
       "Água natural",
@@ -96,7 +96,7 @@ export const ionCenterProducts: IonCenterModel[] = [
     image: "/images/SMARTIMG.webp",
     imageSm: "/images/SMARTIMG-sm.webp",
     imageAlt: "Ion Center Smart preto sobre a bancada de uma cozinha, com uma mulher servindo um copo de água",
-    description: "Une tratamento completo com a conveniência de água fria, gelada e natural em um sistema compacto.",
+    description: "Água natural, fria e gelada saindo do mesmo aparelho, com 600 ml de gelada sempre prontos.",
     highlights: [
       "Água fria, gelada e natural",
       "600ml de armazenamento de água gelada",
@@ -138,7 +138,7 @@ export const ionCenterProducts: IonCenterModel[] = [
     image: "/images/TURBOIMG.webp",
     imageSm: "/images/TURBOIMG-sm.webp",
     imageAlt: "Ion Center Turbo preto sobre a bancada de uma cozinha, com um casal preparando alimentos",
-    description: "A versão mais robusta da linha, criada para ambientes que precisam de mais volume e água gelada disponível por mais tempo.",
+    description: "Refrigeração por compressor e 2,8 L de água gelada guardados, para casas e escritórios onde a jarra esvazia rápido.",
     highlights: [
       "Água gelada e natural",
       "1,5L/h de capacidade de refrigeração",

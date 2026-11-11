@@ -1,4 +1,9 @@
-# O Mercado Pago chama o webhook sem JWT do Supabase; a função valida o pagamento direto na API do MP.
+# O Asaas chama o webhook sem JWT do Supabase; a função confere o token do webhook
+# (ASAAS_WEBHOOK_TOKEN) e valida a cobrança direto na API do Asaas.
+[functions.asaas-webhook]
+verify_jwt = false
+
+# Antigo, do Mercado Pago. Fica até não haver pedido pendente por lá.
 [functions.mp-webhook]
 verify_jwt = false
 
