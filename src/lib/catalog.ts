@@ -82,7 +82,7 @@ export function useProducts(): Product[] | null {
  * (WhatsApp) e a sacola mostra o aviso. Para reabrir, troque para true e publique o site.
  * A função create-checkout tem a mesma trava (secret STORE_OPEN=true).
  */
-export const STORE_OPEN = true;
+export const STORE_OPEN = false;
 
 export const isPurchasable = (p: Product | undefined | null): p is Product & { priceCents: number } =>
   STORE_OPEN && p?.priceCents != null;
