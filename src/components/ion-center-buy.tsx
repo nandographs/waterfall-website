@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronRight, CreditCard, MessageCircle, ShieldCheck, Truck } from "lucide-react";
 import { addToCart, useCartCount } from "@/lib/cart";
 import { formatBRL, isPurchasable, type Product } from "@/lib/catalog";
-import { FAUCETS, FAUCET_SURCHARGE_CENTS, galleryFor, ionCenterProducts, unitPriceCents, variantOf, type Faucet, type Finish, type GalleryImage, type IonCenterModel } from "@/lib/ion-center";
+import { FAUCETS, galleryFor, ionCenterProducts, unitPriceCents, variantOf, type Faucet, type Finish, type GalleryImage, type IonCenterModel } from "@/lib/ion-center";
 
 const SWATCH: Record<Finish, string> = {
   Branco: "border border-hairline bg-white",
@@ -226,16 +226,11 @@ export default function IonCenterBuy({
                     const base = galleryFor(model, finish).length;
                     setImageIndex(FAUCET_SHOTS[t] ? base : 0);
                   }}
-                  className={`flex cursor-pointer flex-col items-center justify-center rounded-[16px] bg-white px-3 py-4 text-center transition-shadow ${
+                  className={`flex cursor-pointer items-center justify-center rounded-[16px] bg-white px-3 py-4 text-center transition-shadow ${
                     selected ? "ring-2 ring-action" : "ring-1 ring-hairline hover:ring-pewter"
                   }`}
                 >
                   <span className="text-[1.0625rem] font-semibold tracking-[-0.012em]">{t}</span>
-                  {purchasable && (
-                    <span className="t-small mt-0.5 text-pewter [font-variant-numeric:tabular-nums]">
-                      {FAUCET_SURCHARGE_CENTS[t] ? `+ ${formatBRL(FAUCET_SURCHARGE_CENTS[t])}` : "Incluída"}
-                    </span>
-                  )}
                 </button>
               );
             })}
