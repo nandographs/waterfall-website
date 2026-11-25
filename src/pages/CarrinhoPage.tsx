@@ -1,5 +1,5 @@
 import { CheckCircle2, ChevronRight, Clock, Lock, Minus, Plus, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type React from "react";
 import { clearCart, lineKey, setQty, useCart } from "@/lib/cart";
 import { STORE_OPEN, formatBRL, isPurchasable, productImage, useProducts, type Product } from "@/lib/catalog";
@@ -7,8 +7,21 @@ import { FUNCTIONS_URL, getAffiliateRef } from "@/lib/affiliate";
 import { WHATSAPP_DIRECT_URL } from "@/lib/forms";
 import { findIonCenterModel, galleryFor, parseVariant, unitPriceCents } from "@/lib/ion-center";
 import { FloatingWhatsAppButton, SidebarMenu, SiteFooter, SiteHeader } from "@/components/site-shell";
+import { EMAIL_RE, NAME_RE, UFS, isAsaasUrl, isPhone, isValidCpf, onlyDigits } from "@/lib/validation";
 
 const shell = "mx-auto w-full max-w-[1200px] px-5 md:px-12";
+
+/** Confere os dados antes de chamar o checkout. O servidor repete tudo; aqui é para mostrar o erro na hora. */
+function checkoutProblem(f: FormData): string | null {
+  const v = (k: string) => String(f.get(k) ?? "").trim();
+  if (!NAME_RE.test(v("name")) || v("name").length < 3) return "Confira o nome completo.";
+  if (!EMAIL_RE.test(v("email"))) return "Confira o e-mail.";
+  if (!isPhone(v("phone"))) return "Confira o WhatsApp com DDD.";
+  if (!isValidCpf(v("cpf"))) return "Confira o CPF: os dígitos não batem.";
+  if (onlyDigits(v("cep")).length !== 8) return "Confira o CEP (8 dígitos).";
+  if (!UFS.has(v("state").toUpperCase())) return "Confira a UF (ex.: SC).";
+  return null;
+}
 
 /** Miniatura da linha: usa o recorte do acabamento escolhido quando existe; senão a foto do catálogo. */
 function lineThumb(product: Product, variant?: string) {
@@ -64,6 +77,7 @@ export default function CarrinhoPage() {
   const [coupon, setCoupon] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const sending = useRef(false);
 
   useEffect(() => {
     document.title = "Sacola | Loja Water Diamond";
@@ -78,8 +92,13 @@ export default function CarrinhoPage() {
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // Trava síncrona: o estado `busy` só chega no próximo render, um clique duplo passaria.
+    if (sending.current) return;
     if (!FUNCTIONS_URL) return setError("Checkout indisponível: Supabase não configurado.");
     const f = new FormData(e.currentTarget);
+    const problem = checkoutProblem(f);
+    if (problem) return setError(problem);
+    sending.current = true;
     setBusy(true);
     setError(null);
     try {
@@ -97,12 +116,15 @@ export default function CarrinhoPage() {
           },
         }),
       });
-      const data = await res.json();
-      if (!res.ok || !data.url) throw new Error(data.error ?? "Não foi possível iniciar o pagamento.");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) throw new Error(typeof data.error === "string" ? data.error : "Não foi possível iniciar o pagamento.");
+      // Só segue para a fatura se ela for mesmo do Asaas.
+      if (!isAsaasUrl(data.url)) throw new Error("Não foi possível iniciar o pagamento.");
       window.location.href = data.url; // fatura hospedada do Asaas
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro inesperado.");
+      setError(err instanceof Error && err.message !== "Failed to fetch" ? err.message : "Sem conexão com o pagamento. Tente novamente.");
       setBusy(false);
+      sending.current = false;
     }
   }
 
@@ -227,13 +249,14 @@ export default function CarrinhoPage() {
             <form id="checkout" onSubmit={submit} className="mt-16">
               <h2 className="t-headline-lg">Seus dados.</h2>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <Field label="Nome completo" name="name" autoComplete="name" className="sm:col-span-2" />
-                <Field label="E-mail" name="email" type="email" autoComplete="email" />
-                <Field label="WhatsApp" name="phone" type="tel" autoComplete="tel" />
+                <Field label="Nome completo" name="name" autoComplete="name" maxLength={120} className="sm:col-span-2" />
+                <Field label="E-mail" name="email" type="email" autoComplete="email" maxLength={254} />
+                <Field label="WhatsApp" name="phone" type="tel" autoComplete="tel" maxLength={20} />
                 <Field
                   label="CPF"
                   name="cpf"
                   inputMode="numeric"
+                  maxLength={14}
                   pattern="\d{11}|\d{3}\.\d{3}\.\d{3}-\d{2}"
                   title="CPF com 11 dígitos"
                   className="sm:col-span-2"
@@ -242,13 +265,13 @@ export default function CarrinhoPage() {
 
               <h2 className="t-headline-lg mt-14">Entrega.</h2>
               <div className="mt-6 grid gap-4 sm:grid-cols-6">
-                <Field label="CEP" name="cep" inputMode="numeric" autoComplete="postal-code" className="sm:col-span-2" />
-                <Field label="Rua" name="street" autoComplete="address-line1" className="sm:col-span-4" />
-                <Field label="Número" name="number" className="sm:col-span-2" />
-                <Field label="Complemento" name="complement" optional autoComplete="address-line2" className="sm:col-span-4" />
-                <Field label="Bairro" name="district" className="sm:col-span-2" />
-                <Field label="Cidade" name="city" autoComplete="address-level2" className="sm:col-span-3" />
-                <Field label="UF" name="state" maxLength={2} autoComplete="address-level1" className="sm:col-span-1" />
+                <Field label="CEP" name="cep" inputMode="numeric" autoComplete="postal-code" maxLength={9} pattern="\d{5}-?\d{3}" title="CEP com 8 dígitos" className="sm:col-span-2" />
+                <Field label="Rua" name="street" autoComplete="address-line1" maxLength={120} className="sm:col-span-4" />
+                <Field label="Número" name="number" maxLength={20} className="sm:col-span-2" />
+                <Field label="Complemento" name="complement" optional autoComplete="address-line2" maxLength={80} className="sm:col-span-4" />
+                <Field label="Bairro" name="district" maxLength={80} className="sm:col-span-2" />
+                <Field label="Cidade" name="city" autoComplete="address-level2" maxLength={80} className="sm:col-span-3" />
+                <Field label="UF" name="state" maxLength={2} pattern="[A-Za-z]{2}" title="Sigla do estado, ex.: SC" autoComplete="address-level1" className="sm:col-span-1" />
               </div>
             </form>
           </div>

@@ -10,8 +10,13 @@
    - `COMMISSION_HOLD_DAYS`: dias até liberar a comissão (padrão 7)
    - `STORE_OPEN`: `true` libera o checkout. Sem ele a função responde "loja em manutenção".
      No site, a trava é `STORE_OPEN` em `src/lib/catalog.ts`.
-3. Deploy: `supabase functions deploy create-checkout` e `supabase functions deploy asaas-webhook`
-   (o `config.toml` já desliga o JWT só do webhook).
+   - `ALLOWED_ORIGINS`: domínios que podem chamar `create-checkout` e `track-click`, separados por vírgula
+     (ex.: `https://waterfall.ind.br,https://www.waterfall.ind.br,https://bionlife.waterfall.ind.br`). Sem ele vale só o `SITE_URL`.
+     Chamada de outra origem (ou sem origem) recebe 403.
+   - `RATE_LIMIT_SALT`: texto aleatório longo. O IP do visitante vira hash com ele antes de ir para `rate_limits`.
+3. Deploy: `supabase functions deploy create-checkout`, `asaas-webhook` e `track-click`
+   (o `config.toml` já desliga o JWT só do webhook). Rode antes a `0010_seguranca.sql`: ela cria o
+   `rate_limit_hit()` que as funções usam (sem ela os limites ficam desligados e o log mostra "[rate-limit] indisponível").
 4. No Asaas, em Integrações > Webhooks, crie um webhook de **Cobranças**:
    - URL: `https://ovhdaadmhlbgvquowdtr.supabase.co/functions/v1/asaas-webhook`
    - Token de autenticação: o mesmo valor de `ASAAS_WEBHOOK_TOKEN`
@@ -26,9 +31,11 @@
 - Rode também `migrations/0003_afiliados_acesso.sql` e `0004_afiliados_supabase_auth.sql`, e faça o deploy de `track-click`.
 - Cada afiliado tem uma conta no Supabase Auth (e-mail + senha). O cadastro do site chama `auth.signUp()` e o trigger
   `on_auth_user_created_affiliate` cria a linha em `affiliates` (status `pending`, ligada por `user_id`).
-  Cadastros antigos com o mesmo e-mail são apenas ligados à conta nova.
+  Cadastros antigos com o mesmo e-mail são ligados à conta nova só depois que o e-mail é confirmado (`0010`).
 - Em Authentication > Sign In / Providers: deixe **Email** ligado, com **Confirm email** ativo (ninguém entra sem confirmar).
-  Em Authentication > Policies (ou Providers > Email), defina a senha mínima em 8 caracteres.
+  Em Authentication > Policies (ou Providers > Email), defina a senha mínima em **10** caracteres com letras e números
+  (o site já exige isso) e ligue **Leaked password protection**. Em Authentication > Rate Limits, mantenha os limites de
+  login e de envio de e-mail baixos; para travar robôs de vez, ligue o CAPTCHA (Turnstile) em Authentication > Attack Protection.
 - Em Authentication > URL Configuration, coloque `SITE_URL` como Site URL e `SITE_URL/afiliados` nas Redirect URLs
   (usado pela confirmação de e-mail e pelo "Esqueci minha senha").
 - Aprovação automática (`0007`): o afiliado vira `active` quando confirma o e-mail, e o cupom com o mesmo código é criado sozinho.

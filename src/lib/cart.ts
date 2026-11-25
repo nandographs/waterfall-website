@@ -14,11 +14,17 @@ export const lineKey = (l: CartLine) => `${l.slug}::${l.variant ?? ""}`;
 function read(): CartLine[] {
   if (cache) return cache;
   try {
+    // O localStorage pode ser editado por qualquer um: só aceita linhas no formato esperado.
     const parsed = JSON.parse(localStorage.getItem(KEY) ?? "[]");
     cache = Array.isArray(parsed)
       ? parsed
-          .filter((l) => typeof l?.slug === "string" && Number.isInteger(l?.qty) && l.qty > 0)
-          .map((l) => ({ slug: l.slug, qty: l.qty, ...(typeof l.variant === "string" && l.variant ? { variant: l.variant } : {}) }))
+          .filter((l) => typeof l?.slug === "string" && /^[a-z0-9-]{1,60}$/.test(l.slug) && Number.isInteger(l?.qty) && l.qty > 0)
+          .slice(0, 20)
+          .map((l) => ({
+            slug: l.slug,
+            qty: Math.min(l.qty, 10),
+            ...(typeof l.variant === "string" && l.variant && l.variant.length <= 30 ? { variant: l.variant } : {}),
+          }))
       : [];
   } catch {
     cache = [];

@@ -97,7 +97,7 @@ const FitContactModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                     name="name"
                     type="text"
                     required
-                    autoComplete="name"
+                    autoComplete="name" maxLength={120}
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     placeholder="Seu nome"
@@ -114,7 +114,7 @@ const FitContactModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                     name="phone"
                     type="tel"
                     required
-                    autoComplete="tel"
+                    autoComplete="tel" maxLength={20}
                     placeholder="(00) 00000-0000"
                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm transition-colors focus:border-primary focus:outline-none"
                   />

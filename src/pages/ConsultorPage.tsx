@@ -92,21 +92,21 @@ const ConsultantForm = () => {
       <div className="mt-7 space-y-4">
         <label className="block">
           <span className={labelClass}>Nome completo</span>
-          <input required name="nome" autoComplete="name" placeholder="Como podemos chamar você?" className="wd-input" />
+          <input required name="nome" autoComplete="name" maxLength={120} placeholder="Como podemos chamar você?" className="wd-input" />
         </label>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
           <label className="block">
             <span className={labelClass}>WhatsApp</span>
-            <input required name="whatsapp" type="tel" autoComplete="tel" placeholder="(00) 00000-0000" className="wd-input" />
+            <input required name="whatsapp" type="tel" autoComplete="tel" maxLength={20} placeholder="(00) 00000-0000" className="wd-input" />
           </label>
           <label className="block">
             <span className={labelClass}>Cidade / Estado</span>
-            <input required name="cidade" autoComplete="address-level2" placeholder="Onde você está?" className="wd-input" />
+            <input required name="cidade" autoComplete="address-level2" maxLength={80} placeholder="Onde você está?" className="wd-input" />
           </label>
         </div>
         <label className="block">
           <span className={labelClass}>E-mail</span>
-          <input required name="email" type="email" autoComplete="email" placeholder="voce@email.com" className="wd-input" />
+          <input required name="email" type="email" autoComplete="email" maxLength={254} placeholder="voce@email.com" className="wd-input" />
         </label>
       </div>
 

@@ -374,7 +374,7 @@ const ContactModal = ({ isOpen, onClose, product }: { isOpen: boolean, onClose: 
                     name="name"
                     type="text"
                     required
-                    autoComplete="name"
+                    autoComplete="name" maxLength={120}
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="Seu nome"
@@ -390,7 +390,7 @@ const ContactModal = ({ isOpen, onClose, product }: { isOpen: boolean, onClose: 
                       name="phone"
                       type="tel"
                       required
-                      autoComplete="tel"
+                      autoComplete="tel" maxLength={20}
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       placeholder="(00) 00000-0000"
@@ -404,7 +404,7 @@ const ContactModal = ({ isOpen, onClose, product }: { isOpen: boolean, onClose: 
                       name="email"
                       type="email"
                       required
-                      autoComplete="email"
+                      autoComplete="email" maxLength={254}
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
                       placeholder="seu@email.com"
