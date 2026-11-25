@@ -8,18 +8,34 @@ import path from 'node:path';
 const SRC_DIR = 'assets-originais/images';
 const OUT_DIR = 'public/images';
 
-// [arquivo, largura grande, largura mobile, nome de saída opcional]
+// [arquivo, largura grande, largura mobile, nome de saída opcional, qualidade opcional]
 const MANIFEST = [
   ['PRODUTOS.jpg', 1800, 900],
   ['herobg.jpg', 1800, 0],
   ['herobgmobile.jpg', 900, 0],
   ['ioncenterkitchen.jpeg', 1400, 800],
   ['consultor-hero.png', 1400, 800],
-  ['SLIMIMG.jpg', 900, 500],
-  ['SMARTIMG.jpg', 900, 500],
-  ['TURBOIMG.jpg', 900, 500],
+  // Ion Center: fotos de ambiente e fotos de estúdio por acabamento.
+  // SLIMIMG/SMARTIMG/TURBOIMG são a foto principal de cada modelo (o catálogo do Supabase aponta para elas).
+  ['SLIM-ambiente.jpg', 900, 500],
+  ['SMART-ambiente.jpg', 900, 500],
+  ['TURBO-ambiente.jpg', 900, 500],
+  ['slim-branco.jpg', 900, 500],
+  ['slim-preto.jpg', 900, 500],
+  ['smart-branco.jpg', 900, 500],
+  ['smart-preto.jpg', 900, 500],
+  ['turbo-branco.jpg', 900, 500],
+  ['turbo-preto.jpg', 900, 500],
+  ['smart-branco-cozinha.jpg', 1600, 900, undefined, 88],
+  ['turbo-preto-cozinha.jpg', 1600, 900, undefined, 88],
+  ['slim-preto.jpg', 900, 500, 'SLIMIMG'],
+  ['smart-branco.jpg', 900, 500, 'SMARTIMG'],
+  ['turbo-preto.jpg', 900, 500, 'TURBOIMG'],
   ['FAUCET.png', 900, 500],
   ['GOURMET.png', 900, 500],
+  // Torneiras em quadrado para a galeria da loja (sem corte).
+  ['faucet-quad.jpg', 1080, 540, undefined, 88],
+  ['gourmet-quad.jpg', 1080, 540, undefined, 88],
   ['CAPTACAO.png', 1100, 700],
   ['TRATAMENTO.png', 1100, 700],
   ['DISTRIBUICAO.png', 1100, 700],
@@ -61,7 +77,7 @@ const kb = (n) => `${(n / 1024).toFixed(0)} KB`;
 let before = 0;
 let after = 0;
 
-for (const [file, wideWidth, smallWidth, outputName] of entries) {
+for (const [file, wideWidth, smallWidth, outputName, quality] of entries) {
   const src = path.join(SRC_DIR, file);
   const base = outputName ?? path.basename(file).replace(/\.(png|jpe?g)$/i, '');
   const input = await readFile(src);
@@ -76,7 +92,7 @@ for (const [file, wideWidth, smallWidth, outputName] of entries) {
   for (const [name, width] of variants) {
     const out = await sharp(input)
       .resize({ width: Math.min(width, meta.width ?? width), withoutEnlargement: true })
-      .webp({ quality: hasAlpha ? 82 : 78, effort: 6, alphaQuality: 90 })
+      .webp({ quality: quality ?? (hasAlpha ? 82 : 78), effort: 6, alphaQuality: 90, smartSubsample: true })
       .toBuffer();
     await writeFile(path.join(OUT_DIR, name), out);
     after += out.length;

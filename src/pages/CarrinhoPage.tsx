@@ -5,7 +5,7 @@ import { clearCart, lineKey, setQty, useCart } from "@/lib/cart";
 import { STORE_OPEN, formatBRL, isPurchasable, productImage, useProducts, type Product } from "@/lib/catalog";
 import { FUNCTIONS_URL, getAffiliateRef } from "@/lib/affiliate";
 import { WHATSAPP_DIRECT_URL } from "@/lib/forms";
-import { findIonCenterModel, galleryFor, type Finish } from "@/lib/ion-center";
+import { findIonCenterModel, galleryFor, parseVariant } from "@/lib/ion-center";
 import { FloatingWhatsAppButton, SidebarMenu, SiteFooter, SiteHeader } from "@/components/site-shell";
 
 const shell = "mx-auto w-full max-w-[1200px] px-5 md:px-12";
@@ -13,10 +13,18 @@ const shell = "mx-auto w-full max-w-[1200px] px-5 md:px-12";
 /** Miniatura da linha: usa o recorte do acabamento escolhido quando existe; senão a foto do catálogo. */
 function lineThumb(product: Product, variant?: string) {
   const model = findIonCenterModel(product.slug);
-  const shot = model && variant && model.finishes.includes(variant as Finish) ? galleryFor(model, variant as Finish)[0] : null;
+  const { finish } = parseVariant(variant);
+  const shot = model && finish && model.finishes.includes(finish) ? galleryFor(model, finish)[0] : null;
   if (shot) return { src: `/images/${shot.base}-sm.webp`, fit: shot.fit };
   const img = productImage(product);
   return img ? { src: img.src, fit: "cover" as const } : null;
+}
+
+/** "Preto - Gourmet" vira "Acabamento: Preto · Torneira: Gourmet". Sacolas antigas só têm a cor. */
+function variantText(variant: string) {
+  const { finish, faucet } = parseVariant(variant);
+  if (!finish) return variant;
+  return faucet ? `Acabamento: ${finish} · Torneira: ${faucet}` : `Acabamento: ${finish}`;
 }
 
 function Field({
@@ -173,7 +181,7 @@ export default function CarrinhoPage() {
                     <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:justify-between">
                       <div>
                         <a href={`/loja/${l.slug}`} className="t-headline font-semibold hover:underline hover:underline-offset-4">{l.product.name}</a>
-                        {l.variant && <p className="t-small mt-1 text-pewter">Acabamento: {l.variant}</p>}
+                        {l.variant && <p className="t-small mt-1 text-pewter">{variantText(l.variant)}</p>}
                         <p className="t-small mt-1 text-pewter [font-variant-numeric:tabular-nums]">{formatBRL(l.product.priceCents)} cada</p>
                       </div>
                       <div className="flex items-center justify-between gap-6 sm:flex-col sm:items-end">

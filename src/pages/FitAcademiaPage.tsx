@@ -334,7 +334,7 @@ const models = [
   {
     name: "Slim",
     full: "Ion Center Slim",
-    image: "/images/SLIMIMG.webp",
+    image: "/images/SLIM-ambiente.webp",
     alt: "Ion Center Slim instalado sob a bancada de uma cozinha branca",
     desc: "Instalado sob a bancada ou na parede. Fornece água em temperatura natural sem ocupar espaço sobre a superfície.",
     tint: "bg-[#eef6fa]",
@@ -342,7 +342,7 @@ const models = [
   {
     name: "Smart",
     full: "Ion Center Smart",
-    image: "/images/SMARTIMG.webp",
+    image: "/images/SMART-ambiente.webp",
     alt: "Ion Center Smart preto sobre a bancada de uma cozinha contemporânea",
     desc: "Água natural, fria ou gelada em um equipamento compacto com refrigeração eletrônica.",
     tint: "bg-[#e6f7fc]",
@@ -350,7 +350,7 @@ const models = [
   {
     name: "Turbo",
     full: "Ion Center Turbo",
-    image: "/images/TURBOIMG.webp",
+    image: "/images/TURBO-ambiente.webp",
     alt: "Ion Center Turbo preto sobre a bancada de uma cozinha escura",
     desc: "Mais capacidade e água gelada por mais tempo, com sistema de refrigeração por compressor.",
     tint: "bg-[#f1f5f8]",
