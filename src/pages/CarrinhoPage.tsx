@@ -5,7 +5,7 @@ import { clearCart, lineKey, setQty, useCart } from "@/lib/cart";
 import { STORE_OPEN, formatBRL, isPurchasable, productImage, useProducts, type Product } from "@/lib/catalog";
 import { FUNCTIONS_URL, getAffiliateRef } from "@/lib/affiliate";
 import { WHATSAPP_DIRECT_URL } from "@/lib/forms";
-import { findIonCenterModel, galleryFor, parseVariant } from "@/lib/ion-center";
+import { findIonCenterModel, galleryFor, parseVariant, unitPriceCents } from "@/lib/ion-center";
 import { FloatingWhatsAppButton, SidebarMenu, SiteFooter, SiteHeader } from "@/components/site-shell";
 
 const shell = "mx-auto w-full max-w-[1200px] px-5 md:px-12";
@@ -71,8 +71,9 @@ export default function CarrinhoPage() {
 
   const lines = cart
     .map((l) => ({ ...l, product: products?.find((p) => p.slug === l.slug) }))
-    .filter((l): l is typeof l & { product: Product & { priceCents: number } } => isPurchasable(l.product));
-  const subtotal = lines.reduce((s, l) => s + l.product.priceCents * l.qty, 0);
+    .filter((l): l is typeof l & { product: Product & { priceCents: number } } => isPurchasable(l.product))
+    .map((l) => ({ ...l, unitCents: unitPriceCents(l.product.priceCents, l.variant) }));
+  const subtotal = lines.reduce((s, l) => s + l.unitCents * l.qty, 0);
   const itemCount = lines.reduce((n, l) => n + l.qty, 0);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -182,7 +183,7 @@ export default function CarrinhoPage() {
                       <div>
                         <a href={`/loja/${l.slug}`} className="t-headline font-semibold hover:underline hover:underline-offset-4">{l.product.name}</a>
                         {l.variant && <p className="t-small mt-1 text-pewter">{variantText(l.variant)}</p>}
-                        <p className="t-small mt-1 text-pewter [font-variant-numeric:tabular-nums]">{formatBRL(l.product.priceCents)} cada</p>
+                        <p className="t-small mt-1 text-pewter [font-variant-numeric:tabular-nums]">{formatBRL(l.unitCents)} cada</p>
                       </div>
                       <div className="flex items-center justify-between gap-6 sm:flex-col sm:items-end">
                         <div className="flex items-center rounded-full ring-1 ring-hairline">
@@ -206,7 +207,7 @@ export default function CarrinhoPage() {
                           </button>
                         </div>
                         <div className="text-right">
-                          <p className="t-title [font-variant-numeric:tabular-nums]">{formatBRL(l.product.priceCents * l.qty)}</p>
+                          <p className="t-title [font-variant-numeric:tabular-nums]">{formatBRL(l.unitCents * l.qty)}</p>
                           <button
                             type="button"
                             onClick={() => setQty(l.slug, 0, l.variant)}

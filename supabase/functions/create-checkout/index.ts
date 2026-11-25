@@ -11,6 +11,10 @@ const SITE_URL = Deno.env.get("SITE_URL")!;
 // Frete fixo em centavos até existir regra por região/produto. 0 = frete grátis.
 const SHIPPING_CENTS = Number(Deno.env.get("SHIPPING_CENTS") ?? 0);
 
+// Acréscimo da torneira nos Ion Center (Tabela de Preços 2026). Espelha FAUCET_SURCHARGE_CENTS em src/lib/ion-center.ts.
+// O price_cents do banco é o do modelo com a torneira básica.
+const FAUCET_SURCHARGE_CENTS: Record<string, number> = { Faucet: 50000, Gourmet: 100000 };
+
 const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
 const asaas = async (path: string, init: RequestInit = {}) => {
@@ -66,11 +70,13 @@ Deno.serve(async (req) => {
       const qty = Number(i.qty);
       if (!p || !Number.isInteger(qty) || qty < 1 || qty > 10) throw new Error(`Produto indisponível: ${str(i.slug, 60)}`);
       if (p.stock !== null && p.stock < qty) throw new Error(`Sem estoque: ${p.name}`);
-      // Acabamento escolhido na loja (ex.: "Preto"). Só texto curto; não altera preço.
+      // Configuração escolhida na loja (ex.: "Preto - Gourmet"). A torneira soma o acréscimo da tabela.
       const variant = str(i.variant, 30).replace(/[^\p{L}\p{N} -]/gu, "");
-      return { p, qty, variant };
+      const faucet = variant.split(" - ")[1] ?? "";
+      const surcharge = p.slug.startsWith("ion-center-") ? FAUCET_SURCHARGE_CENTS[faucet] ?? 0 : 0;
+      return { p, qty, variant, unit: p.price_cents + surcharge };
     });
-    const subtotal = lines.reduce((s, l) => s + l.p.price_cents * l.qty, 0);
+    const subtotal = lines.reduce((s, l) => s + l.unit * l.qty, 0);
 
     // Afiliado: cupom tem prioridade; senão o ?ref= do navegador. Auto-indicação é ignorada.
     let affiliate: { id: string; email: string; commission_pct: number } | null = null;
@@ -107,7 +113,7 @@ Deno.serve(async (req) => {
     if (error || !order) throw new Error("Falha ao criar o pedido.");
 
     await db.from("order_items").insert(lines.map((l) => ({
-      order_id: order.id, product_id: l.p.id, name: l.variant ? `${l.p.name} · ${l.variant}` : l.p.name, unit_cents: l.p.price_cents, quantity: l.qty,
+      order_id: order.id, product_id: l.p.id, name: l.variant ? `${l.p.name} · ${l.variant}` : l.p.name, unit_cents: l.unit, quantity: l.qty,
     })));
 
     // Uma cobrança só, com o total final (já com desconto e frete), evita divergência de centavos.

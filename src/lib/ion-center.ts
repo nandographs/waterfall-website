@@ -31,6 +31,16 @@ export const parseVariant = (variant?: string): { finish?: Finish; faucet?: Fauc
   };
 };
 
+/**
+ * Acréscimo da torneira sobre o preço do modelo (Tabela de Preços 2026, igual nas linhas Slim, Smart e Turbo).
+ * O preço do catálogo é o do modelo com a torneira básica. A função create-checkout repete esta tabela.
+ */
+export const FAUCET_SURCHARGE_CENTS: Record<Faucet, number> = { Básico: 0, Faucet: 50000, Gourmet: 100000 };
+
+/** Preço unitário de uma linha da sacola: preço do modelo + acréscimo da torneira escolhida. */
+export const unitPriceCents = (baseCents: number, variant?: string) =>
+  baseCents + FAUCET_SURCHARGE_CENTS[parseVariant(variant).faucet ?? "Básico"];
+
 export type IonCenterModel = {
   slug: string;
   tag: string;
