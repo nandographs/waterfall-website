@@ -33,7 +33,9 @@
   (usado pela confirmação de e-mail e pelo "Esqueci minha senha").
 - Aprovação automática (`0007`): o afiliado vira `active` quando confirma o e-mail, e o cupom com o mesmo código é criado sozinho.
   O e-mail de confirmação sai pelo SMTP da Hostinger (no-reply@waterfall.ind.br) com o modelo em Authentication > Emails.
-  Ajuste `commission_pct` do afiliado e, se quiser desconto no cupom, `coupons.discount_pct`.
+  A comissão padrão é 20% (`0009`), sobre o valor dos produtos já com desconto (frete não entra).
+  Para um percentual diferente, ajuste `affiliates.commission_pct` (por afiliado) ou `products.commission_pct`
+  (por produto, tem prioridade sobre o do afiliado). Desconto no cupom: `coupons.discount_pct`.
 - Bloquear: `status = blocked` (o login continua funcionando, mas o painel não mostra nada).
 - Pagar comissão: some as comissões liberadas (`release_at` vencido, status `pending`/`approved`), pague por Pix e marque `status = paid`.
 - Login com Google: rode `0005_afiliados_google.sql`. O cliente OAuth fica no projeto "Waterfall Website" do Google Cloud
