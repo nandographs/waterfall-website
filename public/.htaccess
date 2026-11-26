@@ -14,9 +14,18 @@ Options -Indexes
   RewriteEngine On
   RewriteBase /
 
+  # Endereço principal: www.waterfall.ind.br. Quem entra sem o www vai para ele num único 301,
+  # mantendo caminho e ?ref= do afiliado. Sem isso, cada endereço tinha a sua sacola (o localStorage
+  # é separado por domínio). O .well-known fica de fora para não atrapalhar a renovação do SSL.
+  # A regra só casa com o domínio sem www, então o bionlife.waterfall.ind.br (mesmo .htaccess) não é afetado.
+  RewriteCond %{HTTP_HOST} ^waterfall\.ind\.br$ [NC]
+  RewriteCond %{REQUEST_URI} !^/\.well-known/
+  RewriteRule ^ https://www.waterfall.ind.br%{REQUEST_URI} [R=301,L]
+
+  # %{REQUEST_URI} já vem com a barra inicial (a regra antiga gerava "//" no endereço).
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !https
-  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 </IfModule>
 
 # ------------------------------------------------------------
