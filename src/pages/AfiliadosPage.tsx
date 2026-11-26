@@ -9,7 +9,7 @@ import { SidebarMenu, SiteFooter, SiteHeader } from "@/components/site-shell";
 const shell = "mx-auto w-full max-w-[1200px] px-5 md:px-12";
 const labelClass = "mb-1.5 block text-[0.8125rem] font-medium text-pewter";
 
-type Affiliate = { name: string; code: string; status: string; commission_pct: number };
+type Affiliate = { name: string; code: string; status: string; tier: "affiliate" | "consultant"; commission_pct: number };
 type Commission = { amount_cents: number; status: string; release_at: string | null; created_at: string };
 
 const steps = [
@@ -582,7 +582,10 @@ function Dashboard({ session }: { session: Session }) {
   useEffect(() => {
     (async () => {
       const db = supabase!;
-      const { data } = await db.from("affiliates").select("name, code, status, commission_pct").maybeSingle();
+      // Conta de administrador vai para o painel administrativo (o mesmo login serve para os dois).
+      const { data: admin } = await db.rpc("is_admin");
+      if (admin === true) return void window.location.replace("/admin");
+      const { data } = await db.from("affiliates").select("name, code, status, tier, commission_pct").maybeSingle();
       setAff(data);
       if (data?.status !== "active") return;
       const [c, k, cp] = await Promise.all([
@@ -641,7 +644,9 @@ function Dashboard({ session }: { session: Session }) {
       <div className="mt-12 rounded-[28px] bg-obsidian p-7 text-frost md:p-10">
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
           <p className="t-title">Seu link de indicação</p>
-          <p className="t-small text-platinum">{aff.commission_pct}% de comissão por venda</p>
+          <p className="t-small text-platinum">
+            {aff.tier === "consultant" ? "Consultor" : "Afiliado"} · {aff.commission_pct}% de comissão por venda
+          </p>
         </div>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
           <code className="min-w-0 flex-1 truncate rounded-[14px] bg-black/40 px-5 py-3.5 font-mono text-[0.9375rem] text-frost">{link}</code>
