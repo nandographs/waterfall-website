@@ -92,9 +92,9 @@ export default function IonCenterBuy({
   };
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-16">
+    <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-16">
       {/* Galeria */}
-      <div className="self-start lg:sticky lg:top-24">
+      <div className="min-w-0 self-start lg:sticky lg:top-24">
         <div className="relative aspect-square overflow-hidden rounded-[28px] bg-white">
           <AnimatePresence initial={false} mode="popLayout">
             <motion.img
@@ -144,7 +144,7 @@ export default function IonCenterBuy({
       </div>
 
       {/* Configuração */}
-      <div className="text-obsidian">
+      <div className="min-w-0 text-obsidian">
         <h3 className="t-headline-lg">{model.name}</h3>
         <p className="t-body mt-3 text-pewter">{model.description}</p>
 

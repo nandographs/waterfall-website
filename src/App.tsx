@@ -1102,28 +1102,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* ETAPAS — palco escuro, cada refil com a cor da própria lata */}
-      <section id="etapas" className={`overflow-hidden bg-stage ${sectionY}`}>
-        <div className={shell}>
-          <FadeIn>
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:items-end lg:gap-16">
-              <div>
-                <p className="t-eyebrow text-signal">Quatro refis e a ionização</p>
-                <h2 className="t-display mt-3">Cada etapa cuida de uma parte da água.</h2>
-              </div>
-              <p className="t-body max-w-xl text-platinum">
-                Os quatro refis trabalham em sequência, cada um com a sua função: o primeiro segura as partículas, o segundo tira o cloro e os químicos, o terceiro retém o que é fino demais e o quarto devolve pH e minerais. No fim, a água passa pelo bastão de ionização.
-              </p>
-            </div>
-          </FadeIn>
-        </div>
-
-        <FadeIn delay={0.1} className="mt-14 md:mt-20">
-          <HighlightsCarousel items={refillHighlights} label="As quatro etapas de filtragem" mobileAspect="aspect-[9/16]" />
-        </FadeIn>
-      </section>
-
-      {/* IONIZAÇÃO WATER DIAMOND — faixa branca: texto à esquerda, esquema animado do bastão à direita */}
+      {/* IONIZAÇÃO WATER DIAMOND — faixa branca: texto à esquerda, esquema animado do dispositivo à direita */}
       <section className={`bg-white text-obsidian ${sectionY}`}>
         <div className={shell}>
           <div className="grid items-center gap-12 md:grid-cols-2 lg:gap-20">
@@ -1132,17 +1111,46 @@ function HomePage() {
               <h2 className="t-display mt-3">Ionização Water Diamond®</h2>
               <p className="t-headline mt-4 text-pewter">Carga elétrica e estrutura da água</p>
               <p className="t-body mt-8 max-w-md text-pewter">
-                O bastão Water Diamond® atua na carga elétrica da água: converte íons positivos em negativos e reorganiza a estrutura das moléculas.
+                O dispositivo Water Diamond® atua na carga elétrica da água: converte íons positivos em negativos e reorganiza a estrutura das moléculas.
               </p>
-              <p className="t-body mt-8 max-w-md border-t border-hairline pt-6 font-medium text-obsidian">
-                O bastão fica depois dos quatro refis, então atua sobre a água já filtrada e alcalinizada.
-              </p>
+              <div className="mt-8 max-w-md border-t border-hairline pt-6">
+                <p className="t-small font-medium text-obsidian">Funções do dispositivo</p>
+                <ul className="t-body mt-3 space-y-2 text-pewter">
+                  {["Ionização", "Quebra das moléculas", "Liberação dos sais minerais"].map((item) => (
+                    <li key={item} className="flex items-center gap-3">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-signal-ink" aria-hidden="true" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </FadeIn>
             <FadeIn delay={0.1}>
               <IonizationDiagram className="h-auto w-full" />
             </FadeIn>
           </div>
         </div>
+      </section>
+
+      {/* ETAPAS — palco escuro, cada refil com a cor da própria lata */}
+      <section id="etapas" className={`overflow-hidden bg-stage ${sectionY}`}>
+        <div className={shell}>
+          <FadeIn>
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:items-end lg:gap-16">
+              <div>
+                <p className="t-eyebrow text-signal">Os quatro refis</p>
+                <h2 className="t-display mt-3">Cada etapa cuida de uma parte da água.</h2>
+              </div>
+              <p className="t-body max-w-xl text-platinum">
+                Os quatro refis trabalham em sequência, cada um com a sua função: o primeiro segura as partículas, o segundo tira o cloro e os químicos, o terceiro retém o que é fino demais e o quarto devolve pH e minerais.
+              </p>
+            </div>
+          </FadeIn>
+        </div>
+
+        <FadeIn delay={0.1} className="mt-14 md:mt-20">
+          <HighlightsCarousel items={refillHighlights} label="As quatro etapas de filtragem" mobileAspect="aspect-[9/16]" />
+        </FadeIn>
       </section>
 
       {/* COMPARAR MODELOS — foto de estúdio de cada modelo com troca de cor, e os mesmos pontos alinhados em linha */}
