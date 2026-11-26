@@ -47,6 +47,7 @@
 - Painel administrativo (`/admin`, `0011`): o admin entra pelo mesmo login do `/afiliados` e é mandado para o `/admin`.
   Lá vê afiliados e consultores, cliques, vendas e comissões, troca o tipo, bloqueia/reativa e marca as comissões liberadas
   como pagas (depois de pagar o Pix). Tudo passa por funções `admin_*` que recusam quem não está em `public.admins`.
+  Cada troca de tipo, bloqueio/reativação e pagamento marcado fica em `public.admin_audit` (qual admin, o quê, quando; `0012`).
   Para cadastrar um admin, crie a conta (pelo próprio site ou em Authentication > Users) e rode no SQL Editor:
   `insert into public.admins (user_id) select id from auth.users where lower(email) = lower('email@do-admin') on conflict do nothing;`
 - Login com Google: rode `0005_afiliados_google.sql`. O cliente OAuth fica no projeto "Waterfall Website" do Google Cloud
