@@ -1,6 +1,7 @@
 // Webhook do Mercado Pago. Não confiamos no corpo recebido: só o id do pagamento é usado e o
 // status real é buscado na API do MP com o nosso token. Idempotente (o MP reenvia notificações).
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { commissionCents } from "../_shared/commission.ts";
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const MP_TOKEN = Deno.env.get("MP_ACCESS_TOKEN")!;
@@ -40,15 +41,7 @@ Deno.serve(async (req) => {
 
     if (order.affiliate_id) {
       const { data: aff } = await db.from("affiliates").select("commission_pct").eq("id", order.affiliate_id).single();
-      const { data: prods } = await db.from("products").select("id, commission_pct").in("id", (items ?? []).map((i) => i.product_id));
-      // Comissão sobre o valor dos produtos já com desconto (frete não comissiona).
-      const ratio = order.subtotal_cents ? (order.subtotal_cents - order.discount_cents) / order.subtotal_cents : 1;
-      const amount = Math.round(
-        (items ?? []).reduce((s, i) => {
-          const pct = prods?.find((p) => p.id === i.product_id)?.commission_pct ?? aff?.commission_pct ?? 0;
-          return s + (i.unit_cents * i.quantity * ratio * Number(pct)) / 100;
-        }, 0),
-      );
+      const amount = commissionCents(order, items ?? [], aff?.commission_pct ?? 0);
       if (amount > 0) {
         await db.from("commissions").upsert(
           { affiliate_id: order.affiliate_id, order_id: order.id, amount_cents: amount, release_at: new Date(Date.now() + HOLD_DAYS * 864e5).toISOString() },

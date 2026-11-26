@@ -17,6 +17,7 @@ const FitAcademiaPage = lazy(() => import("./pages/FitAcademiaPage"));
 const BionLifePage = lazy(() => import("./pages/BionLifePage"));
 const LojaPage = lazy(() => import("./pages/LojaPage"));
 const AfiliadosPage = lazy(() => import("./pages/AfiliadosPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
 const CarrinhoPage = lazy(() => import("./pages/CarrinhoPage"));
 const PedidoPage = lazy(() => import("./pages/CarrinhoPage").then((m) => ({ default: m.PedidoPage })));
 
@@ -724,6 +725,15 @@ export default function App() {
     return (
       <Suspense fallback={<RouteFallback />}>
         <AfiliadosPage />
+      </Suspense>
+    );
+  }
+
+  // Painel administrativo. Nenhum link do site aponta para cá: o admin entra pelo login do /afiliados.
+  if (normalizedPath === "/admin") {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <AdminPage />
       </Suspense>
     );
   }

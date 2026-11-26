@@ -40,11 +40,15 @@
   (usado pela confirmação de e-mail e pelo "Esqueci minha senha").
 - Aprovação automática (`0007`): o afiliado vira `active` quando confirma o e-mail, e o cupom com o mesmo código é criado sozinho.
   O e-mail de confirmação sai pelo SMTP da Hostinger (no-reply@waterfall.ind.br) com o modelo em Authentication > Emails.
-  A comissão padrão é 20% (`0009`), sobre o valor dos produtos já com desconto (frete não entra).
-  Para um percentual diferente, ajuste `affiliates.commission_pct` (por afiliado) ou `products.commission_pct`
-  (por produto, tem prioridade sobre o do afiliado). Desconto no cupom: `coupons.discount_pct`.
-- Bloquear: `status = blocked` (o login continua funcionando, mas o painel não mostra nada).
-- Pagar comissão: some as comissões liberadas (`release_at` vencido, status `pending`/`approved`), pague por Pix e marque `status = paid`.
+- Tipos de parceiro (`0011`): `affiliates.tier` é `affiliate` (10%) ou `consultant` (20%). Todo cadastro nasce afiliado;
+  quem vira consultor é o admin, no painel. Ao trocar o tipo, um trigger ajusta `commission_pct`, e é esse campo que os
+  webhooks usam. A comissão é sobre o valor dos produtos já com desconto (frete não entra). Comissões já registradas não mudam.
+  `products.commission_pct` não é mais usado no cálculo. Desconto no cupom: `coupons.discount_pct`.
+- Painel administrativo (`/admin`, `0011`): o admin entra pelo mesmo login do `/afiliados` e é mandado para o `/admin`.
+  Lá vê afiliados e consultores, cliques, vendas e comissões, troca o tipo, bloqueia/reativa e marca as comissões liberadas
+  como pagas (depois de pagar o Pix). Tudo passa por funções `admin_*` que recusam quem não está em `public.admins`.
+  Para cadastrar um admin, crie a conta (pelo próprio site ou em Authentication > Users) e rode no SQL Editor:
+  `insert into public.admins (user_id) select id from auth.users where lower(email) = lower('email@do-admin') on conflict do nothing;`
 - Login com Google: rode `0005_afiliados_google.sql`. O cliente OAuth fica no projeto "Waterfall Website" do Google Cloud
   (Google Auth Platform > Clientes), com o redirect `https://ovhdaadmhlbgvquowdtr.supabase.co/auth/v1/callback`.
   Quem entra pelo Google sem perfil vê "Complete seu cadastro" no painel (código + Pix), que chama `affiliate_register()`.
