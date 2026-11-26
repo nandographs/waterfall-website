@@ -1,5 +1,5 @@
 /**
- * Esquema animado do bastão Water Diamond®: a água corre pelo tubo entre os ímãs de neodímio (N em cima,
+ * Esquema animado do dispositivo Water Diamond®: a água corre pelo tubo entre os ímãs de neodímio (N em cima,
  * S embaixo) e as esferas da tecnologia Water Diamond. Ao passar pelo campo, os cátions (+) viram ânions (−), ou seja, mais elétrons.
  * Tudo em SVG + CSS, sem bibliotecas. Com "reduzir movimento" ligado, o desenho fica parado.
  */
@@ -70,7 +70,7 @@ export default function IonizationDiagram({ className = "" }: { className?: stri
       viewBox="0 0 800 640"
       className={className}
       role="img"
-      aria-label="Esquema do bastão Water Diamond: a água passa entre ímãs de neodímio e as esferas da tecnologia Water Diamond, e os cátions se transformam em ânions, com mais elétrons."
+      aria-label="Esquema do dispositivo Water Diamond: a água passa entre ímãs de neodímio e as esferas da tecnologia Water Diamond, e os cátions se transformam em ânions, com mais elétrons."
       style={{ fontFamily: "inherit" }}
     >
       <style>{`
