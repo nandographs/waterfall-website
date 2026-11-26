@@ -97,7 +97,7 @@ const FitContactModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                     name="name"
                     type="text"
                     required
-                    autoComplete="name"
+                    autoComplete="name" maxLength={120}
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     placeholder="Seu nome"
@@ -114,7 +114,7 @@ const FitContactModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                     name="phone"
                     type="tel"
                     required
-                    autoComplete="tel"
+                    autoComplete="tel" maxLength={20}
                     placeholder="(00) 00000-0000"
                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm transition-colors focus:border-primary focus:outline-none"
                   />
@@ -334,7 +334,7 @@ const models = [
   {
     name: "Slim",
     full: "Ion Center Slim",
-    image: "/images/SLIMIMG.webp",
+    image: "/images/SLIM-ambiente.webp",
     alt: "Ion Center Slim instalado sob a bancada de uma cozinha branca",
     desc: "Instalado sob a bancada ou na parede. Fornece água em temperatura natural sem ocupar espaço sobre a superfície.",
     tint: "bg-[#eef6fa]",
@@ -342,7 +342,7 @@ const models = [
   {
     name: "Smart",
     full: "Ion Center Smart",
-    image: "/images/SMARTIMG.webp",
+    image: "/images/SMART-ambiente.webp",
     alt: "Ion Center Smart preto sobre a bancada de uma cozinha contemporânea",
     desc: "Água natural, fria ou gelada em um equipamento compacto com refrigeração eletrônica.",
     tint: "bg-[#e6f7fc]",
@@ -350,7 +350,7 @@ const models = [
   {
     name: "Turbo",
     full: "Ion Center Turbo",
-    image: "/images/TURBOIMG.webp",
+    image: "/images/TURBO-ambiente.webp",
     alt: "Ion Center Turbo preto sobre a bancada de uma cozinha escura",
     desc: "Mais capacidade e água gelada por mais tempo, com sistema de refrigeração por compressor.",
     tint: "bg-[#f1f5f8]",

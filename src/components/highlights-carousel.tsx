@@ -1,13 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Pause, Play } from "lucide-react";
 
 export type Highlight = {
   id: string;
   title: string;
   description: string;
-  /** Nome-base em /images, sem extensão (existe também a versão -sm). */
-  image: string;
-  alt: string;
+  /** Nome-base em /images, sem extensão (existe também a versão -sm). Ignorado quando há `media`. */
+  image?: string;
+  alt?: string;
+  /** Camada visual própria no lugar da foto P&B (ex.: produto recortado sobre fundo escuro). */
+  media?: ReactNode;
+  /** Linha curta acima da frase, na cor `accent`. */
+  eyebrow?: string;
+  accent?: string;
+  /** Fecho no pé do card. */
+  note?: string;
 };
 
 const SLIDE_MS = 3000;
@@ -20,7 +27,16 @@ const edge = "max(1.25rem, calc((100vw - 1440px) / 2 + 3rem))";
  * rolagem horizontal com snap, pontos de navegação e play/pause. Só avança sozinho quando está
  * visível e quando a pessoa não pediu menos movimento.
  */
-export default function HighlightsCarousel({ items }: { items: Highlight[] }) {
+export default function HighlightsCarousel({
+  items,
+  label = "O caminho da água",
+  mobileAspect = "aspect-[3/4]",
+}: {
+  items: Highlight[];
+  label?: string;
+  /** Proporção do card no celular (abaixo de 640px). */
+  mobileAspect?: string;
+}) {
   const trackRef = useRef<HTMLUListElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   // Enquanto a rolagem vem de goTo(), o ponto ativo já está certo: ignora as posições intermediárias.
@@ -98,7 +114,7 @@ export default function HighlightsCarousel({ items }: { items: Highlight[] }) {
   }, [running, active, items.length, goTo]);
 
   return (
-    <div ref={rootRef} role="region" aria-roledescription="carrossel" aria-label="O caminho da água">
+    <div ref={rootRef} role="region" aria-roledescription="carrossel" aria-label={label}>
       <ul
         ref={trackRef}
         className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] md:gap-5 [&::-webkit-scrollbar]:hidden"
@@ -109,22 +125,38 @@ export default function HighlightsCarousel({ items }: { items: Highlight[] }) {
             key={item.id}
             aria-roledescription="slide"
             aria-label={`${i + 1} de ${items.length}: ${item.title}`}
-            className="relative aspect-[3/4] w-[84vw] shrink-0 snap-start overflow-hidden rounded-[28px] bg-obsidian sm:aspect-[4/3] md:aspect-[16/9] md:w-[min(78vw,1180px)]"
+            className={`relative ${mobileAspect} w-[84vw] shrink-0 snap-start overflow-hidden rounded-[28px] bg-obsidian sm:aspect-[4/3] md:aspect-[16/9] md:w-[min(78vw,1180px)]`}
           >
-            <img
-              src={`/images/${item.image}.webp`}
-              srcSet={`/images/${item.image}-sm.webp 700w, /images/${item.image}.webp 1100w`}
-              sizes="(max-width: 768px) 84vw, min(78vw, 1180px)"
-              alt={item.alt}
-              loading={i === 0 ? "eager" : "lazy"}
-              decoding="async"
-              className="absolute inset-0 h-full w-full object-cover grayscale"
-            />
-            {/* Véu só no topo, onde a frase pousa. */}
-            <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/60 to-transparent" />
-            <p className="relative max-w-[34rem] p-7 text-[1.0625rem] font-medium leading-snug tracking-[-0.015em] text-frost md:p-10 md:text-[1.3125rem]">
-              <span className="font-semibold text-white">{item.title}.</span> {item.description}
-            </p>
+            {item.media ?? (
+              <>
+                <img
+                  src={`/images/${item.image}.webp`}
+                  srcSet={`/images/${item.image}-sm.webp 700w, /images/${item.image}.webp 1100w`}
+                  sizes="(max-width: 768px) 84vw, min(78vw, 1180px)"
+                  alt={item.alt ?? ""}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover grayscale"
+                />
+                {/* Véu só no topo, onde a frase pousa. */}
+                <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/60 to-transparent" />
+              </>
+            )}
+            <div className="relative max-w-[34rem] p-7 md:p-10">
+              {item.eyebrow && (
+                <p className="t-eyebrow mb-3" style={item.accent ? { color: item.accent } : undefined}>
+                  {item.eyebrow}
+                </p>
+              )}
+              <p className="text-[1.0625rem] font-medium leading-snug tracking-[-0.015em] text-frost md:text-[1.3125rem]">
+                <span className="font-semibold text-white">{item.title}.</span> {item.description}
+              </p>
+            </div>
+            {item.note && (
+              <p className="t-small absolute inset-x-0 bottom-0 max-w-[30rem] p-7 font-medium text-platinum md:p-10">
+                {item.note}
+              </p>
+            )}
           </li>
         ))}
       </ul>

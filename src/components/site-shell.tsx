@@ -206,7 +206,7 @@ export const SidebarMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
           ))}
         </ul>
 
-        <p className="t-small mt-auto text-platinum">A melhor água do mundo.</p>
+        <p className="t-small mt-auto text-platinum">Central de tratamento de água Water Diamond.</p>
       </div>
     </div>
   );
@@ -233,7 +233,7 @@ export const SiteFooter = () => (
       <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_auto]">
         <div>
           <img src="/images/LOGO.webp" alt="Water Diamond" className="h-8 w-auto object-contain brightness-0 invert" />
-          <p className="t-small mt-4 max-w-xs text-platinum">A melhor água do mundo.</p>
+          <p className="t-small mt-4 max-w-xs text-platinum">Central de tratamento de água Water Diamond.</p>
         </div>
         <div>
           <p className="t-caption font-semibold text-frost">Comprar</p>

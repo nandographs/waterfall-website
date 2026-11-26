@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, Droplet, EyeOff, Sparkles, Shield, Activity, ChevronRight, User, X } from 'lucide-react';
+import { Check, Droplet, EyeOff, ChevronRight, X } from 'lucide-react';
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import HighlightsCarousel, { type Highlight } from "@/components/highlights-carousel";
 import ContaminantsExplorer from "@/components/contaminants-explorer";
@@ -9,6 +9,8 @@ import IonCenterBuy, { lowestPrice, priceText } from "@/components/ion-center-bu
 import { ionCenterProducts, type IonCenterModel } from "@/lib/ion-center";
 import { formatBRL, isPurchasable, useProducts } from "@/lib/catalog";
 import AmbientVideo from "@/components/ui/ambient-video";
+import ModelLineup from "@/components/model-lineup";
+import IonizationDiagram from "@/components/ionization-diagram";
 // Rotas secundárias entram em chunks próprios: quem abre a home não baixa o código delas.
 const ConsultorPage = lazy(() => import("./pages/ConsultorPage"));
 const FitAcademiaPage = lazy(() => import("./pages/FitAcademiaPage"));
@@ -121,7 +123,7 @@ const technologyHighlights = [
     ),
   },
   {
-    title: "Purifica a água",
+    title: "Retém metais pesados",
     icon: (
       <svg viewBox="0 0 48 48" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M24 10c4 6 10 12 10 19a10 10 0 1 1-20 0c0-7 6-13 10-19Z" />
@@ -191,9 +193,8 @@ const refillVisualBlocks = [
   {
     name: "MAX",
     refill: "Max Ultra",
-    title: "Ultra filtragem",
+    title: "Ultrafiltragem",
     description: "Remove partículas físicas como areia, ferrugem, sedimentos, microplásticos e microrganismos com membrana de 0,5μ.",
-    result: "A água segue para a próxima etapa já sem a sujeira que dá para reter fisicamente.",
     image: "/images/MAX.webp",
     imageSm: "/images/MAX-sm.webp",
     alt: "Refil MAX Water Diamond",
@@ -204,9 +205,8 @@ const refillVisualBlocks = [
   {
     name: "CARBON",
     refill: "Max Carbon",
-    title: "Purificação",
+    title: "Redução de cloro e químicos",
     description: "Reduz cloro, odores, resíduos químicos, compostos orgânicos e substâncias que alteram o sabor da água.",
-    result: "É aqui que o gosto de cloro vai embora.",
     image: "/images/CARBON.webp",
     imageSm: "/images/CARBON-sm.webp",
     alt: "Refil Carbon Water Diamond",
@@ -217,9 +217,8 @@ const refillVisualBlocks = [
   {
     name: "BLOCK",
     refill: "Max Block",
-    title: "Purificação profunda",
+    title: "Retenção de metais e bactérias",
     description: "Usa carvão ativado compactado para reter metais pesados, bactérias e as partículas finas que passaram pelas etapas anteriores.",
-    result: "Com ela, o que chega ao copo já passou por três barreiras diferentes.",
     image: "/images/BLOCK.webp",
     imageSm: "/images/BLOCK-sm.webp",
     alt: "Refil Block Water Diamond",
@@ -232,7 +231,6 @@ const refillVisualBlocks = [
     refill: "Max Alka",
     title: "Alcalinização e minerais",
     description: "Eleva o pH para a faixa alcalina, entre 8,5 e 9,5, e devolve minerais como cálcio, magnésio e potássio.",
-    result: "A água recupera o equilíbrio que perdeu no caminho até a sua casa.",
     image: "/images/ALKA.webp",
     imageSm: "/images/ALKA-sm.webp",
     alt: "Refil ALKA Water Diamond",
@@ -241,6 +239,34 @@ const refillVisualBlocks = [
     rotate: "rotate-[12deg]",
   },
 ];
+
+/** Os refis no formato do carrossel de destaques: o refil colorido recortado no lugar da foto P&B,
+    com um brilho na cor da lata atrás dele. */
+const refillHighlights: Highlight[] = refillVisualBlocks.map((item) => ({
+  id: item.name,
+  eyebrow: `Etapa ${item.step} · ${item.refill}`,
+  accent: item.accent,
+  title: item.title,
+  description: item.description,
+  media: (
+    <div className="absolute inset-0 overflow-hidden bg-obsidian">
+      <div
+        className="absolute inset-0 opacity-35"
+        style={{ background: `radial-gradient(55% 60% at 72% 55%, ${item.accent}, transparent 70%)` }}
+        aria-hidden="true"
+      />
+      <img
+        src={item.image}
+        srcSet={`${item.imageSm} 460w, ${item.image} 800w`}
+        sizes="(max-width: 768px) 60vw, 30vw"
+        loading="lazy"
+        decoding="async"
+        alt={item.alt}
+        className={`absolute left-1/2 top-[60%] h-[50%] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 object-contain md:left-[72%] md:top-1/2 md:h-[118%] ${item.rotate}`}
+      />
+    </div>
+  ),
+}));
 
 const ContactModal = ({ isOpen, onClose, product }: { isOpen: boolean, onClose: () => void, product?: string | null }) => {
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -348,7 +374,7 @@ const ContactModal = ({ isOpen, onClose, product }: { isOpen: boolean, onClose: 
                     name="name"
                     type="text"
                     required
-                    autoComplete="name"
+                    autoComplete="name" maxLength={120}
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="Seu nome"
@@ -364,7 +390,7 @@ const ContactModal = ({ isOpen, onClose, product }: { isOpen: boolean, onClose: 
                       name="phone"
                       type="tel"
                       required
-                      autoComplete="tel"
+                      autoComplete="tel" maxLength={20}
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       placeholder="(00) 00000-0000"
@@ -378,7 +404,7 @@ const ContactModal = ({ isOpen, onClose, product }: { isOpen: boolean, onClose: 
                       name="email"
                       type="email"
                       required
-                      autoComplete="email"
+                      autoComplete="email" maxLength={254}
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
                       placeholder="seu@email.com"
@@ -769,33 +795,25 @@ const waterJourney: Highlight[] = [
   {
     id: "consumo",
     title: "Consumo",
-    description: "Tudo o que ela recolheu pelo caminho chega ao copo, ao café e à panela do jeito que saiu da torneira.",
+    description: "O que ela recolheu no trajeto sai pela torneira, na água que você bebe e usa para cozinhar.",
     image: "CONSUMO",
     alt: "Mão enchendo um copo com água da torneira",
   },
 ];
 const sectionY = "py-24 md:py-32";
 
-const dailyUses = [
-  { icon: Droplet, title: "Para beber", desc: "Leve, sem gosto de cloro, boa de tomar gelada ou natural." },
-  { icon: Sparkles, title: "Para cozinhar", desc: "Arroz, feijão e massas absorvem a água do cozimento, e o sabor dela vai junto para o prato." },
-  { icon: Activity, title: "Para o café", desc: "O café é quase todo água. Sem cloro e sedimentos no caminho, o aroma do grão aparece." },
-  { icon: Shield, title: "Para frutas e verduras", desc: "O que vai cru para a mesa passa a ser lavado com água tratada." },
-  { icon: User, title: "Para a família", desc: "Da mamadeira ao chimarrão, todo mundo em casa bebe da mesma torneira." },
-];
-
 const faucetModels = [
   {
-    title: "Modelo Faucet",
-    image: "/images/FAUCET.webp",
-    alt: "Torneira modelo Faucet em cozinha moderna",
-    desc: "Uma torneira separada, só para a água tratada, com desenho discreto que cabe em qualquer bancada.",
+    title: "Faucet",
+    image: "faucet-quad",
+    alt: "Torneira Faucet cromada sobre a bancada, ao lado de um copo de água",
+    desc: "Acabamento cromado, bica curva e alavanca lateral.",
   },
   {
-    title: "Modelo Gourmet",
-    image: "/images/GOURMET.webp",
-    alt: "Torneira gourmet preta instalada em bancada de cozinha",
-    desc: "Bica alta e acabamento preto, pensada para cozinhas planejadas e espaços gourmet.",
+    title: "Gourmet",
+    image: "gourmet-quad",
+    alt: "Torneira Gourmet preta de bica alta sobre uma pia branca",
+    desc: "Acabamento preto e bica alta com mola, pensada para cozinhas planejadas e espaços gourmet.",
   },
 ];
 
@@ -900,17 +918,7 @@ function HomePage() {
       {/* A LINHA — compra rápida logo depois do palco */}
       <section id="linha" className="bg-stage pb-24 pt-6 md:pb-32">
         <div className={shell}>
-          <FadeIn>
-            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-              <h2 className="t-headline-lg">Escolha o seu Ion Center.</h2>
-              <button type="button" onClick={() => scrollToSection('#modelos')} className="link-arrow text-halo">
-                Comparar modelos
-                <ChevronRight size={18} aria-hidden="true" />
-              </button>
-            </div>
-          </FadeIn>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-3 md:gap-5">
+          <div className="grid gap-4 md:grid-cols-3 md:gap-5">
             {ionCenterProducts.map((model, index) => {
               const product = products?.find((p) => p.slug === model.slug);
               return (
@@ -924,7 +932,7 @@ function HomePage() {
                         alt=""
                         loading="lazy"
                         decoding="async"
-                        className="h-full w-full object-cover object-[50%_62%] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03]"
+                        className="h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03]"
                       />
                     </a>
                     <div className="flex flex-1 flex-col p-7">
@@ -961,7 +969,7 @@ function HomePage() {
               Água transparente pode carregar o que você não vê.
             </h2>
             <p className="t-body mt-7 max-w-xl text-obsidian/85">
-              Cor, cheiro e gosto dizem pouco sobre o que está dissolvido na água. Partículas, resíduos químicos e microrganismos podem estar no copo mesmo quando ela parece perfeita, e é essa água que você bebe e usa para cozinhar todos os dias.
+              Partículas, resíduos químicos e microrganismos podem estar na água mesmo quando ela parece limpa, e é essa água que você bebe e usa para cozinhar todos os dias.
             </p>
             <div className="mt-10 flex max-w-md items-start gap-4">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-obsidian">
@@ -995,7 +1003,7 @@ function HomePage() {
       <section id="tecnologia" className={`overflow-hidden bg-carbon ${sectionY}`}>
         <div className={shell}>
           <FadeIn>
-            <h2 className="t-display md:max-w-[28ch]">O caminho até o seu copo é mais longo do que parece.</h2>
+            <h2 className="t-display md:max-w-[28ch]">Antes de chegar à sua torneira, a água percorre um longo trajeto.</h2>
           </FadeIn>
         </div>
 
@@ -1006,34 +1014,34 @@ function HomePage() {
       </section>
 
       {/* CONTAMINAÇÃO — cartão preto sobre o carbono: pílulas à esquerda, o copo à direita */}
-      <section className={`bg-carbon ${sectionY}`}>
+      <section className="bg-carbon pb-3 pt-24 md:pb-6 md:pt-32">
         <div className="mx-auto w-full max-w-[1920px] px-3 md:px-6">
           <FadeIn>
             <ContaminantsExplorer
               eyebrow="Contaminantes invisíveis"
-              title="O que pode estar no seu copo."
+              title="O que pode estar na água da torneira."
               items={contaminationLayers}
             />
           </FadeIn>
         </div>
       </section>
 
-      {/* EQUILÍBRIO — cartão obsidiana sobre o palco */}
-      <section className="bg-stage pb-24 md:pb-32">
-        <div className={shell}>
+      {/* EQUILÍBRIO — segundo cartão preto, logo abaixo dos contaminantes, na mesma largura */}
+      <section className="bg-carbon pb-24 md:pb-32">
+        <div className="mx-auto w-full max-w-[1920px] px-3 md:px-6">
           <FadeIn>
-            <div className="grid items-center overflow-hidden rounded-[28px] bg-obsidian md:grid-cols-2">
-              <div className="px-7 pb-4 pt-12 md:px-14 md:py-20 lg:px-20">
+            <div className="grid items-center overflow-hidden rounded-[28px] bg-black md:min-h-[640px] md:grid-cols-2">
+              <div className="px-6 pb-4 pt-12 md:px-12 md:py-20 lg:pl-20 xl:pl-28">
                 <p className="t-eyebrow text-signal">pH e minerais</p>
                 <h2 className="t-display mt-3">
                   Água pura também precisa de equilíbrio.
                 </h2>
                 <div className="t-body mt-6 max-w-md space-y-4 text-platinum">
-                  <p>Tirar as impurezas é metade do trabalho. A água que você bebe também precisa de pH adequado e de minerais na medida certa.</p>
-                  <p>Ao longo do tratamento e da filtragem, ela costuma perder cálcio, magnésio e potássio e ficar mais ácida, com um gosto mais chapado.</p>
+                  <p>Além de filtrada, a água que você bebe precisa ter pH adequado e minerais na medida certa.</p>
+                  <p>Ao longo do tratamento e da filtragem, ela costuma perder cálcio, magnésio e potássio e ficar mais ácida, o que altera o sabor.</p>
                 </div>
                 <p className="t-title mt-8 max-w-md border-t border-smoke pt-6 text-frost">
-                  A água de boas nascentes chega levemente alcalina e cheia de minerais, e é esse equilíbrio que vale trazer para casa.
+                  A água de boas nascentes é levemente alcalina e rica em minerais, e o Ion Center devolve essas duas características à água da torneira.
                 </p>
               </div>
               <div className="flex items-center justify-center px-7 pb-12 md:py-16">
@@ -1046,7 +1054,7 @@ function HomePage() {
                   loading="lazy"
                   decoding="async"
                   alt="Silhueta de uma pessoa bebendo água, em degradê da escala de pH"
-                  className="h-auto w-full max-w-[220px] object-contain md:max-w-[300px]"
+                  className="h-auto w-full max-w-[220px] object-contain md:max-w-[320px]"
                 />
               </div>
             </div>
@@ -1054,31 +1062,34 @@ function HomePage() {
         </div>
       </section>
 
-      {/* UMA NOVA CATEGORIA — palco com a linha completa */}
-      <section id="ion-center" className={`bg-stage ${sectionY}`}>
-        <div className={shell}>
-          <FadeIn>
-            <p className="t-eyebrow text-signal">Uma nova categoria</p>
-            <h2 className="t-display mt-3 max-w-[22ch]">
-              Tudo o que a sua água precisa. <span className="text-platinum">Em uma só central de tratamento.</span>
-            </h2>
-          </FadeIn>
+      {/* UMA NOVA CATEGORIA — vídeo de fora a fora com o título ancorado no canto inferior esquerdo.
+          Um véu escuro só embaixo e à esquerda garante o contraste do texto sem apagar o produto,
+          e o pé do vídeo se dissolve no preto da faixa de benefícios logo abaixo. */}
+      <section id="ion-center" className="relative overflow-hidden bg-black">
+        <div className="relative flex h-[88svh] min-h-[560px] max-h-[1080px] w-full items-end md:h-[100svh] md:min-h-[640px]">
+          <AmbientVideo
+            videoDesktop="/videos/central-cozinha.mp4?v=2"
+            videoMobile="/videos/central-cozinha-mobile.mp4?v=2"
+            poster="/images/central-cozinha-poster.webp"
+            posterMobile="/images/central-cozinha-poster-sm.webp"
+            label="Central de tratamento Waterfall sobre a bancada de uma cozinha"
+            className="absolute inset-0"
+          />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black via-black/75 to-transparent" aria-hidden="true" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-3/5 bg-gradient-to-r from-black/60 to-transparent md:block" aria-hidden="true" />
 
-          <FadeIn delay={0.1}>
-            <div className="mt-14 overflow-hidden rounded-[28px] bg-carbon md:mt-20">
-              <img
-                src="/images/PRODUTOS.webp"
-                srcSet="/images/PRODUTOS-sm.webp 900w, /images/PRODUTOS.webp 1800w"
-                sizes="(max-width: 1440px) 100vw, 1340px"
-                alt="Linha Water Diamond Ion Center: modelos Smart, Slim e Turbo lado a lado"
-                loading="lazy"
-                decoding="async"
-                className="aspect-[4/5] w-full object-cover sm:aspect-[16/10] lg:aspect-[16/8]"
-              />
-            </div>
-          </FadeIn>
+          <div className={`${shell} relative z-10 pb-12 md:pb-20`}>
+            <FadeIn>
+              <p className="t-eyebrow text-signal">Water Diamond Ion Center</p>
+              <h2 className="t-display mt-3 max-w-[16ch] text-balance">
+                Filtragem, alcalinização e ionização <span className="text-platinum">em uma só central de tratamento.</span>
+              </h2>
+            </FadeIn>
+          </div>
+        </div>
 
-          <ul className="mt-12 grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4 md:mt-16 lg:grid-cols-8">
+        <div className={`${shell} relative z-10 pb-24 md:pb-32`}>
+          <ul className="grid grid-cols-2 gap-x-6 gap-y-10 border-t border-smoke pt-10 sm:grid-cols-4 md:pt-12 lg:grid-cols-8">
             {technologyHighlights.map((item, index) => (
               <FadeIn key={item.title} delay={0.04 * index}>
                 <li className="flex flex-col gap-3">
@@ -1091,49 +1102,8 @@ function HomePage() {
         </div>
       </section>
 
-      {/* A SOLUÇÃO — faixa cinza-clara */}
-      <section id="detalhes" className={`bg-frost text-obsidian ${sectionY}`}>
-        <div className={shell}>
-          <div className="grid items-center gap-12 md:grid-cols-2 lg:gap-24">
-            <FadeIn className="order-2 md:order-1">
-              <div className="overflow-hidden rounded-[28px] bg-white">
-                <img
-                  src="/images/ioncenterkitchen.webp"
-                  srcSet="/images/ioncenterkitchen-sm.webp 700w, /images/ioncenterkitchen.webp 1376w"
-                  sizes="(max-width: 768px) 92vw, 46vw"
-                  width={1376}
-                  height={768}
-                  loading="lazy"
-                  decoding="async"
-                  alt="Ion Center nos acabamentos branco e preto sobre bancada de mármore"
-                  className="aspect-[4/5] h-full w-full object-cover object-[58%_50%] md:aspect-square"
-                />
-              </div>
-            </FadeIn>
-
-            <FadeIn className="order-1 md:order-2">
-              <p className="t-eyebrow text-signal-ink">Water Diamond Ion Center</p>
-              <h2 className="t-headline-lg mt-3">
-                Feito para dividir a bancada com o resto da sua cozinha.
-              </h2>
-              <p className="t-body mt-5 text-pewter">
-                O tratamento inteiro fica num só aparelho, que pode ficar à vista na bancada, preso na parede ou escondido embaixo da pia. A água da rede entra de um lado e sai do outro pronta para beber, depois de passar pelos refis e pela ionização Water Diamond®.
-              </p>
-
-              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-hairline pt-8">
-                <p className="t-small text-pewter">Acabamento branco ou preto.</p>
-                <button type="button" onClick={() => scrollToSection('#etapas')} className="link-arrow text-link">
-                  Ver o que acontece em cada etapa
-                  <ChevronRight size={18} aria-hidden="true" />
-                </button>
-              </div>
-            </FadeIn>
-          </div>
-        </div>
-      </section>
-
       {/* ETAPAS — palco escuro, cada refil com a cor da própria lata */}
-      <section id="etapas" className={`bg-stage ${sectionY}`}>
+      <section id="etapas" className={`overflow-hidden bg-stage ${sectionY}`}>
         <div className={shell}>
           <FadeIn>
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:items-end lg:gap-16">
@@ -1146,202 +1116,98 @@ function HomePage() {
               </p>
             </div>
           </FadeIn>
-
-          <div className="mt-14 space-y-4 md:mt-20 md:space-y-5">
-            {refillVisualBlocks.map((item, index) => (
-              <FadeIn key={item.name} delay={0.04}>
-                <article className="grid overflow-hidden rounded-[28px] bg-obsidian md:grid-cols-2">
-                  <div className={`relative flex h-72 items-center justify-center overflow-hidden md:h-auto md:min-h-[30rem] ${index % 2 === 1 ? 'md:order-2' : ''}`}>
-                    <img
-                      src={item.image}
-                      srcSet={`${item.imageSm} 460w, ${item.image} 800w`}
-                      sizes="(max-width: 768px) 60vw, 30vw"
-                      loading="lazy"
-                      decoding="async"
-                      alt={item.alt}
-                      className={`h-[118%] w-auto max-w-none object-contain md:h-[112%] ${item.rotate}`}
-                    />
-                  </div>
-                  <div className="flex flex-col justify-center px-7 pb-10 pt-2 md:px-14 md:py-16 lg:px-20">
-                    <p className="t-eyebrow" style={{ color: item.accent }}>
-                      Etapa {item.step} · {item.refill}
-                    </p>
-                    <h3 className="t-headline-lg mt-3">{item.title}</h3>
-                    <p className="t-body mt-5 max-w-md text-platinum">{item.description}</p>
-                    <p className="t-body mt-8 max-w-md border-t border-smoke pt-6 font-medium text-frost">{item.result}</p>
-                  </div>
-                </article>
-              </FadeIn>
-            ))}
-          </div>
         </div>
+
+        <FadeIn delay={0.1} className="mt-14 md:mt-20">
+          <HighlightsCarousel items={refillHighlights} label="As quatro etapas de filtragem" mobileAspect="aspect-[9/16]" />
+        </FadeIn>
       </section>
 
-      {/* IONIZAÇÃO WATER DIAMOND — o clímax técnico */}
-      <section className="bg-stage pb-24 md:pb-32">
+      {/* IONIZAÇÃO WATER DIAMOND — faixa branca: texto à esquerda, esquema animado do bastão à direita */}
+      <section className={`bg-white text-obsidian ${sectionY}`}>
         <div className={shell}>
-          <div className="grid items-center gap-12 md:grid-cols-2 lg:gap-24">
+          <div className="grid items-center gap-12 md:grid-cols-2 lg:gap-20">
             <FadeIn>
-              <p className="t-eyebrow text-halo">Etapa 05 · Tecnologia exclusiva</p>
+              <p className="t-eyebrow text-signal-ink">Tecnologia exclusiva</p>
               <h2 className="t-display mt-3">Ionização Water Diamond®</h2>
-              <p className="t-headline mt-4 text-platinum">Equilíbrio e reorganização da água</p>
-              <p className="t-body mt-8 max-w-md text-platinum">
+              <p className="t-headline mt-4 text-pewter">Carga elétrica e estrutura da água</p>
+              <p className="t-body mt-8 max-w-md text-pewter">
                 O bastão Water Diamond® atua na carga elétrica da água: converte íons positivos em negativos e reorganiza a estrutura das moléculas.
               </p>
-              <p className="t-body mt-8 max-w-md border-t border-smoke pt-6 font-medium text-frost">
-                É o último passo antes do copo, e o que dá à água o padrão Water Diamond.
+              <p className="t-body mt-8 max-w-md border-t border-hairline pt-6 font-medium text-obsidian">
+                O bastão fica depois dos quatro refis, então atua sobre a água já filtrada e alcalinizada.
               </p>
             </FadeIn>
-            <FadeIn delay={0.1} className="flex justify-center md:justify-end">
-              <div className="relative w-full max-w-md overflow-hidden rounded-[28px] bg-carbon">
-                <AmbientVideo
-                  videoDesktop="/videos/bastao.mp4"
-                  videoMobile="/videos/bastao-mobile.mp4"
-                  poster="/images/bastao-poster.webp"
-                  label="Vídeo do bastão Water Diamond"
-                  className="relative aspect-[4/5] w-full"
-                />
-              </div>
+            <FadeIn delay={0.1}>
+              <IonizationDiagram className="h-auto w-full" />
             </FadeIn>
           </div>
         </div>
       </section>
 
-      {/* USO DIÁRIO — faixa cinza-clara */}
-      <section className={`bg-frost text-obsidian ${sectionY}`}>
+      {/* COMPARAR MODELOS — foto de estúdio de cada modelo com troca de cor, e os mesmos pontos alinhados em linha */}
+      <section id="modelos" className={`overflow-hidden bg-frost text-obsidian ${sectionY}`}>
         <div className={shell}>
-          <FadeIn>
-            <h2 className="t-display max-w-[18ch]">Uma água melhor muda tudo o que passa por ela.</h2>
-            <p className="t-body mt-6 max-w-xl text-pewter">
-              Ela está no copo, mas também no café, na comida e na pia onde você lava as frutas.
+          <FadeIn className="mx-auto max-w-3xl text-center">
+            <p className="t-eyebrow text-signal-ink">Water Diamond Ion Center</p>
+            <h2 className="t-display mt-3 text-balance">
+              Conheça os modelos <span className="text-pewter">da linha Ion Center.</span>
+            </h2>
+            <p className="t-body mx-auto mt-6 max-w-xl text-pewter">
+              Os três têm o mesmo tratamento de água. A diferença está no tamanho, na água gelada e na instalação, então a escolha depende de quantas pessoas usam o aparelho e de onde ele vai ficar.
             </p>
           </FadeIn>
 
-          <ul className="mt-14 grid border-t border-hairline md:mt-20 lg:grid-cols-5">
-            {dailyUses.map((benefit, i) => (
-              <FadeIn key={benefit.title} delay={i * 0.05} className="border-b border-hairline lg:border-b-0 lg:border-l lg:first:border-l-0 lg:first:*:pl-0">
-                <li className="grid h-full gap-x-6 gap-y-3 py-7 sm:grid-cols-[3rem_minmax(0,14rem)_1fr] sm:items-start lg:flex lg:flex-col lg:gap-3 lg:px-6 lg:py-10">
-                  <benefit.icon size={26} strokeWidth={1.6} className="text-obsidian" aria-hidden="true" />
-                  <h3 className="t-title lg:mt-2">{benefit.title}</h3>
-                  <p className="t-small text-pewter">{benefit.desc}</p>
-                </li>
-              </FadeIn>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* POR QUE ISSO IMPORTA — declaração em duas tonalidades */}
-      <section id="porque" className={`bg-stage ${sectionY}`}>
-        <div className={shell}>
-          <FadeIn>
-            <h2 className="t-display max-w-[24ch]">
-              A água é a coisa mais simples da sua rotina,{' '}
-              <span className="text-platinum">e talvez por isso seja a que menos recebe atenção.</span>
-            </h2>
-          </FadeIn>
-          <FadeIn delay={0.1}>
-            <div className="mt-14 grid gap-10 border-t border-smoke pt-10 md:mt-20 md:grid-cols-2 md:gap-16">
-              <p className="t-body text-platinum">
-                Quem decide cuidar da saúde costuma começar por suplementos, dieta, treino e sono, e esquece a água, que está em tudo isso e em quase todo o resto do dia.
-              </p>
-              <p className="t-headline text-frost">
-                Tratar a água de casa é uma das decisões de saúde mais simples que você pode tomar.
-              </p>
-            </div>
+          <FadeIn delay={0.1} className="mt-14 md:mt-20">
+            <ModelLineup products={products} onBuy={buyModel} onSpecs={setSpecsProduct} />
           </FadeIn>
         </div>
       </section>
 
-      {/* COMPARAR MODELOS — colunas lado a lado, faixa clara */}
-      <section id="modelos" className={`bg-frost text-obsidian ${sectionY}`}>
-        <div className={shell}>
-          <FadeIn>
-            <p className="t-eyebrow text-signal-ink">Linha Water Diamond Ion Center</p>
-            <h2 className="t-display mt-3 max-w-[20ch]">
-              Três modelos <span className="text-pewter">com o mesmo tratamento.</span>
-            </h2>
-            <p className="t-body mt-6 max-w-xl text-pewter">
-              A água sai igual dos três. Muda o tamanho, a água gelada e o jeito de instalar, então a escolha depende de quantas pessoas usam e de onde ele vai ficar.
-            </p>
-          </FadeIn>
-
-          <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-14 md:mt-20 md:grid-cols-3">
-            {ionCenterProducts.map((product, index) => {
-              const catalogItem = products?.find((p) => p.slug === product.slug);
-              return (
-                <FadeIn key={product.name} delay={index * 0.08}>
-                  <article className="flex h-full flex-col border-t border-obsidian pt-8">
-                    <h3 className="t-headline-lg">{product.name}</h3>
-                    <p className="t-title mt-2 font-medium text-pewter">{product.headline}</p>
-                    <p className="t-headline mt-6 [font-variant-numeric:tabular-nums]">
-                      {products ? priceText(catalogItem) : <span className="inline-block h-6 w-28 animate-pulse rounded-lg bg-white align-middle" />}
-                    </p>
-                    <p className="t-body mt-5 text-pewter">{product.description}</p>
-
-                    <ul className="mt-6 border-t border-hairline">
-                      {product.highlights.map((highlight) => (
-                        <li key={highlight} className="t-small flex items-start gap-3 border-b border-hairline py-3 text-obsidian">
-                          <Check size={16} className="mt-0.5 shrink-0 text-action" aria-hidden="true" />
-                          {highlight}
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="t-small mt-5 text-pewter">
-                      <span className="font-semibold text-obsidian">Indicado para:</span> {product.indicated}
-                    </p>
-
-                    <div className="mt-auto flex flex-wrap items-center gap-x-6 gap-y-3 pt-8">
-                      <button type="button" onClick={() => buyModel(product.slug)} className="btn-action">
-                        {!products || isPurchasable(catalogItem) ? product.cta : 'Pedir orçamento'}
-                      </button>
-                      <button type="button" onClick={() => setSpecsProduct(product)} className="link-arrow text-link">
-                        Ficha técnica
-                        <ChevronRight size={18} aria-hidden="true" />
-                      </button>
-                    </div>
-                  </article>
-                </FadeIn>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* TORNEIRAS E APLICAÇÕES — faixa clara */}
+      {/* TORNEIRAS — título à esquerda e texto à direita; dois cards com a foto quadrada e o texto embaixo */}
       <section id="especificacoes" className={`bg-white text-obsidian ${sectionY}`}>
         <div className={shell}>
           <FadeIn>
-            <p className="t-eyebrow text-signal-ink">Torneiras e aplicações</p>
-            <h2 className="t-display mt-3 max-w-[18ch]">Escolha por onde a água sai.</h2>
-            <p className="t-body mt-6 max-w-xl text-pewter">
-              O Ion Center pode ganhar uma torneira só para a água tratada. São dois modelos, e o consultor ajuda a ver qual encaixa na sua bancada.
-            </p>
+            <div className="grid gap-6 md:grid-cols-2 md:items-end lg:gap-16">
+              <div>
+                <p className="t-eyebrow text-signal-ink">Torneiras</p>
+                <h2 className="t-display mt-3">
+                  Uma torneira exclusiva <span className="text-pewter">para a água tratada.</span>
+                </h2>
+              </div>
+              <p className="t-body max-w-md text-pewter">
+                O Ion Center pode ser ligado a uma torneira própria, instalada na pia ao lado da torneira comum. Há dois modelos, e o consultor ajuda a escolher o que combina com a sua bancada.
+              </p>
+            </div>
           </FadeIn>
 
-          <div className="mt-14 grid gap-x-5 gap-y-12 md:mt-20 md:grid-cols-2">
+          <div className="mt-14 grid gap-5 md:mt-20 md:grid-cols-2">
             {faucetModels.map((item, i) => (
               <FadeIn key={item.title} delay={i * 0.08}>
-                <article>
-                  <div className="aspect-[4/5] overflow-hidden rounded-[28px] bg-frost">
+                <article className="flex h-full flex-col overflow-hidden rounded-[28px] bg-frost">
+                  <div className="aspect-square overflow-hidden">
                     <img
-                      src={item.image}
-                      srcSet={`${item.image.replace('.webp', '-sm.webp')} 500w, ${item.image} 900w`}
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      width={900}
-                      height={1205}
+                      src={`/images/${item.image}.webp`}
+                      srcSet={`/images/${item.image}-sm.webp 540w, /images/${item.image}.webp 1080w`}
+                      sizes="(max-width: 768px) 92vw, 46vw"
+                      width={1080}
+                      height={1080}
                       loading="lazy"
                       decoding="async"
                       alt={item.alt}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03]"
                     />
                   </div>
-                  <h3 className="t-headline mt-7">{item.title}</h3>
-                  <p className="t-body mt-3 max-w-md text-pewter">{item.desc}</p>
-                  <button type="button" onClick={() => openContact(item.title)} className="link-arrow mt-4 text-link">
-                    Consultar instalação
-                    <ChevronRight size={18} aria-hidden="true" />
-                  </button>
+                  <div className="flex flex-1 flex-col gap-6 p-7 md:flex-row md:items-end md:justify-between md:p-10">
+                    <div>
+                      <h3 className="t-headline-lg">{item.title}</h3>
+                      <p className="t-body mt-3 max-w-sm text-pewter">{item.desc}</p>
+                    </div>
+                    <button type="button" onClick={() => openContact(`Torneira ${item.title}`)} className="link-arrow shrink-0 text-link">
+                      Consultar instalação
+                      <ChevronRight size={18} aria-hidden="true" />
+                    </button>
+                  </div>
                 </article>
               </FadeIn>
             ))}
@@ -1353,10 +1219,7 @@ function HomePage() {
       <section id="comprar" className={`bg-frost text-obsidian ${sectionY}`}>
         <div className={shell}>
           <FadeIn>
-            <p className="t-eyebrow text-signal-ink">Comprar</p>
-            <h2 className="t-display mt-3 max-w-[18ch]">
-              Leve a melhor água do mundo <span className="text-pewter">para dentro de casa.</span>
-            </h2>
+            <h2 className="t-display max-w-[18ch]">Escolha o seu Ion Center.</h2>
           </FadeIn>
           <div className="mt-14 md:mt-20">
             <IonCenterBuy
@@ -1384,9 +1247,9 @@ function HomePage() {
 
         <div className={`${shell} text-center`}>
           <FadeIn>
-            <h2 className="t-display mx-auto max-w-[16ch]">Sua água pode estar em outro nível.</h2>
+            <h2 className="t-display mx-auto max-w-[16ch]">Ainda em dúvida sobre o modelo?</h2>
             <p className="t-body mx-auto mt-6 max-w-xl text-frost/75">
-              Se ainda tiver dúvida sobre o modelo ou a instalação, um consultor ajuda você a escolher.
+              Um consultor responde pelo WhatsApp e ajuda a escolher o modelo e a instalação.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
               <button type="button" onClick={goToBuy} className="btn-action">

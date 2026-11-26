@@ -13,6 +13,34 @@ export type GalleryImage = {
 
 export type Finish = "Branco" | "Preto";
 
+/** Torneira que acompanha o aparelho. */
+export type Faucet = "Básico" | "Faucet" | "Gourmet";
+export const FAUCETS: Faucet[] = ["Básico", "Faucet", "Gourmet"];
+
+/**
+ * A sacola e o checkout guardam a configuração num único texto `variant`, ex.: "Preto - Gourmet".
+ * O separador é " - " porque o checkout só aceita letras, números, espaço e hífen nesse campo.
+ */
+export const variantOf = (finish: Finish, faucet: Faucet) => `${finish} - ${faucet}`;
+
+export const parseVariant = (variant?: string): { finish?: Finish; faucet?: Faucet } => {
+  const [f, t] = (variant ?? "").split(" - ");
+  return {
+    finish: f === "Branco" || f === "Preto" ? f : undefined,
+    faucet: FAUCETS.includes(t as Faucet) ? (t as Faucet) : undefined,
+  };
+};
+
+/**
+ * Acréscimo da torneira sobre o preço do modelo (Tabela de Preços 2026, igual nas linhas Slim, Smart e Turbo).
+ * O preço do catálogo é o do modelo com a torneira básica. A função create-checkout repete esta tabela.
+ */
+export const FAUCET_SURCHARGE_CENTS: Record<Faucet, number> = { Básico: 0, Faucet: 50000, Gourmet: 100000 };
+
+/** Preço unitário de uma linha da sacola: preço do modelo + acréscimo da torneira escolhida. */
+export const unitPriceCents = (baseCents: number, variant?: string) =>
+  baseCents + FAUCET_SURCHARGE_CENTS[parseVariant(variant).faucet ?? "Básico"];
+
 export type IonCenterModel = {
   slug: string;
   tag: string;
@@ -41,12 +69,12 @@ export const ionCenterProducts: IonCenterModel[] = [
     headline: "Compacto e discreto",
     image: "/images/SLIMIMG.webp",
     imageSm: "/images/SLIMIMG-sm.webp",
-    imageAlt: "Ion Center Slim instalado sob a bancada de uma cozinha branca",
-    description: "O mais fino da linha, com 11,5 cm de profundidade. Vai na parede, na bancada ou embaixo da pia e entrega água natural.",
+    imageAlt: "Ion Center Slim preto, vista frontal com a janela dos quatro refis",
+    description: "O mais fino da linha, com 11,5 cm de profundidade, para instalar na parede, na bancada ou sob a pia, com saída de água natural.",
     highlights: [
       "Design slim",
       "Água natural",
-      "4 refis Max WaterDiamond",
+      "4 refis Max Water Diamond",
       "Instalação em parede, bancada ou sob a pia",
       "Compatível com Faucet, Gourmet, máquinas de café e bebedouros",
     ],
@@ -55,16 +83,18 @@ export const ionCenterProducts: IonCenterModel[] = [
     finishes: ["Branco", "Preto"],
     gallery: {
       Branco: [
+        { base: "slim-branco", alt: "Ion Center Slim branco, vista frontal com a janela dos quatro refis", fit: "cover" },
         { base: "white02", alt: "Ion Center Slim branco, vista em ângulo", fit: "contain" },
         { base: "white01", alt: "Ion Center Slim branco, vista frontal", fit: "contain" },
       ],
       Preto: [
+        { base: "slim-preto", alt: "Ion Center Slim preto, vista frontal com a janela dos quatro refis", fit: "cover" },
         { base: "black02", alt: "Ion Center Slim preto, vista em ângulo", fit: "contain" },
         { base: "black01", alt: "Ion Center Slim preto, vista frontal", fit: "contain" },
       ],
       shared: [
         { base: "ioncenterkitchen", alt: "Ion Center Slim branco e preto sobre bancada de mármore", fit: "cover" },
-        { base: "SLIMIMG", alt: "Ion Center Slim instalado sob a bancada de uma cozinha branca", fit: "cover" },
+        { base: "SLIM-ambiente", alt: "Ion Center Slim instalado sob a bancada de uma cozinha branca", fit: "cover" },
       ],
     },
     warranty: "1 ano",
@@ -74,7 +104,7 @@ export const ionCenterProducts: IonCenterModel[] = [
       ["Cor", "Branco, Preto"],
       ["Instalação", "Parede ou bancada"],
       ["Tipo de água", "Natural"],
-      ["Refis", "4 refis Max WaterDiamond"],
+      ["Refis", "4 refis Max Water Diamond"],
       ["Saída de água", "Sim"],
       ["Vida útil do refil", "9 a 18 meses ou até 6.000 L de água"],
       ["Vazão nominal", "0,75 L/minuto"],
@@ -92,10 +122,10 @@ export const ionCenterProducts: IonCenterModel[] = [
     slug: "ion-center-smart",
     tag: "Smart",
     name: "Ion Center Smart",
-    headline: "Praticidade no dia a dia",
+    headline: "Água gelada na bancada",
     image: "/images/SMARTIMG.webp",
     imageSm: "/images/SMARTIMG-sm.webp",
-    imageAlt: "Ion Center Smart preto sobre a bancada de uma cozinha, com uma mulher servindo um copo de água",
+    imageAlt: "Ion Center Smart branco, vista frontal",
     description: "Água natural, fria e gelada saindo do mesmo aparelho, com 600 ml de gelada sempre prontos.",
     highlights: [
       "Água fria, gelada e natural",
@@ -109,8 +139,13 @@ export const ionCenterProducts: IonCenterModel[] = [
     featured: true,
     finishes: ["Branco", "Preto"],
     gallery: {
+      Branco: [
+        { base: "smart-branco", alt: "Ion Center Smart branco, vista frontal", fit: "cover" },
+        { base: "smart-branco-cozinha", alt: "Ion Center Smart branco sobre a bancada de uma cozinha", fit: "cover" },
+      ],
+      Preto: [{ base: "smart-preto", alt: "Ion Center Smart preto, vista frontal", fit: "cover" }],
       shared: [
-        { base: "SMARTIMG", alt: "Ion Center Smart preto sobre a bancada de uma cozinha", fit: "cover" },
+        { base: "SMART-ambiente", alt: "Ion Center Smart preto sobre a bancada de uma cozinha", fit: "cover" },
       ],
     },
     warranty: "12 meses",
@@ -134,11 +169,11 @@ export const ionCenterProducts: IonCenterModel[] = [
     slug: "ion-center-turbo",
     tag: "Turbo",
     name: "Ion Center Turbo",
-    headline: "Mais capacidade e performance",
+    headline: "Água gelada para alto consumo",
     image: "/images/TURBOIMG.webp",
     imageSm: "/images/TURBOIMG-sm.webp",
-    imageAlt: "Ion Center Turbo preto sobre a bancada de uma cozinha, com um casal preparando alimentos",
-    description: "Refrigeração por compressor e 2,8 L de água gelada guardados, para casas e escritórios onde a jarra esvazia rápido.",
+    imageAlt: "Ion Center Turbo preto, vista frontal",
+    description: "Refrigeração por compressor e 2,8 L de água gelada guardados, indicado para casas e escritórios com alto consumo.",
     highlights: [
       "Água gelada e natural",
       "1,5L/h de capacidade de refrigeração",
@@ -150,8 +185,13 @@ export const ionCenterProducts: IonCenterModel[] = [
     cta: "Comprar Turbo",
     finishes: ["Branco", "Preto"],
     gallery: {
+      Branco: [{ base: "turbo-branco", alt: "Ion Center Turbo branco, vista frontal", fit: "cover" }],
+      Preto: [
+        { base: "turbo-preto", alt: "Ion Center Turbo preto, vista frontal", fit: "cover" },
+        { base: "turbo-preto-cozinha", alt: "Ion Center Turbo preto sobre a bancada de uma cozinha", fit: "cover" },
+      ],
       shared: [
-        { base: "TURBOIMG", alt: "Ion Center Turbo sobre a bancada de uma cozinha", fit: "cover" },
+        { base: "TURBO-ambiente", alt: "Ion Center Turbo sobre a bancada de uma cozinha", fit: "cover" },
       ],
     },
     warranty: "12 meses",
@@ -174,7 +214,14 @@ export const ionCenterProducts: IonCenterModel[] = [
 
 export const findIonCenterModel = (slug: string) => ionCenterProducts.find((m) => m.slug === slug);
 
-export const galleryFor = (model: IonCenterModel, finish: Finish): GalleryImage[] => [
-  ...(model.gallery[finish] ?? []),
-  ...model.gallery.shared,
-];
+/** Todas as fotos do modelo: primeiro as do acabamento escolhido, depois as dos outros e as compartilhadas.
+    Os recortes em fundo branco ("contain") vão para o fim, depois das fotos produzidas.
+    A primeira é sempre do acabamento escolhido (o carrinho usa ela como miniatura). */
+export const galleryFor = (model: IonCenterModel, finish: Finish): GalleryImage[] => {
+  const all = [
+    ...(model.gallery[finish] ?? []),
+    ...model.finishes.filter((f) => f !== finish).flatMap((f) => model.gallery[f] ?? []),
+    ...model.gallery.shared,
+  ];
+  return [...all.filter((g) => g.fit !== "contain"), ...all.filter((g) => g.fit === "contain")];
+};

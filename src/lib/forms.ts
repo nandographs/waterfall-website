@@ -1,3 +1,5 @@
+import { EMAIL_RE, NAME_RE, isPhone } from "./validation";
+
 const FORM_ENDPOINT = "https://api.web3forms.com/submit";
 
 // As chaves ficam em variáveis de ambiente (.env.local). Os valores de fallback
@@ -18,18 +20,60 @@ type SubmitOptions = {
   extraFields?: Record<string, string>;
 };
 
+const MAX_FIELD = 500;
+
+/** Campos com regra própria, pelo `name` do input. Os demais só têm limite de tamanho. */
+const RULES: Record<string, (v: string) => string | null> = {
+  name: (v) => (NAME_RE.test(v) ? null : "Confira o nome: use só letras, com pelo menos 2."),
+  nome: (v) => (NAME_RE.test(v) ? null : "Confira o nome: use só letras, com pelo menos 2."),
+  email: (v) => (!v || (v.length <= 254 && EMAIL_RE.test(v)) ? null : "Confira o e-mail."),
+  phone: (v) => (isPhone(v) ? null : "Confira o telefone com DDD."),
+  whatsapp: (v) => (isPhone(v) ? null : "Confira o WhatsApp com DDD."),
+};
+
+/** Valida e limpa os campos antes do envio. Lança Error com a primeira mensagem de problema. */
+function cleanFormData(form: HTMLFormElement) {
+  const raw = new FormData(form);
+  // Honeypot marcado: é robô. Finge sucesso para não ensinar o bot a contornar.
+  if (raw.get("botcheck")) return null;
+  const clean = new FormData();
+  for (const [key, value] of raw.entries()) {
+    if (typeof value !== "string" || key === "botcheck") continue;
+    const v = value.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").trim();
+    if (v.length > MAX_FIELD) throw new Error("Um dos campos está longo demais.");
+    const problem = RULES[key]?.(v);
+    if (problem) throw new Error(problem);
+    clean.append(key, v);
+  }
+  return clean;
+}
+
+// Formulários com envio em andamento: impede envio duplicado por clique duplo ou Enter repetido.
+const inFlight = new WeakSet<HTMLFormElement>();
+
 /**
  * Envia um formulário para o Web3Forms e normaliza a resposta de erro.
  * Lança um Error com mensagem legível quando o envio falha.
  */
 export async function submitWeb3Form(form: HTMLFormElement, options: SubmitOptions) {
-  const payload = new FormData(form);
+  if (inFlight.has(form)) throw new Error("Seu envio já está em andamento.");
+  const payload = cleanFormData(form);
+  if (!payload) return { success: true };
+  inFlight.add(form);
+  try {
+    return await send(payload, options);
+  } finally {
+    inFlight.delete(form);
+  }
+}
+
+async function send(payload: FormData, options: SubmitOptions) {
   payload.append("access_key", ACCESS_KEYS[options.kind]);
   payload.append("subject", options.subject);
   payload.append("from_name", options.fromName);
 
   for (const [name, value] of Object.entries(options.extraFields ?? {})) {
-    payload.append(name, value);
+    payload.append(name, value.slice(0, MAX_FIELD));
   }
 
   // Sem timeout o botão pode ficar em "Enviando..." para sempre numa rede ruim.
@@ -59,7 +103,13 @@ export async function submitWeb3Form(form: HTMLFormElement, options: SubmitOptio
   const result = await response.json().catch(() => ({}));
 
   if (!response.ok || result.success === false) {
-    throw new Error(result.message || "Não foi possível enviar sua solicitação. Tente novamente.");
+    // A mensagem do serviço fica só no console; o visitante vê um texto nosso.
+    console.error("[forms] envio recusado:", response.status, result.message);
+    throw new Error(
+      response.status === 429
+        ? "Muitos envios seguidos. Aguarde um minuto e tente de novo."
+        : "Não foi possível enviar sua solicitação. Tente novamente.",
+    );
   }
 
   return result;

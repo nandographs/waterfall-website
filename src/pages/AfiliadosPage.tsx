@@ -20,7 +20,15 @@ const steps = [
 
 const authRedirect = () => `${window.location.origin}/afiliados`;
 const ALREADY = "Esse e-mail já tem conta. Entre ao lado ou use “Esqueci minha senha”.";
-const WEAK = "Senha fraca: use pelo menos 8 caracteres.";
+const WEAK = "Senha fraca: use pelo menos 10 caracteres, com letras e números.";
+const PASSWORD_MIN = 10;
+/** Regra de senha do site. Configure o mesmo mínimo no Supabase (Authentication > Policies) para valer no servidor. */
+const passwordProblem = (p: string) =>
+  p.length < PASSWORD_MIN || p.length > 72 || !/[A-Za-z]/.test(p) || !/\d/.test(p) ? WEAK : null;
+
+// Freio de força bruta no login: depois de 5 erros seguidos, espera crescente (30 s, 60 s, 120 s...).
+// O limite de verdade é o do Supabase Auth; este só evita que o formulário vire uma metralhadora.
+const LOGIN_FREE_TRIES = 5;
 const MAIL_DOWN = "Nosso envio de e-mail está instável agora e seu cadastro não foi concluído. Tente de novo em alguns minutos.";
 
 type AuthErr = { status?: number; code?: string; message: string } | null;
@@ -160,7 +168,7 @@ function LinkProblem({ text }: { text: string }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Seu e-mail de cadastro"
-              autoComplete="email"
+              autoComplete="email" maxLength={254}
               aria-label="Seu e-mail de cadastro"
               className="wd-input min-w-0 flex-1"
             />
@@ -181,6 +189,7 @@ function Signup() {
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (busy) return;
     if (!supabase) return setMsg({ ok: false, text: "Cadastro indisponível no momento." });
     const form = e.currentTarget;
     const f = new FormData(form);
@@ -190,6 +199,10 @@ function Signup() {
     const pix = String(f.get("pix") ?? "").trim();
     const password = String(f.get("password"));
     if (password !== String(f.get("password2"))) return setMsg({ ok: false, text: "As senhas não conferem." });
+    const weak = passwordProblem(password);
+    if (weak) return setMsg({ ok: false, text: weak });
+    if (!/^[a-z0-9_-]{3,30}$/.test(code)) return setMsg({ ok: false, text: "Código: 3 a 30 letras, números, - ou _." });
+    if (name.length < 2 || name.length > 120) return setMsg({ ok: false, text: "Confira o nome completo." });
 
     setBusy(true);
     setMsg(null);
@@ -257,20 +270,20 @@ function Signup() {
       <div className={`${GOOGLE_LOGIN_ENABLED ? "mt-6" : "mt-7"} space-y-4`}>
         <label className="block">
           <span className={labelClass}>Nome completo</span>
-          <input name="name" required autoComplete="name" className="wd-input" />
+          <input name="name" required autoComplete="name" maxLength={120} className="wd-input" />
         </label>
         <label className="block">
           <span className={labelClass}>E-mail</span>
-          <input name="email" type="email" required autoComplete="email" className="wd-input" />
+          <input name="email" type="email" required autoComplete="email" maxLength={254} className="wd-input" />
         </label>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
             <span className={labelClass}>Senha</span>
-            <input name="password" type="password" required minLength={8} autoComplete="new-password" className="wd-input" />
+            <input name="password" type="password" required minLength={PASSWORD_MIN} maxLength={72} autoComplete="new-password" className="wd-input" />
           </label>
           <label className="block">
             <span className={labelClass}>Repita a senha</span>
-            <input name="password2" type="password" required minLength={8} autoComplete="new-password" className="wd-input" />
+            <input name="password2" type="password" required minLength={PASSWORD_MIN} maxLength={72} autoComplete="new-password" className="wd-input" />
           </label>
         </div>
         <label className="block">
@@ -290,7 +303,7 @@ function Signup() {
           <span className={labelClass}>
             Chave Pix para receber <span className="font-normal">(opcional)</span>
           </span>
-          <input name="pix" autoComplete="off" className="wd-input" />
+          <input name="pix" autoComplete="off" maxLength={140} className="wd-input" />
         </label>
       </div>
 
@@ -316,11 +329,16 @@ function Login() {
   const [error, setError] = useState<string | null>(null);
   const [unconfirmed, setUnconfirmed] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const fails = useRef(0);
+  const lockedUntil = useRef(0);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (busy) return;
     const f = new FormData(e.currentTarget);
     const email = String(f.get("email")).trim().toLowerCase();
+    const wait = Math.ceil((lockedUntil.current - Date.now()) / 1000);
+    if (mode === "login" && wait > 0) return setError(`Muitas tentativas. Aguarde ${wait} s para tentar de novo.`);
     setBusy(true);
     setError(null);
     setUnconfirmed(null);
@@ -343,13 +361,20 @@ function Login() {
     setBusy(false);
     if (error) {
       if (/not confirmed/i.test(error.message)) setUnconfirmed(email);
+      if (/invalid/i.test(error.message) && ++fails.current >= LOGIN_FREE_TRIES) {
+        lockedUntil.current = Date.now() + 30_000 * 2 ** (fails.current - LOGIN_FREE_TRIES);
+      }
       setError(
         /not confirmed/i.test(error.message)
           ? "Confirme seu e-mail pelo link que enviamos antes de entrar."
-          : /invalid/i.test(error.message)
-            ? "E-mail ou senha incorretos."
-            : "Não foi possível entrar. Tente novamente.",
+          : /rate limit|too many|security purposes/i.test(error.message)
+            ? "Muitas tentativas. Aguarde alguns minutos e tente de novo."
+            : /invalid/i.test(error.message)
+              ? "E-mail ou senha incorretos."
+              : "Não foi possível entrar. Tente novamente.",
       );
+    } else {
+      fails.current = 0;
     }
   }
 
@@ -385,7 +410,7 @@ function Login() {
           {GOOGLE_LOGIN_ENABLED && mode === "login" && <GoogleButton label="Entrar com Google" dark />}
           <label className={`${GOOGLE_LOGIN_ENABLED && mode === "login" ? "mt-6" : "mt-7"} block`}>
             <span className="mb-1.5 block text-[0.8125rem] font-medium text-platinum">E-mail cadastrado</span>
-            <input name="email" type="email" required autoComplete="email" className="wd-input" />
+            <input name="email" type="email" required autoComplete="email" maxLength={254} className="wd-input" />
           </label>
           {mode === "login" && (
             <label className="mt-4 block">
@@ -421,6 +446,8 @@ function NewPassword({ onDone }: { onDone: () => void }) {
     const f = new FormData(e.currentTarget);
     const password = String(f.get("password"));
     if (password !== String(f.get("password2"))) return setError("As senhas não conferem.");
+    const weak = passwordProblem(password);
+    if (weak) return setError(weak);
     setBusy(true);
     setError(null);
     const { error } = await supabase!.auth.updateUser({ password });
@@ -435,11 +462,11 @@ function NewPassword({ onDone }: { onDone: () => void }) {
       <div className="mt-7 space-y-4">
         <label className="block">
           <span className={labelClass}>Nova senha</span>
-          <input name="password" type="password" required minLength={8} autoComplete="new-password" className="wd-input" />
+          <input name="password" type="password" required minLength={PASSWORD_MIN} maxLength={72} autoComplete="new-password" className="wd-input" />
         </label>
         <label className="block">
           <span className={labelClass}>Repita a senha</span>
-          <input name="password2" type="password" required minLength={8} autoComplete="new-password" className="wd-input" />
+          <input name="password2" type="password" required minLength={PASSWORD_MIN} maxLength={72} autoComplete="new-password" className="wd-input" />
         </label>
       </div>
       {error && <p role="alert" className="t-small mt-4 font-medium text-red-600">{error}</p>}
@@ -459,12 +486,15 @@ function CompleteSignup({ session, onDone }: { session: Session; onDone: () => v
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (busy) return;
     const f = new FormData(e.currentTarget);
+    const code = String(f.get("code")).trim().toLowerCase();
+    if (!/^[a-z0-9_-]{3,30}$/.test(code)) return setError("Código: 3 a 30 letras minúsculas, números, - ou _.");
     setBusy(true);
     setError(null);
     const { error } = await supabase!.rpc("affiliate_register", {
       p_name: String(f.get("name")).trim(),
-      p_code: String(f.get("code")).trim().toLowerCase(),
+      p_code: code,
       p_pix: String(f.get("pix") ?? "").trim() || null,
     });
     setBusy(false);
@@ -489,7 +519,7 @@ function CompleteSignup({ session, onDone }: { session: Session; onDone: () => v
       <div className="mt-7 space-y-4">
         <label className="block">
           <span className={labelClass}>Nome completo</span>
-          <input name="name" required defaultValue={defaultName} autoComplete="name" className="wd-input" />
+          <input name="name" required defaultValue={defaultName} autoComplete="name" maxLength={120} className="wd-input" />
         </label>
         <label className="block">
           <span className={labelClass}>Código do seu link</span>
@@ -508,7 +538,7 @@ function CompleteSignup({ session, onDone }: { session: Session; onDone: () => v
           <span className={labelClass}>
             Chave Pix para receber <span className="font-normal">(opcional)</span>
           </span>
-          <input name="pix" autoComplete="off" className="wd-input" />
+          <input name="pix" autoComplete="off" maxLength={140} className="wd-input" />
         </label>
       </div>
       {error && <p role="alert" className="t-small mt-4 font-medium text-red-600">{error}</p>}

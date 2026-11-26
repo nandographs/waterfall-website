@@ -48,6 +48,9 @@ Options -Indexes
   Header always set Cross-Origin-Opener-Policy "same-origin"
   Header always set Cross-Origin-Resource-Policy "same-origin"
 
+  # Impede Flash/PDF antigos de lerem dados do site por políticas cross-domain.
+  Header always set X-Permitted-Cross-Domain-Policies "none"
+
   # Remove a assinatura do servidor quando o host permite.
   Header always unset X-Powered-By
 </IfModule>
@@ -105,7 +108,12 @@ Options -Indexes
 # ------------------------------------------------------------
 #  Arquivos que não devem ser servidos
 # ------------------------------------------------------------
-<FilesMatch "(^\.|\.(env|map|log|json5|lock|md|ts|tsx)$)">
+# Pastas ocultas (.git, .env/, .vscode...) respondem 404. O .well-known (certificado SSL) continua liberado.
+<IfModule mod_alias.c>
+  RedirectMatch 404 /\.(?!well-known/)
+</IfModule>
+
+<FilesMatch "(^\.|\.(env|map|log|json5|lock|md|ts|tsx|sql|toml|ya?ml|sh|bak|old|orig|swp|ini|conf|cfg|sqlite|db|zip|tar|gz|7z)$)">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>

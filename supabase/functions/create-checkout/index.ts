@@ -1,7 +1,9 @@
 // Cria o pedido (preços lidos do banco, nunca do navegador) e a cobrança no Asaas.
 // O cliente paga na fatura hospedada do Asaas e escolhe ali Pix, cartão ou boleto.
+// Toda entrada do navegador é validada de novo aqui: a validação do formulário é só conforto.
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders, json } from "../_shared/cors.ts";
+import { isAllowedOrigin, json, preflight } from "../_shared/cors.ts";
+import { UserError, clientKey, rateLimit, readJson, str } from "../_shared/security.ts";
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const ASAAS_KEY = Deno.env.get("ASAAS_API_KEY")!;
@@ -11,7 +13,47 @@ const SITE_URL = Deno.env.get("SITE_URL")!;
 // Frete fixo em centavos até existir regra por região/produto. 0 = frete grátis.
 const SHIPPING_CENTS = Number(Deno.env.get("SHIPPING_CENTS") ?? 0);
 
-const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+// Acréscimo da torneira nos Ion Center (Tabela de Preços 2026). Espelha FAUCET_SURCHARGE_CENTS em src/lib/ion-center.ts.
+// O price_cents do banco é o do modelo com a torneira básica.
+const FAUCET_SURCHARGE_CENTS: Record<string, number> = { "Básico": 0, Faucet: 50000, Gourmet: 100000 };
+const FINISHES = new Set(["Branco", "Preto"]);
+const UFS = new Set("AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" "));
+
+const SLUG = /^[a-z0-9-]{1,60}$/;
+const CODE = /^[a-z0-9_-]{3,40}$/;
+const EMAIL = /^[^\s@]{1,64}@[^\s@.]+(\.[^\s@.]+)+$/;
+const NAME = /^[\p{L}\p{M}' .-]+$/u;
+
+function validCpf(cpf: string) {
+  if (!/^\d{11}$/.test(cpf) || /^(\d)\1{10}$/.test(cpf)) return false;
+  for (const len of [9, 10]) {
+    let sum = 0;
+    for (let i = 0; i < len; i++) sum += Number(cpf[i]) * (len + 1 - i);
+    if (((sum * 10) % 11) % 10 !== Number(cpf[len])) return false;
+  }
+  return true;
+}
+
+/**
+ * Configuração do Ion Center escolhida na loja: "Acabamento - Torneira" (ex.: "Preto - Gourmet"), ou só o
+ * acabamento em sacolas antigas. Qualquer outro texto é recusado: assim ninguém leva uma torneira
+ * mais cara pagando o preço da básica só trocando o texto.
+ */
+function readVariant(slug: string, raw: unknown) {
+  const variant = str(raw, 30);
+  if (!variant) return { label: "", surcharge: 0 };
+  const [finish, faucet, ...rest] = variant.split(" - ");
+  const ok =
+    slug.startsWith("ion-center-") &&
+    !rest.length &&
+    FINISHES.has(finish) &&
+    (faucet === undefined || Object.hasOwn(FAUCET_SURCHARGE_CENTS, faucet));
+  if (!ok) throw new UserError("Confira a configuração dos itens da sacola.");
+  return { label: variant, surcharge: faucet === undefined ? 0 : FAUCET_SURCHARGE_CENTS[faucet] };
+}
+
+/** Escapa % e _ para o ilike comparar o texto exato (sem curinga). */
+const exact = (s: string) => s.replace(/[\\%_]/g, "\\$&");
 
 const asaas = async (path: string, init: RequestInit = {}) => {
   const res = await fetch(`${ASAAS_URL}${path}`, {
@@ -23,73 +65,119 @@ const asaas = async (path: string, init: RequestInit = {}) => {
 
 // Reaproveita o cliente pelo CPF para não duplicar cadastro no Asaas a cada compra.
 async function asaasCustomer(c: { name: string; email: string; phone: string; cpf: string }) {
-  const found = await asaas(`/customers?cpfCnpj=${c.cpf}&limit=1`);
+  const found = await asaas(`/customers?cpfCnpj=${encodeURIComponent(c.cpf)}&limit=1`);
   const existing = found.ok ? found.data?.data?.[0] : null;
-  const payload = { name: c.name, email: c.email, cpfCnpj: c.cpf, ...(c.phone ? { mobilePhone: c.phone.replace(/\D/g, "") } : {}) };
+  const payload = { name: c.name, email: c.email, cpfCnpj: c.cpf, mobilePhone: c.phone };
   const res = existing
-    ? await asaas(`/customers/${existing.id}`, { method: "PUT", body: JSON.stringify(payload) })
+    ? await asaas(`/customers/${encodeURIComponent(existing.id)}`, { method: "PUT", body: JSON.stringify(payload) })
     : await asaas("/customers", { method: "POST", body: JSON.stringify(payload) });
   if (!res.ok || !res.data?.id) {
-    console.error("Asaas recusou o cliente", res.status, JSON.stringify(res.data));
+    // Só o código e a lista de erros: o corpo pode trazer dados pessoais do cliente.
+    console.error("Asaas recusou o cliente", res.status, JSON.stringify(res.data?.errors ?? null));
     return null;
   }
   return res.data.id as string;
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") return json({ error: "Método não permitido" }, 405);
+  if (req.method === "OPTIONS") return preflight(req);
+  if (req.method !== "POST") return json(req, { error: "Método não permitido" }, 405);
+  // Só o próprio site chama esta função. O navegador sempre manda Origin num POST com JSON.
+  if (!isAllowedOrigin(req.headers.get("origin"))) return json(req, { error: "Origem não permitida." }, 403);
   // Loja em manutenção até o secret STORE_OPEN ser "true".
-  if (Deno.env.get("STORE_OPEN") !== "true") return json({ error: "Loja em manutenção. Fale com um consultor pelo WhatsApp." }, 503);
+  if (Deno.env.get("STORE_OPEN") !== "true") return json(req, { error: "Loja em manutenção. Fale com um consultor pelo WhatsApp." }, 503);
+
+  // Limites: 10 tentativas por visitante a cada 10 min e um teto geral contra ataque distribuído.
+  const visitor = await clientKey(req);
+  if (!(await rateLimit(db, `checkout:${visitor}`, 600, 10)) || !(await rateLimit(db, "checkout:all", 600, 300))) {
+    return json(req, { error: "Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo." }, 429);
+  }
 
   try {
-    const body = await req.json();
+    const body = await readJson(req, 16_384);
+
+    // ---------- Cliente ----------
+    const c = body.customer ?? {};
     const customer = {
-      name: str(body.customer?.name), email: str(body.customer?.email).toLowerCase(),
-      phone: str(body.customer?.phone, 30), cpf: str(body.customer?.cpf, 14).replace(/\D/g, ""),
+      name: str(c.name, 120).replace(/\s+/g, " "),
+      email: str(c.email, 254).toLowerCase(),
+      phone: str(c.phone, 30).replace(/\D/g, ""),
+      cpf: str(c.cpf, 14).replace(/\D/g, ""),
     };
-    if (!customer.name || !/^\S+@\S+\.\S+$/.test(customer.email) || customer.cpf.length !== 11)
-      return json({ error: "Confira nome, e-mail e CPF." }, 400);
+    if (customer.name.length < 3 || !NAME.test(customer.name)) throw new UserError("Confira o nome completo.");
+    if (!EMAIL.test(customer.email)) throw new UserError("Confira o e-mail.");
+    // Celular com DDD (10 ou 11 dígitos). O +55 digitado é removido, porque o Asaas não aceita o código do país.
+    if (customer.phone.length > 11 && customer.phone.startsWith("55")) customer.phone = customer.phone.slice(2);
+    if (customer.phone.length < 10 || customer.phone.length > 11) throw new UserError("Confira o WhatsApp com DDD.");
+    if (!validCpf(customer.cpf)) throw new UserError("Confira o CPF.");
 
-    const items: { slug: string; qty: number; variant?: string }[] = Array.isArray(body.items) ? body.items : [];
-    if (!items.length || items.length > 20) return json({ error: "Carrinho vazio." }, 400);
+    // ---------- Entrega (só os campos esperados, nada além) ----------
+    const s = body.shipping ?? {};
+    const shipping = {
+      cep: str(s.cep, 9).replace(/\D/g, ""),
+      street: str(s.street, 120),
+      number: str(s.number, 20),
+      complement: str(s.complement, 80),
+      district: str(s.district, 80),
+      city: str(s.city, 80),
+      state: str(s.state, 2).toUpperCase(),
+    };
+    if (shipping.cep.length !== 8 || !shipping.street || !shipping.number || !shipping.district || !shipping.city || !UFS.has(shipping.state)) {
+      throw new UserError("Confira o endereço de entrega.");
+    }
 
-    const { data: products } = await db
+    // ---------- Itens ----------
+    if (!Array.isArray(body.items) || !body.items.length || body.items.length > 20) throw new UserError("Carrinho vazio.");
+    const items = body.items.map((i: Record<string, unknown>) => {
+      const slug = str(i?.slug, 60);
+      const qty = Number(i?.qty);
+      if (!SLUG.test(slug) || !Number.isInteger(qty) || qty < 1 || qty > 10) throw new UserError("Confira os itens da sacola.");
+      return { slug, qty, variant: i?.variant };
+    });
+
+    const { data: products, error: productsError } = await db
       .from("products")
       .select("id, slug, name, price_cents, stock, commission_pct")
-      .in("slug", items.map((i) => str(i.slug)))
+      .in("slug", [...new Set(items.map((i) => i.slug))])
       .eq("active", true)
       .not("price_cents", "is", null);
+    if (productsError) throw productsError;
 
     const lines = items.map((i) => {
       const p = products?.find((x) => x.slug === i.slug);
-      const qty = Number(i.qty);
-      if (!p || !Number.isInteger(qty) || qty < 1 || qty > 10) throw new Error(`Produto indisponível: ${str(i.slug, 60)}`);
-      if (p.stock !== null && p.stock < qty) throw new Error(`Sem estoque: ${p.name}`);
-      // Acabamento escolhido na loja (ex.: "Preto"). Só texto curto; não altera preço.
-      const variant = str(i.variant, 30).replace(/[^\p{L}\p{N} -]/gu, "");
-      return { p, qty, variant };
+      if (!p) throw new UserError("Um dos produtos da sacola não está mais disponível.");
+      const { label, surcharge } = readVariant(p.slug, i.variant);
+      return { p, qty: i.qty, variant: label, unit: p.price_cents + surcharge };
     });
-    const subtotal = lines.reduce((s, l) => s + l.p.price_cents * l.qty, 0);
+    // Estoque conferido pela soma do produto (o mesmo modelo em duas cores conta junto).
+    const perProduct = new Map<string, number>();
+    for (const l of lines) perProduct.set(l.p.id, (perProduct.get(l.p.id) ?? 0) + l.qty);
+    for (const l of lines) {
+      if (l.p.stock !== null && l.p.stock < perProduct.get(l.p.id)!) throw new UserError(`Sem estoque suficiente: ${l.p.name}`);
+    }
+    const subtotal = lines.reduce((sum, l) => sum + l.unit * l.qty, 0);
 
-    // Afiliado: cupom tem prioridade; senão o ?ref= do navegador. Auto-indicação é ignorada.
+    // ---------- Afiliado: cupom tem prioridade; senão o ?ref= do navegador. Auto-indicação é ignorada. ----------
     let affiliate: { id: string; email: string; commission_pct: number } | null = null;
     let couponId: string | null = null;
     let discountPct = 0;
 
     const couponCode = str(body.coupon, 40).toLowerCase();
     if (couponCode) {
-      const { data: c } = await db.from("coupons").select("id, affiliate_id, discount_pct").ilike("code", couponCode).eq("active", true).maybeSingle();
-      if (!c) return json({ error: "Cupom inválido." }, 400);
-      couponId = c.id;
-      discountPct = Number(c.discount_pct);
-      if (c.affiliate_id) {
-        const { data } = await db.from("affiliates").select("id, email, commission_pct").eq("id", c.affiliate_id).eq("status", "active").maybeSingle();
+      // Tentativas de cupom têm limite próprio: impede testar códigos em sequência.
+      if (!(await rateLimit(db, `coupon:${visitor}`, 3600, 15))) throw new UserError("Muitas tentativas de cupom. Tente mais tarde.", 429);
+      if (!CODE.test(couponCode)) throw new UserError("Cupom inválido.");
+      const { data: cp } = await db.from("coupons").select("id, affiliate_id, discount_pct").ilike("code", exact(couponCode)).eq("active", true).maybeSingle();
+      if (!cp) throw new UserError("Cupom inválido.");
+      couponId = cp.id;
+      discountPct = Math.min(Math.max(Number(cp.discount_pct) || 0, 0), 100);
+      if (cp.affiliate_id) {
+        const { data } = await db.from("affiliates").select("id, email, commission_pct").eq("id", cp.affiliate_id).eq("status", "active").maybeSingle();
         affiliate = data;
       }
     }
     const ref = str(body.affiliateRef, 30).toLowerCase();
-    if (!affiliate && ref) {
+    if (!affiliate && /^[a-z0-9_-]{3,30}$/.test(ref)) {
       const { data } = await db.from("affiliates").select("id, email, commission_pct").eq("code", ref).eq("status", "active").maybeSingle();
       affiliate = data;
     }
@@ -97,18 +185,23 @@ Deno.serve(async (req) => {
 
     const discount = Math.round((subtotal * discountPct) / 100);
     const total = subtotal - discount + SHIPPING_CENTS;
+    if (total <= 0) throw new UserError("Não foi possível calcular o total do pedido.");
 
     const { data: order, error } = await db.from("orders").insert({
       customer_name: customer.name, customer_email: customer.email, customer_phone: customer.phone, customer_cpf: customer.cpf,
-      shipping: Object.fromEntries(Object.entries(body.shipping ?? {}).map(([k, v]) => [k, str(v, 120)])),
+      shipping,
       subtotal_cents: subtotal, discount_cents: discount, shipping_cents: SHIPPING_CENTS, total_cents: total,
       affiliate_id: affiliate?.id ?? null, coupon_id: couponId,
     }).select("id, number").single();
-    if (error || !order) throw new Error("Falha ao criar o pedido.");
+    if (error || !order) throw error ?? new Error("orders insert sem retorno");
 
-    await db.from("order_items").insert(lines.map((l) => ({
-      order_id: order.id, product_id: l.p.id, name: l.variant ? `${l.p.name} · ${l.variant}` : l.p.name, unit_cents: l.p.price_cents, quantity: l.qty,
+    const { error: itemsError } = await db.from("order_items").insert(lines.map((l) => ({
+      order_id: order.id, product_id: l.p.id, name: l.variant ? `${l.p.name} · ${l.variant}` : l.p.name, unit_cents: l.unit, quantity: l.qty,
     })));
+    if (itemsError) {
+      await db.from("orders").update({ status: "cancelled" }).eq("id", order.id);
+      throw itemsError;
+    }
 
     // Uma cobrança só, com o total final (já com desconto e frete), evita divergência de centavos.
     // billingType UNDEFINED deixa o cliente escolher Pix, cartão ou boleto na fatura.
@@ -132,13 +225,16 @@ Deno.serve(async (req) => {
       })
       : null;
     if (!pay?.ok || !pay.data?.invoiceUrl) {
-      if (pay) console.error("Asaas recusou a cobrança", pay.status, JSON.stringify(pay.data));
+      if (pay) console.error("Asaas recusou a cobrança", pay.status, JSON.stringify(pay.data?.errors ?? null));
       await db.from("orders").update({ status: "cancelled" }).eq("id", order.id);
-      throw new Error("Não foi possível iniciar o pagamento.");
+      throw new UserError("Não foi possível iniciar o pagamento. Confira seus dados ou fale com um consultor.", 502);
     }
     await db.from("orders").update({ payment_id: pay.data.id }).eq("id", order.id);
-    return json({ url: pay.data.invoiceUrl, orderNumber: order.number });
+    return json(req, { url: pay.data.invoiceUrl, orderNumber: order.number });
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : "Erro inesperado." }, 400);
+    if (e instanceof UserError) return json(req, { error: e.message }, e.status);
+    // Detalhe técnico só no log da função; o cliente recebe uma mensagem genérica.
+    console.error("[create-checkout] erro inesperado:", e instanceof Error ? e.message : e);
+    return json(req, { error: "Não foi possível iniciar o pagamento. Tente novamente." }, 500);
   }
 });

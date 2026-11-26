@@ -3,6 +3,7 @@
 // Idempotente (o Asaas reenvia eventos). Sempre responde 200 para coisas que não vamos processar,
 // porque erros seguidos pausam a fila de webhooks no Asaas.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { safeEqual } from "../_shared/security.ts";
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const ASAAS_KEY = Deno.env.get("ASAAS_API_KEY")!;
@@ -17,10 +18,13 @@ const REVERSED = new Set(["REFUNDED", "CHARGEBACK_REQUESTED", "CHARGEBACK_DISPUT
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("ignored", { status: 200 });
-  if (!WEBHOOK_TOKEN || req.headers.get("asaas-access-token") !== WEBHOOK_TOKEN) {
+  // Comparação em tempo constante: não dá para descobrir o token caractere por caractere.
+  if (!WEBHOOK_TOKEN || !safeEqual(req.headers.get("asaas-access-token") ?? "", WEBHOOK_TOKEN)) {
     return new Response("unauthorized", { status: 401 });
   }
 
+  // Evento do Asaas é pequeno; corpo grande demais é descartado sem processar.
+  if (Number(req.headers.get("content-length") ?? 0) > 65_536) return new Response("ignored", { status: 200 });
   const b = await req.json().catch(() => null);
   const paymentId = String(b?.payment?.id ?? "");
   if (!/^pay_[A-Za-z0-9]+$/.test(paymentId)) return new Response("ignored", { status: 200 });

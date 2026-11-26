@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronRight, CreditCard, MessageCircle, ShieldCheck, Truck } from "lucide-react";
 import { addToCart, useCartCount } from "@/lib/cart";
 import { formatBRL, isPurchasable, type Product } from "@/lib/catalog";
-import { galleryFor, ionCenterProducts, type Finish, type IonCenterModel } from "@/lib/ion-center";
+import { FAUCETS, galleryFor, ionCenterProducts, unitPriceCents, variantOf, type Faucet, type Finish, type GalleryImage, type IonCenterModel } from "@/lib/ion-center";
 
 const SWATCH: Record<Finish, string> = {
   Branco: "border border-hairline bg-white",
@@ -23,6 +23,12 @@ export const lowestPrice = (products: Product[] | null, slugs = ionCenterProduct
  * Configurador de compra da linha Ion Center: modelo → acabamento → sacola.
  * Modelos sem preço no catálogo viram pedido de orçamento com o consultor.
  */
+/** Foto de cada torneira opcional. O Básico não tem foto própria. */
+const FAUCET_SHOTS: Partial<Record<Faucet, GalleryImage>> = {
+  Faucet: { base: "faucet-quad", alt: "Torneira Faucet cromada sobre a bancada", fit: "cover" },
+  Gourmet: { base: "gourmet-quad", alt: "Torneira Gourmet preta de bica alta sobre a pia", fit: "cover" },
+};
+
 export default function IonCenterBuy({
   products,
   slug,
@@ -38,15 +44,18 @@ export default function IonCenterBuy({
 }) {
   const model: IonCenterModel = ionCenterProducts.find((m) => m.slug === slug) ?? ionCenterProducts[0];
   const [finish, setFinish] = useState<Finish>(model.finishes[0]);
+  const [faucet, setFaucet] = useState<Faucet>("Básico");
   const [imageIndex, setImageIndex] = useState(0);
   const [justAdded, setJustAdded] = useState(false);
   const cartCount = useCartCount();
 
   const product = products?.find((p) => p.slug === model.slug);
   const purchasable = isPurchasable(product);
-  const gallery = galleryFor(model, finish);
+  // A torneira escolhida (Faucet ou Gourmet) entra no fim da galeria e vira a foto principal ao ser selecionada.
+  const faucetShot = FAUCET_SHOTS[faucet];
+  const gallery = faucetShot ? [...galleryFor(model, finish), faucetShot] : galleryFor(model, finish);
   const image = gallery[Math.min(imageIndex, gallery.length - 1)];
-  const label = `${model.name} · ${finish}`;
+  const label = `${model.name} · ${finish} · Torneira ${faucet}`;
 
   useEffect(() => {
     if (!model.finishes.includes(finish)) setFinish(model.finishes[0]);
@@ -54,6 +63,18 @@ export default function IonCenterBuy({
   }, [model.slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => setImageIndex(0), [finish]);
+
+  // Mantém a miniatura ativa visível na fila (rola só a fila, nunca a página).
+  const thumbsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const row = thumbsRef.current;
+    const thumb = row?.children[imageIndex] as HTMLElement | undefined;
+    if (!row || !thumb) return;
+    const left = thumb.offsetLeft - row.offsetLeft;
+    if (left < row.scrollLeft || left + thumb.offsetWidth > row.scrollLeft + row.clientWidth) {
+      row.scrollTo({ left: left - (row.clientWidth - thumb.offsetWidth) / 2, behavior: "smooth" });
+    }
+  }, [imageIndex]);
 
   useEffect(() => {
     if (!justAdded) return;
@@ -63,7 +84,7 @@ export default function IonCenterBuy({
 
   const handlePrimary = () => {
     if (purchasable) {
-      addToCart(model.slug, 1, finish);
+      addToCart(model.slug, 1, variantOf(finish, faucet));
       setJustAdded(true);
     } else {
       onConsult(label);
@@ -97,7 +118,7 @@ export default function IonCenterBuy({
         </div>
 
         {gallery.length > 1 && (
-          <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1" role="tablist" aria-label="Fotos do produto">
+          <div ref={thumbsRef} className="mt-3 flex gap-2.5 overflow-x-auto pb-1" role="tablist" aria-label="Fotos do produto">
             {gallery.map((g, i) => (
               <button
                 type="button"
@@ -124,8 +145,7 @@ export default function IonCenterBuy({
 
       {/* Configuração */}
       <div className="text-obsidian">
-        <p className="t-small font-semibold text-signal-ink">{purchasable ? "Disponível para compra" : "Sob orçamento"}</p>
-        <h3 className="t-headline-lg mt-1">{model.name}</h3>
+        <h3 className="t-headline-lg">{model.name}</h3>
         <p className="t-body mt-3 text-pewter">{model.description}</p>
 
         {showModelPicker && (
@@ -188,12 +208,47 @@ export default function IonCenterBuy({
           </div>
         </fieldset>
 
+        <fieldset className="mt-10">
+          <legend className="t-title">
+            Torneira. <span className="text-pewter">Escolha a saída de água.</span>
+          </legend>
+          <div className="mt-4 grid grid-cols-3 gap-2.5" role="radiogroup" aria-label="Torneira">
+            {FAUCETS.map((t) => {
+              const selected = t === faucet;
+              return (
+                <button
+                  type="button"
+                  key={t}
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => {
+                    setFaucet(t);
+                    const base = galleryFor(model, finish).length;
+                    setImageIndex(FAUCET_SHOTS[t] ? base : 0);
+                  }}
+                  className={`flex cursor-pointer items-center justify-center rounded-[16px] bg-white px-3 py-4 text-center transition-shadow ${
+                    selected ? "ring-2 ring-action" : "ring-1 ring-hairline hover:ring-pewter"
+                  }`}
+                >
+                  <span className="text-[1.0625rem] font-semibold tracking-[-0.012em]">{t}</span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
         {/* Resumo e ação */}
         <div className="mt-10 rounded-[22px] bg-white p-6 md:p-7">
           <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
             <p className="t-small text-pewter">{label}</p>
             <p className="text-[1.75rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums]">
-              {products ? priceText(product) : <span className="inline-block h-7 w-28 animate-pulse rounded-lg bg-frost align-middle" />}
+              {!products ? (
+                <span className="inline-block h-7 w-28 animate-pulse rounded-lg bg-frost align-middle" />
+              ) : purchasable ? (
+                formatBRL(unitPriceCents(product.priceCents, variantOf(finish, faucet)))
+              ) : (
+                priceText(product)
+              )}
             </p>
           </div>
           <p className="t-small mt-3 text-pewter">
